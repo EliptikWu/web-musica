@@ -1,6 +1,6 @@
 import type { CodigoError, CuerpoEvento, EventoBar, Franja, ListaCasaDetalle, TipoAccion } from '@rockola/contrato';
 import { validarFranjas } from '../lib/reglas/horario';
-import { bloqueoVigente, cancion, normalizar, type Personal, type Resultado, tocar } from './motor';
+import { bloqueoVigente, cancion, normalizar, type Personal, recientesPrimero, type Resultado, tocar } from './motor';
 import type { AccionSim, EstadoSim, ListaSim, UsuarioSim } from './tipos';
 
 /**
@@ -255,11 +255,12 @@ const POR_PAGINA = 25;
 export function bitacora(estado: EstadoSim, filtros: { desde?: string | null; hasta?: string | null; usuario?: string | null; tipo?: string | null; cursor?: string | null }) {
   const desde = filtros.desde ? Date.parse(filtros.desde) : -Infinity;
   const hasta = filtros.hasta ? Date.parse(filtros.hasta) : Infinity;
-  const todas = estado.acciones
-    .filter((a) => a.fecha >= desde && a.fecha <= hasta)
-    .filter((a) => !filtros.usuario || (filtros.usuario === 'sistema' ? a.usuario === null : a.usuario?.id === filtros.usuario))
-    .filter((a) => !filtros.tipo || a.tipo === filtros.tipo)
-    .sort((a, b) => b.fecha - a.fecha || b.id.localeCompare(a.id));
+  const todas = recientesPrimero(
+    estado.acciones
+      .filter((a) => a.fecha >= desde && a.fecha <= hasta)
+      .filter((a) => !filtros.usuario || (filtros.usuario === 'sistema' ? a.usuario === null : a.usuario?.id === filtros.usuario))
+      .filter((a) => !filtros.tipo || a.tipo === filtros.tipo),
+  );
   const inicio = filtros.cursor ? Math.max(0, Number(filtros.cursor)) : 0;
   const pagina = todas.slice(inicio, inicio + POR_PAGINA);
   return { acciones: pagina.map((a) => ({ ...a, fecha: iso(a.fecha) })), siguiente: inicio + POR_PAGINA < todas.length ? String(inicio + POR_PAGINA) : null };

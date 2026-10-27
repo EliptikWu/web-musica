@@ -29,6 +29,54 @@ export function formatoDuracion(segundos: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`;
 }
 
+/** Partes de la fecha y hora de pared de un instante en una zona. */
+function partesEn(instante: number, zona: string) {
+  return Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', { timeZone: zona, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date(instante))
+      .map((x) => [x.type, x.value]),
+  ) as Record<'year' | 'month' | 'day' | 'hour' | 'minute' | 'second', string>;
+}
+
+/** Desfase de la zona respecto a UTC en un instante, en minutos (Bogotá: −300). */
+function desfaseMin(instante: number, zona: string): number {
+  const p = partesEn(instante, zona);
+  return Math.round((Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - instante) / 60000);
+}
+
+/**
+ * Una fecha y hora de pared en la zona del bar, como la da un input (`2026-10-30T20:00`), a ISO
+ * con su desfase (`2026-10-30T20:00:00-05:00`). Sirve en zonas con horario de verano.
+ */
+export function localAIso(local: string, zona = ZONA_POR_DEFECTO): string {
+  const [fecha, hora = '00:00'] = local.split('T');
+  const conSegundos = hora.length === 5 ? `${hora}:00` : hora;
+  const comoUtc = Date.parse(`${fecha}T${conSegundos}Z`);
+  // Dos pasadas: el desfase del instante buscado puede no ser el de la primera aproximación.
+  const desfase = desfaseMin(comoUtc - desfaseMin(comoUtc, zona) * 60000, zona);
+  const abs = Math.abs(desfase);
+  return `${fecha}T${conSegundos}${desfase < 0 ? '-' : '+'}${String(Math.floor(abs / 60)).padStart(2, '0')}:${String(abs % 60).padStart(2, '0')}`;
+}
+
+/** Al revés: un ISO a la fecha y hora de pared de la zona, para un input `datetime-local`. */
+export function isoALocal(iso: string, zona = ZONA_POR_DEFECTO): string {
+  const p = partesEn(Date.parse(iso), zona);
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
+/** Lo que dura una lista entera: «30 min», «3 h 28 min», «2 h». */
+export function formatoTiempoTotal(segundos: number): string {
+  const minutos = minutosEnteros(segundos);
+  if (minutos < 1) return 'menos de 1 min';
+  const h = Math.floor(minutos / 60);
+  const m = minutos % 60;
+  if (h === 0) return `${m} min`;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
+/** «1 canción», «42 canciones». */
+export const contarCanciones = (n: number) => (n === 1 ? '1 canción' : `${n} canciones`);
+
 /** Minutos enteros hacia abajo: 14:30 de espera es «unos 14 min», no 15 (doc 05). */
 export function minutosEnteros(segundos: number): number {
   return Math.floor(Math.max(0, segundos) / 60);
@@ -135,4 +183,10 @@ export function resumenHorario(franjas: readonly FranjaResumible[]): { dias: str
 /** Cierra una frase con punto, sin duplicarlo cuando ya termina en «p. m.» o «a. m.». */
 export function conPunto(frase: string): string {
   return frase.endsWith('.') ? frase : `${frase}.`;
+}
+
+/** «22 de oct, 10:45 p. m.» en la zona del bar. Para cerrar una frase, envuélvelo en `conPunto`. */
+export function fechaYHora(fecha: Date | string | number, zona = ZONA_POR_DEFECTO): string {
+  const dia = new Date(fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', timeZone: zona }).replace(/\.$/, '');
+  return `${dia}, ${formatoHora(fecha, zona)}`;
 }

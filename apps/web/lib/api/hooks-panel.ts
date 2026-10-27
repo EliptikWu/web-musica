@@ -68,3 +68,17 @@ export function useSalir() {
     onSuccess: () => window.location.assign('/panel/entrar'),
   });
 }
+
+/**
+ * Una acción de gestión: invalida justo lo que cambia (y la noche, que resume parte de ello).
+ * El tiempo real lo confirma a las demás pantallas abiertas.
+ */
+export function useAccionGestion<N extends NombreEndpoint>(nombre: N, invalidar: readonly (readonly string[])[]) {
+  const qc = useQueryClient();
+  return useMutation<Respuesta<N>, unknown, OpcionesPedido<N>>({
+    mutationFn: (opciones) => (pedir as (n: N, o: OpcionesPedido<N>) => Promise<Respuesta<N>>)(nombre, opciones),
+    // Se espera la recarga: la acción sigue «ocupada» hasta que se ven los datos nuevos, y los
+    // `onSuccess` de quien la llama ya encuentran la pantalla al día (p. ej., para mover el foco).
+    onSettled: () => Promise.all([...invalidar, claves.panel.noche].map((clave) => qc.invalidateQueries({ queryKey: clave }))),
+  });
+}

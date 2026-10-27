@@ -47,6 +47,7 @@ paletas por defecto: una clase como `bg-blue-500` no existe.
 | `--madera` | `#3A2218` | Superficies, pie |
 | `--madera-clara` | `#4A2C1F` | Parte alta del pie, cajas del panel |
 | `--borde` | `rgba(244,231,203,.14)` | Filetes sobre madera |
+| `--hueco` | `rgba(0,0,0,.22)` | Fondo hundido en la madera: pestañas, días del horario, etiquetas |
 | `--crema` (= `--papel`) | `#F4E7CB` | Texto sobre madera; papel de tarjetas y ventanas |
 | `--crema-2` | `rgba(244,231,203,.72)` | Texto secundario sobre madera |
 | `--papel-apagado` | `#CDBFA6` | Tarjeta apagada (no pedible, bloqueada) |
@@ -109,7 +110,7 @@ Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 
 | Componente | Variantes / estados | Accesibilidad |
 |---|---|---|
-| `Tecla` | `normal`, `hundida` (Votaste, no interactiva), `cereza` (principal), `tuya` (no interactiva), tamaños `grande`, `chica`; estado `ocupada` (envío en curso) | `<button>` o `<a>`; la hundida y la tuya son texto con `aria-label` claro; ≥ 44 px |
+| `Tecla` | `normal`, `hundida` (Votaste, no interactiva), `cereza` (principal), `tuya` (no interactiva), tamaños `grande`, `chica`; estados `ocupada` (envío en curso) y desactivada (hundida y sin brillo, p. ej. «Subir» en la primera canción) | `<button>` o `<a>`; la hundida y la tuya son texto con `aria-label` claro; ≥ 44 px |
 | `TarjetaTitulo` | `normal`, `tuya`, `apagada`, `resultado` (con duración, sin puesto); partes: puesto, miniatura, título, artista, votos o duración, subida (↑N) | El título y el artista se leen en orden; la subida dice «subió 2 puestos» |
 | `Arco` + `Ventana` | encendido, apagado; forma `movil` y `tv` | `<section aria-label="Suena ahora">` |
 | `Fichas` | N libres de M | Siempre acompañadas del texto «Te quedan N de M pedidos» |
@@ -126,6 +127,8 @@ Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 | `EstadoVacio`, `Esqueleto`, `Reintentar` | Vacío, cargando, error | El esqueleto no se anuncia; el error sí |
 | `PlacaQr` | Placa cromada con el QR | El QR lleva texto alternativo con el enlace |
 | `Icono` | Dibujados a mano, 24 × 24, trazo 1,9, puntas redondas | Decorativos con `aria-hidden`; con función, con nombre |
+| Pestañas del panel (`.panel-subnav`) | Una por sección que el rol puede abrir; la actual en relieve, como la tecla de papel | `<nav aria-label>` con `aria-current="page"`; en el teléfono se desplazan de lado y la actual queda a la vista |
+| `Etiqueta` (`.etiqueta`) | Rótulo pequeño sobre madera («Administrador», «Karaoke», «Clave temporal») | Texto, nunca solo color |
 
 La galería de todos está en `/muestras` (solo en modo simulado).
 
@@ -150,7 +153,7 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 |---|---|
 | Cliente | Se diseña a 360 px. Una columna de `100dvh`; el pie (mini reproductor + pestañas) queda fijo abajo con `safe-area-inset-bottom` y el contenido se desplaza por encima. Desde 768 px, la columna se centra (máx. 30rem) sobre la madera, como el mueble de la rockola. |
 | Pantalla del bar | Lienzo 16:9 que escala completo con `--u = min(100vw/1280, 100dvh/720)`: toda medida es `calc(n * var(--u))` con los valores del prototipo. En otras proporciones queda centrado con madera alrededor. Se revisa a 1280 × 720, 1920 × 1080 y 3840 × 2160. |
-| Panel | ≥ 1280 px: dos columnas como el prototipo. 768–1279: una columna. < 768: menú plegable, teclas a todo el ancho y las tablas pasan a tarjetas (`@container`). El Operador lo usa desde el teléfono. |
+| Panel | ≥ 1280 px: dos columnas como el prototipo. 768–1279: una columna. < 768: las pestañas de secciones se desplazan de lado, teclas a todo el ancho y las tablas pasan a tarjetas (`@container`). En el editor de listas, por debajo de 520 px las flechas bajan a su propia línea. El Operador lo usa desde el teléfono. |
 
 ## Accesibilidad
 
@@ -215,3 +218,10 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | 2026-10-26 | Panel | El Operador no ve Modo mantenimiento, Desbloquear ni la duración del bloqueo (D9) | RF-022 |
 | 2026-10-26 | Panel | Por debajo de 1280 px una columna; en caja angosta la cola pasa a tarjetas y las teclas se reparten el ancho | El Operador lo usa desde el teléfono |
 | 2026-10-26 | Panel | La bitácora habla en segunda persona de lo propio, en tercera de lo ajeno y en impersonal de lo del sistema | Que nadie lea como suya una acción que no hizo |
+| 2026-10-26 | Gestión | Pantallas nuevas en el sistema Rockola (horario, listas y su editor, bloqueos, bitácora, personal, bar y QR, eventos, manual) con un mismo armazón: título en placa, una frase de qué es, la acción principal en cereza y cajas de madera | RF-023 a RF-036, RF-043 a RF-045 |
+| 2026-10-26 | Panel | Las secciones son pestañas como las del teléfono, solo las que el rol puede abrir; quien entra por URL a una ajena ve «Esta sección es del Administrador» y la pantalla no pide nada | D9; el barrido encontró un bucle de 403 |
+| 2026-10-26 | Editor de listas | Reordenar con flechas (Subir/Bajar), no arrastrando; el foco sigue a la canción y un anuncio dice su puesto nuevo | Teclado y lector de pantalla (WCAG 2.1.1, 4.1.3); arrastrar no es accesible sin alternativa |
+| 2026-10-26 | Horario | Un tramo por día con interruptor; los que se pisan se marcan en la fila; debajo, el resumen en palabras («Jueves a sábado, 8:00 p. m. a 2:00 a. m.») | RF-036; el tramo que cruza medianoche es del día en que empieza |
+| 2026-10-26 | Bar y QR | Las ayudas en palabras del bar (sin códigos de regla) y las zonas horarias por país | La crítica de diseño: «RN-01» no le dice nada al personal |
+| 2026-10-26 | Personal | La clave temporal se muestra una sola vez, en un diálogo propio, con la advertencia | RF-023: nunca se ven claves después |
+| 2026-10-26 | Manual | Ilustrado con capturas reales del panel, generadas por script (`npm run capturas -w @rockola/web`) | RNF-016: el manual no se desactualiza a mano |

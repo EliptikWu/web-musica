@@ -28,7 +28,7 @@ Comandos (desde la raíz):
 | Todo lo que correría el CI | `npm run check` (o `npm run check -- --sin-e2e`) |
 | Una parte | `npm run lint\|typecheck\|test\|build\|e2e -w @rockola/web` |
 | Regenerar el contrato para el backend | `npm run generar` (el chequeo falla si `packages/contrato/generado/` no está al día) |
-| Capturas de revisión | `npm run capturas -w @rockola/web` → `apps/web/capturas/` |
+| Imágenes del manual de uso | `npm run capturas -w @rockola/web` → `apps/web/public/manual/` (rehacerlas si cambia una pantalla que el manual muestra) |
 | Texto de los documentos fuente | `python -I scripts/extraer-fuentes.py` |
 
 - Las pruebas de extremo a extremo usan el Edge instalado y la app ya compilada

@@ -96,6 +96,14 @@ function accion(estado: EstadoSim, ahora: number, usuario: { id: string; nombre:
   estado.acciones.push({ id: nuevoId(estado, 'a'), fecha: ahora, usuario, tipo, objetivo, detalle });
 }
 
+/**
+ * Las acciones de la más nueva a la más vieja. Se guardan en el orden en que pasaron, así que
+ * dos con la misma hora (el reloj quieto de la simulación) quedan con la última arriba.
+ */
+export function recientesPrimero(acciones: readonly AccionSim[]): AccionSim[] {
+  return [...acciones].reverse().sort((a, b) => b.fecha - a.fecha);
+}
+
 const objetivoCancion = (c: CancionSim): AccionSim['objetivo'] => ({ tipo: 'cancion', nombre: c.titulo, detalle: c.artista });
 
 // ── Servicio y sesión (RF-003, RF-036 a RF-039, RN-09, RN-10) ────────────────
@@ -673,9 +681,7 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
       votos: m.votos,
       espera_promedio_seg: m.espera_n > 0 ? Math.round(m.espera_seg_suma / m.espera_n) : null,
     },
-    registro: estado.acciones
-      .filter((a) => a.fecha >= inicioNoche)
-      .sort((a, b) => b.fecha - a.fecha)
+    registro: recientesPrimero(estado.acciones.filter((a) => a.fecha >= inicioNoche))
       .slice(0, 20)
       .map((a) => ({ ...a, fecha: iso(a.fecha) })),
     horario: estado.horario,

@@ -163,7 +163,7 @@ emparejada desde el panel), para que un cliente no pueda reportar «fin» y salt
 | `tipo` | Contenido | Cuándo |
 |---|---|---|
 | `ahora` | La foto `Ahora` completa (con `version`) | Cualquier cambio en la cola, los votos, lo que suena o el servicio |
-| `panel` | `{ recursos: [...] }` (`noche`, `bitacora`, `bloqueos`, `listas`…) | Cambió algo del panel; el panel vuelve a pedir esos recursos. Sin datos privados |
+| `panel` | `{ recursos: [...] }` (`noche`, `yo`, `bitacora`, `bloqueos`, `listas`, `horario`, `usuarios`, `establecimiento`, `eventos`) | Cambió algo del panel; el panel vuelve a pedir **solo** esos recursos. Nombra únicamente los que cambiaron: un voto no hace recargar el personal, y un 403 (que deja rastro en la bitácora) no hace volver a pedir lo rechazado. `yo` cambia con el nombre o la zona del bar y con los datos o el rol de quien mira. Sin datos privados |
 | `ping` | `{ servidor_ahora }` | Cada 15 s, para detectar la desconexión |
 
 Al abrir la conexión, el servidor manda **primero una foto `ahora`**: el cliente solo se

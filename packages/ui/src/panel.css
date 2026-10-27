@@ -156,7 +156,8 @@
 
   /* ── Diálogo (AÑADIDO): una caja de madera sobre la penumbra ─────────────── */
   .dialogo {
-    width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0;
+    /* El reset de Tailwind quita el `margin: auto` con que el navegador centra un <dialog>. */
+    margin: auto; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0;
     border: 0; border-radius: var(--radio-marco); color: var(--crema);
     background: linear-gradient(180deg, var(--madera-clara), var(--madera));
     box-shadow: inset 0 0 0 1px var(--borde), 0 30px 60px -20px rgba(0, 0, 0, .8);
@@ -171,4 +172,86 @@
     .dialogo { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: var(--radio-marco) var(--radio-marco) 0 0; }
     .dialogo__acciones .tecla { flex: 1; }
   }
+}
+
+/* ── Gestión (AÑADIDO, iteración 4) ──────────────────────────────────────────── */
+@layer components {
+  /* Navegación secundaria: pestañas como las del teléfono (la actual, en relieve). */
+  .panel-subnav { display: flex; gap: 8px; margin-top: 12px; padding: 4px 2px 6px; overflow-x: auto; scrollbar-width: thin; }
+  .panel-subnav a {
+    flex: none; display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 14px;
+    border-radius: var(--radio-dia); font-size: 14px; font-weight: 600; color: var(--crema-2); text-decoration: none;
+    background: var(--hueco); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+  }
+  .panel-subnav a svg { width: 18px; height: 18px; }
+  .panel-subnav a:hover { color: var(--crema); }
+  .panel-subnav a[aria-current="page"] {
+    color: var(--tinta); background: var(--tecla-cara);
+    box-shadow: 0 3px 0 var(--tecla-canto), inset 0 1px 0 rgba(255, 255, 255, .8);
+    transform: translateY(-2px);
+  }
+
+  .gestion-cabeza { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 18px; }
+  .gestion-cabeza h1 { font-size: 24px; }
+  .gestion-cabeza p { margin-top: 4px; font-size: 15px; color: var(--crema-2); max-width: 60ch; }
+  .gestion-rejilla { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
+  @media (min-width: 1100px) { .gestion-rejilla--dos { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; } }
+
+  /* Filas de gestión: texto a la izquierda, teclas a la derecha, separadas por guiones. */
+  .lista-gestion { list-style: none; margin: 0; padding: 0; }
+  .lista-gestion > li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 0; border-top: 1px dashed var(--borde); }
+  .lista-gestion > li:first-child { border-top: 0; padding-top: 0; }
+  .lista-gestion__info { flex: 1 1 220px; min-width: 0; }
+  .lista-gestion__titulo { font-size: 16px; font-weight: 700; }
+  .lista-gestion__meta { font-size: 14px; color: var(--crema-2); margin-top: 2px; overflow-wrap: anywhere; }
+  .lista-gestion__acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+  .etiqueta { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--radio-insignia); font-size: 12px; font-weight: 700; background: var(--hueco); color: var(--crema-2); vertical-align: 2px; margin-left: 6px; }
+  .etiqueta--luz { background: var(--ambar); color: var(--tinta); }
+  .etiqueta--cereza { background: var(--cereza); color: var(--crema); }
+
+  .formulario-fila { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .campo__entrada--hora { max-width: 9rem; }
+  select.campo__entrada { appearance: auto; }
+
+  /* Editor del horario: un día por fila. */
+  .horario-dias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .horario-dia { display: grid; grid-template-columns: 9rem 1fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radio-tecla); background: var(--hueco); }
+  .horario-dia__horas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .horario-dia__horas .campo { flex-direction: row; align-items: center; gap: 8px; }
+  .interruptor { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; cursor: pointer; }
+  .interruptor input { width: 22px; height: 22px; accent-color: var(--ambar); cursor: pointer; }
+  @media (max-width: 560px) { .horario-dia { grid-template-columns: 1fr; } }
+
+  /* Reordenar canciones: la fila de la lista lleva sus flechas. */
+  .orden-teclas { display: flex; gap: 6px; }
+  .orden-teclas .tecla { width: 44px; height: 44px; padding: 0; }
+  .orden-teclas .tecla svg { width: 22px; height: 22px; flex: none; stroke-width: 2.2; }
+  /* En el teléfono las teclas bajan a su propia línea: el título necesita todo el ancho. */
+  @media (max-width: 520px) {
+    .filas:has(.orden-teclas) { gap: 14px; }
+    .fila:has(> .orden-teclas) { flex-wrap: wrap; row-gap: 6px; }
+    .fila:has(> .orden-teclas) > .tarjeta { flex-basis: 100%; }
+    .fila > .orden-teclas { margin-left: auto; }
+  }
+
+  /* QR del bar, grande, en papel. */
+  .qr-grande { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .qr-grande__codigo { flex: none; width: 196px; height: 196px; padding: 12px; background: var(--qr-fondo); border-radius: var(--radio-tecla); box-shadow: 0 0 0 4px rgba(0, 0, 0, .25); }
+  .qr-grande__codigo svg { width: 100%; height: 100%; display: block; }
+  .qr-grande__url { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+
+  /* El manual: pasos numerados (sí son una secuencia) con su captura. */
+  .manual-seccion { scroll-margin-top: 16px; }
+  .manual-pasos { margin: 10px 0 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 1.5; }
+  .manual-pasos li::marker { font-weight: 800; color: var(--ambar-claro); }
+  .manual-figura { margin-top: 14px; }
+  .manual-figura img { width: 100%; height: auto; border-radius: var(--radio-tecla); box-shadow: inset 0 0 0 1px var(--borde), 0 10px 24px -14px rgba(0, 0, 0, .7); }
+  .manual-figura figcaption { margin-top: 6px; font-size: 13px; color: var(--crema-2); }
+}
+
+/* Impresión del QR (RF-035): papel blanco, sin madera ni navegación. */
+@media print {
+  .no-imprimir { display: none !important; }
+  .madera, html, body { background: var(--qr-fondo) !important; color: var(--tinta) !important; }
+  .madera::before { display: none !important; }
 }

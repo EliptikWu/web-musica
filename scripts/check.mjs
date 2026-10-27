@@ -47,7 +47,11 @@ for (const [nombre, comando, argumentos] of pasos) {
   const r =
     typeof comando === 'function'
       ? { status: comando() }
-      : spawnSync(comando, argumentos, { cwd: raiz, env, stdio: 'inherit', shell: process.platform === 'win32' });
+      : process.platform === 'win32'
+        ? // En Windows npm es un .cmd y necesita la consola. Los argumentos son fijos de este
+          // archivo (nada viene de fuera), así que se pasan ya unidos, como pide Node 24.
+          spawnSync([comando, ...argumentos].join(' '), { cwd: raiz, env, stdio: 'inherit', shell: true })
+        : spawnSync(comando, argumentos, { cwd: raiz, env, stdio: 'inherit' });
   if (r.status !== 0) {
     process.stdout.write(`\n✗ Falló: ${nombre}\n`);
     process.exit(r.status ?? 1);

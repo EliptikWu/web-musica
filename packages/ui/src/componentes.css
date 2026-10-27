@@ -157,6 +157,8 @@
   }
   /* AÑADIDO: enviando; no se puede volver a pulsar (RNF-008). */
   .tecla[aria-busy="true"] { cursor: progress; filter: saturate(.85); }
+  /* AÑADIDO: deshabilitada solo donde no hay a dónde ir (la flecha «subir» de la primera). */
+  .tecla:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: 0 1px 0 var(--tecla-canto); }
   .tecla--hundida {
     background: var(--tecla-cara-hundida);
     box-shadow: 0 1px 0 var(--tecla-canto), inset 0 3px 6px rgba(0, 0, 0, .3);
@@ -222,7 +224,7 @@
     height: 54px; border-radius: var(--radio-tecla);
     font-size: 12px; font-weight: 600; color: var(--crema-2);
     text-decoration: none;
-    background: rgba(0, 0, 0, .22);
+    background: var(--hueco);
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
     transition: transform var(--pulsar) ease-out;
   }
@@ -277,7 +279,7 @@
     height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;
     border-radius: var(--radio-dia);
     font-size: 14px; font-weight: 600; color: var(--crema-2);
-    background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+    background: var(--hueco); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
   }
   .dia--abre {
     color: var(--tinta); background: var(--tecla-cara);

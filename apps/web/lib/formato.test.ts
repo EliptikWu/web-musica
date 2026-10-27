@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatoDuracion, formatoHace, formatoHora, formatoHoraDelDia, formatoResumenCola, resumenHorario } from './formato';
+import { contarCanciones, formatoDuracion, formatoHace, formatoHora, formatoHoraDelDia, formatoResumenCola, formatoTiempoTotal, isoALocal, localAIso, resumenHorario } from './formato';
 
 const normal = (s: string) => s.replace(/[  ]/g, ' ');
 
@@ -65,5 +65,32 @@ describe('espera corta de las listas', () => {
     expect(formatoEsperaCorta(197)).toBe('en 3 min');
     expect(formatoEsperaCorta(30)).toBe('en menos de 1 min');
     expect(formatoEsperaCorta(8000)).toBe('en más de 2 h');
+  });
+});
+
+describe('tiempo total de una lista', () => {
+  it('en horas y minutos, sin segundos', () => {
+    expect(formatoTiempoTotal(30 * 60 + 25)).toBe('30 min');
+    expect(formatoTiempoTotal(3 * 3600 + 28 * 60 + 42)).toBe('3 h 28 min');
+    expect(formatoTiempoTotal(2 * 3600)).toBe('2 h');
+    expect(formatoTiempoTotal(20)).toBe('menos de 1 min');
+    expect(contarCanciones(1)).toBe('1 canción');
+  });
+});
+
+describe('fecha y hora de pared en la zona del bar', () => {
+  it('pone el desfase de la zona, también con horario de verano', () => {
+    expect(localAIso('2026-10-30T20:00', 'America/Bogota')).toBe('2026-10-30T20:00:00-05:00');
+    expect(localAIso('2026-10-30T20:00', 'America/Mexico_City')).toBe('2026-10-30T20:00:00-06:00');
+    // Santiago: verano (UTC−3) en noviembre, invierno (UTC−4) en julio.
+    expect(localAIso('2026-11-05T20:00', 'America/Santiago')).toBe('2026-11-05T20:00:00-03:00');
+    expect(localAIso('2026-07-05T20:00', 'America/Santiago')).toBe('2026-07-05T20:00:00-04:00');
+    expect(localAIso('2026-10-25T23:59:59', 'America/Bogota')).toBe('2026-10-25T23:59:59-05:00');
+  });
+
+  it('ida y vuelta con el input datetime-local', () => {
+    for (const zona of ['America/Bogota', 'America/Argentina/Buenos_Aires', 'America/Santiago']) {
+      expect(isoALocal(localAIso('2026-11-05T21:30', zona), zona)).toBe('2026-11-05T21:30');
+    }
   });
 });

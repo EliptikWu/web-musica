@@ -1685,6 +1685,7 @@
         "type": "string",
         "enum": [
           "noche",
+          "yo",
           "bitacora",
           "bloqueos",
           "listas",

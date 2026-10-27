@@ -109,6 +109,12 @@ describe('bitácora (RF-044)', () => {
     expect(bitacora(estado, { tipo: 'saltar', cursor: '25' }).acciones).toHaveLength(6);
     expect(bitacora(estado, { usuario: 'sistema' }).acciones.map((a) => a.tipo)).toEqual(['abrir_sesion']);
   });
+
+  it('con la misma hora, la última acción va arriba (el reloj quieto de la simulación)', () => {
+    const { estado, ahora } = escena();
+    for (const [id, tipo] of [['a-9', 'pausar_solicitudes'], ['a-10', 'reanudar_solicitudes']] as const) estado.acciones.push({ id, fecha: ahora + 1, usuario: ADMIN, tipo, objetivo: null, detalle: null });
+    expect(bitacora(estado, {}).acciones.slice(0, 2).map((a) => a.tipo)).toEqual(['reanudar_solicitudes', 'pausar_solicitudes']);
+  });
 });
 
 describe('eventos (RF-045)', () => {

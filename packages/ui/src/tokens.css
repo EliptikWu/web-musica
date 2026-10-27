@@ -10,6 +10,7 @@
   --madera: #3A2218;
   --madera-clara: #4A2C1F;
   --borde: rgba(244, 231, 203, .14);
+  --hueco: rgba(0, 0, 0, .22); /* AÑADIDO: fondo hundido en la madera (pestañas, días, etiquetas) */
 
   /* Papel y texto */
   --crema: #F4E7CB;

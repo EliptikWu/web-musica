@@ -9,7 +9,8 @@
 | Extremo a extremo | Playwright (modo simulado, `next start`) | Flujos críticos por superficie y la sincronía entre ellas | `apps/web/e2e/*.spec.ts` |
 | Accesibilidad | axe-core dentro de cada e2e | wcag2a, wcag2aa, wcag21aa en **cada estado** visitado | `e2e/support.ts` |
 | Objetivos táctiles | Prueba propia | Todo control de la superficie del cliente mide ≥ 44 × 44 px | `e2e/cliente.spec.ts` |
-| Visual | Capturas de Playwright | Cada pantalla × estado × ancho, comparadas con `prototipos/capturas/` | `e2e/capturas.spec.ts` → `capturas/` |
+| Visual | Capturas de Playwright | Cada pantalla × estado a 360/768/1440 (TV a 1280 × 720 y 1920 × 1080), revisadas a ojo contra `prototipos/capturas/` en cada cierre; no se versionan | Script de revisión → `capturas/` |
+| Manual de uso | Capturas de Playwright | Las imágenes del manual (RNF-016), con la simulación quieta | `e2e/capturas.spec.ts` (`npm run capturas -w @rockola/web`) → `apps/web/public/manual/` |
 | Aceptación | Manual | Criterios de las historias de la iteración | Doc 08 |
 
 Lo visual no se prueba en Vitest: lo cubren e2e y capturas.

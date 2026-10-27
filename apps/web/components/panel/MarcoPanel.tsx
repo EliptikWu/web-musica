@@ -2,8 +2,7 @@
 
 import type { YoPanel } from '@rockola/contrato';
 import { Icono } from '@rockola/ui';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useContext, useEffect } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
 import { codigoDe } from '@/lib/api/errores';
@@ -11,6 +10,7 @@ import { useTiempoRealBar } from '@/lib/api/hooks-cliente';
 import { useSalir, useYoPanel } from '@/lib/api/hooks-panel';
 import { errores, P, ROL } from '@/lib/textos/panel';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
+import { NavPanel } from './NavPanel';
 import { conexion } from '@/lib/textos/cliente';
 
 const ContextoPanel = createContext<YoPanel | null>(null);
@@ -75,6 +75,7 @@ function PanelConVivo({ yo, children }: { yo: YoPanel; children: ReactNode }) {
       </p>
       <div className="mx-auto max-w-[1440px] px-4 pt-5 pb-8 sm:px-8">
         <CabezaPanel yo={yo} />
+        <NavPanel rol={yo.usuario.rol} />
         <main>{children}</main>
       </div>
     </div>
@@ -82,20 +83,15 @@ function PanelConVivo({ yo, children }: { yo: YoPanel; children: ReactNode }) {
 }
 
 function CabezaPanel({ yo }: { yo: YoPanel }) {
-  const ruta = usePathname();
   const salir = useSalir();
   const inicial = yo.usuario.nombre.trim().charAt(0).toUpperCase() || '?';
   return (
-    <header className="panel-cabeza flex-wrap">
+    <header className="panel-cabeza no-imprimir flex-wrap">
       <div className="panel-marca">
         <p className="placa panel-marca__bar">{yo.establecimiento.nombre}</p>
         <p className="secundario hidden text-[15px] sm:block">{P.panelDeLaRockola}</p>
       </div>
       <nav className="panel-nav flex-wrap" aria-label="Panel">
-        <Link href="/panel" aria-current={ruta === '/panel' ? 'page' : undefined}>
-          <Icono nombre="reproducir" />
-          {P.operacion}
-        </Link>
         <span className="panel-nav__usuario inline-flex items-center gap-2">
           <span className="panel-usuario inline-flex h-11 items-center gap-2 rounded-dia">
             <span className="panel-usuario__inicial" aria-hidden="true">
