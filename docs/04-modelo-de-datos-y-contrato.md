@@ -198,3 +198,8 @@ emparejada desde el panel), para que un cliente no pueda reportar «fin» y salt
 6. Valores de bloqueo de cuenta e inactividad del panel.
 7. Si la lista de la casa suena fuera de horario sin sesión abierta.
 8. Quién crea establecimientos y su primer Administrador.
+9. Si la canción que **suena** cuenta para el cupo de 3 (RN-01 dice «pendientes»). Los
+   prototipos solo cuadran si cuenta: en el momento A el teléfono tiene «2 de 3» libres y
+   ninguna pendiente, porque suya es la que suena. La simulación la cuenta.
+10. Cuánto dura «Subió N puestos» (`puesto_anterior`): la simulación lo mantiene 10 min
+    *(propuesto)*.

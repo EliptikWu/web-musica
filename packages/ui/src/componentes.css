@@ -1,0 +1,281 @@
+/*
+ * componentes.css — las piezas de la rockola (doc 05, «Componentes»). Portadas de
+ * prototipos/rockola/estilos.css y de los estilos de cada pantalla; los estados que el
+ * prototipo no tenía (pulsar, ocupada, error) llevan «AÑADIDO».
+ */
+@layer components {
+  /* ── Tipografía: un solo Archivo, tres anchos ─────────────────────────────── */
+  .placa { font-stretch: 125%; font-weight: 800; letter-spacing: -.01em; line-height: 1.15; }
+  .condensada { font-stretch: 75%; font-weight: 700; letter-spacing: .005em; }
+  .titulo-seccion { font-size: 16px; font-weight: 600; font-stretch: 112%; }
+  .secundario { color: var(--crema-2); }
+  .cifra { font-stretch: 75%; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
+
+  /* ── Luz de estado ─────────────────────────────────────────────────────────── */
+  .luz-estado { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--crema); }
+  .luz-estado::before {
+    content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #FFE7B0, var(--ambar) 60%);
+    box-shadow: 0 0 10px 2px rgba(245, 165, 36, .7);
+  }
+  .luz-estado--apagada::before { background: var(--gris-apagado); box-shadow: none; }
+
+  /* ── Arco: marco de cromo, tubos de luz, ventana de papel ────────────────── */
+  .arco {
+    padding: 4px;
+    border-radius: 50% 50% 22px 22px / 34% 34% 22px 22px;
+    background: var(--cromo);
+    box-shadow: var(--brillo-ambar), 0 20px 40px -20px rgba(0, 0, 0, .8);
+  }
+  .arco__luz {
+    position: relative;
+    border-radius: 50% 50% 18px 18px / 33% 33% 18px 18px;
+    background: var(--tubos), var(--luz);
+    box-shadow: inset 0 0 26px rgba(80, 10, 0, .35);
+  }
+  .arco--apagado { box-shadow: 0 20px 40px -20px rgba(0, 0, 0, .8); }
+  .arco--apagado .arco__luz { background: var(--tubos-apagados), var(--apagado); }
+
+  .ventana {
+    background: var(--papel);
+    color: var(--tinta);
+    border-radius: var(--radio-tecla);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12), 0 2px 0 rgba(0, 0, 0, .18);
+    text-align: center;
+  }
+  .ventana__etiqueta { font-size: 13px; font-weight: 600; color: var(--tinta-2); }
+
+  /* Marco pequeño con luz (la tarjeta «Tu canción», la placa del QR). */
+  .marco { padding: 4px; border-radius: var(--radio-marco); background: var(--cromo); box-shadow: 0 0 50px -8px rgba(245, 165, 36, .5); }
+  .marco__luz { padding: 9px; border-radius: var(--radio-caja); background: var(--tubos), var(--luz); }
+
+  /* ── Insignia ──────────────────────────────────────────────────────────────── */
+  .insignia {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 10px 3px; border-radius: var(--radio-insignia);
+    background: var(--cereza); color: var(--crema);
+    font-size: 13px; font-weight: 600; line-height: 1.35;
+  }
+  .insignia svg { width: 15px; height: 15px; stroke-width: 2.4; }
+
+  /* ── Tarjeta de título: papel, título condensado, franja cereza ──────────── */
+  .tarjeta {
+    display: grid; grid-template-columns: 34px 1fr 46px; align-items: stretch;
+    min-height: 56px;
+    background: var(--papel);
+    color: var(--tinta);
+    border-radius: var(--radio-tarjeta);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .14), 0 2px 0 rgba(0, 0, 0, .3);
+    overflow: hidden;
+  }
+  .tarjeta__num {
+    display: grid; place-items: center;
+    font-stretch: 75%; font-weight: 800; font-size: 18px; color: var(--tinta-2);
+    font-variant-numeric: tabular-nums;
+    border-right: 1px dashed rgba(35, 20, 15, .3);
+  }
+  .tarjeta__centro { display: flex; flex-direction: column; justify-content: center; text-align: center; min-width: 0; padding: 6px 0 0; }
+  .tarjeta__titulo {
+    font-stretch: 75%; font-weight: 700; font-size: 19px; line-height: 1.12; padding: 0 6px 4px;
+    overflow-wrap: anywhere;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  .tarjeta__artista {
+    background: var(--cereza); color: var(--crema);
+    font-size: 13px; font-weight: 500; line-height: 1.25;
+    padding: 3px 6px 4px;
+    overflow-wrap: anywhere;
+  }
+  .tarjeta__votos {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-left: 1px dashed rgba(35, 20, 15, .3);
+    font-stretch: 75%; font-weight: 800; font-size: 20px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .tarjeta__votos small { font-stretch: 100%; font-weight: 500; font-size: 11px; color: var(--tinta-2); margin-top: 2px; }
+  .tarjeta__dura {
+    display: grid; place-items: center;
+    border-left: 1px dashed rgba(35, 20, 15, .3);
+    font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .tarjeta--resultado { grid-template-columns: 1fr 62px; }
+  /* AÑADIDO: sin puesto ni cifra, la franja ocupa todo el ancho. */
+  .tarjeta--sola { grid-template-columns: 1fr; }
+  .tarjeta--tuya .tarjeta__artista { background: var(--ambar); color: var(--tinta); }
+  .tarjeta--apagada { background: var(--papel-apagado); }
+  .tarjeta--apagada .tarjeta__artista { background: var(--gris-apagado); }
+
+  /* Fila: tarjeta + tecla */
+  .fila { display: flex; align-items: center; gap: 10px; }
+  .fila > .tarjeta { flex: 1; min-width: 0; }
+  .filas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .motivo { flex: none; width: 76px; font-size: 13px; line-height: 1.3; text-align: center; color: var(--crema-2); }
+
+  /* ── Teclas ────────────────────────────────────────────────────────────────── */
+  .tecla {
+    flex: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 76px; height: 48px;
+    border-radius: var(--radio-tecla);
+    font-stretch: 75%; font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: .02em;
+    color: var(--tinta);
+    background: var(--tecla-cara);
+    border: 1px solid rgba(0, 0, 0, .35);
+    box-shadow: 0 4px 0 var(--tecla-canto), 0 7px 10px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .8);
+    text-decoration: none;
+    transform: translateY(-2px);
+    transition: transform var(--pulsar) ease-out, box-shadow var(--pulsar) ease-out;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  /* AÑADIDO: al pulsar, la tecla baja como una de verdad. */
+  .tecla:is(button, a):active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 var(--tecla-canto), 0 2px 4px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .6);
+  }
+  @media (hover: hover) {
+    .tecla:is(button, a):hover { filter: brightness(1.04); }
+  }
+  /* AÑADIDO: enviando; no se puede volver a pulsar (RNF-008). */
+  .tecla[aria-busy="true"] { cursor: progress; filter: saturate(.85); }
+  .tecla--hundida {
+    background: var(--tecla-cara-hundida);
+    box-shadow: 0 1px 0 var(--tecla-canto), inset 0 3px 6px rgba(0, 0, 0, .3);
+    transform: translateY(1px);
+    font-size: 16px;
+  }
+  .tecla--cereza {
+    color: var(--crema);
+    background: var(--tecla-cereza);
+    border-color: rgba(0, 0, 0, .45);
+    box-shadow: 0 4px 0 var(--cereza-hondo), 0 7px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+  }
+  .tecla--cereza:is(button, a):active { box-shadow: 0 1px 0 var(--cereza-hondo), 0 2px 4px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .25); }
+  .tecla--tuya {
+    background: radial-gradient(120% 140% at 50% 0%, var(--ambar-claro), var(--ambar) 70%);
+    box-shadow: 0 0 16px rgba(245, 165, 36, .55), inset 0 1px 0 rgba(255, 255, 255, .6);
+    transform: none;
+    font-size: 16px;
+  }
+  .tecla--grande { width: 100%; height: 58px; font-size: 22px; letter-spacing: .04em; }
+  .tecla--chica { width: auto; height: 44px; padding: 0 14px; font-size: 15px; }
+  .tecla--ancha { width: auto; padding: 0 18px; }
+  .tecla svg { width: 20px; height: 20px; }
+
+  /* ── Fichas: los pedidos que quedan ────────────────────────────────────────── */
+  .fichas { display: inline-flex; gap: 6px; }
+  .ficha { width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed rgba(244, 231, 203, .45); }
+  .ficha--libre {
+    border: 0;
+    background: radial-gradient(circle at 35% 30%, #FFF0C4, var(--ambar) 55%, #B8741A);
+    box-shadow: 0 0 8px rgba(245, 165, 36, .5), inset 0 0 0 2px rgba(120, 70, 10, .35);
+  }
+
+  /* ── Barra de avance ───────────────────────────────────────────────────────── */
+  .avance { display: flex; align-items: center; gap: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .surco { flex: 1; height: 4px; border-radius: 2px; background: rgba(35, 20, 15, .25); overflow: hidden; }
+  .surco > span { display: block; height: 100%; width: 100%; background: currentColor; transform-origin: left; transform: scaleX(0); }
+
+  /* ── Pie del cliente: mini reproductor + pestañas ───────────────────────────── */
+  .pie {
+    position: sticky; bottom: 0; z-index: 2;
+    padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, var(--madera-clara), var(--madera) 40%, #2E1A12);
+    border-top: 2px solid #9EA3AA;
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, .45);
+  }
+  .mini { display: flex; align-items: center; gap: 12px; padding: 0 6px 6px; }
+  .mini__luz { flex: none; width: 10px; height: 40px; border-radius: 5px; background: var(--luz); box-shadow: 0 0 12px rgba(245, 165, 36, .6); }
+  .mini__luz--apagada { background: var(--apagado); box-shadow: none; }
+  .mini__texto { flex: 1; min-width: 0; }
+  .mini__etiqueta { font-size: 12px; color: var(--crema-2); }
+  .mini__titulo { font-size: 19px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini__titulo span { font-stretch: 100%; font-weight: 400; font-size: 14px; color: var(--crema-2); }
+  .mini__votos { font-size: 13px; color: var(--crema-2); text-align: right; }
+  .mini__votos b { display: block; color: var(--crema); font-stretch: 75%; font-weight: 800; font-size: 20px; line-height: 1; }
+  .mini-avance { height: 3px; margin: 0 6px 10px; border-radius: 2px; background: rgba(244, 231, 203, .16); overflow: hidden; }
+  .mini-avance > span { display: block; height: 100%; width: 100%; background: var(--ambar); transform-origin: left; transform: scaleX(0); }
+
+  .pestanas { display: grid; grid-template-columns: repeat(var(--pestanas, 3), 1fr); gap: 8px; }
+  .pestana {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    height: 54px; border-radius: var(--radio-tecla);
+    font-size: 12px; font-weight: 600; color: var(--crema-2);
+    text-decoration: none;
+    background: rgba(0, 0, 0, .22);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+    transition: transform var(--pulsar) ease-out;
+  }
+  .pestana svg { width: 22px; height: 22px; }
+  .pestana[aria-current="page"] {
+    color: var(--tinta);
+    background: var(--tecla-cara);
+    box-shadow: 0 3px 0 var(--tecla-canto), inset 0 1px 0 rgba(255, 255, 255, .8);
+    transform: translateY(-2px);
+  }
+  /* AÑADIDO: punto que avisa de un cambio en «Tus pedidos». */
+  .pestana__punto { position: absolute; top: 8px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--ambar); box-shadow: 0 0 8px rgba(245, 165, 36, .8); }
+
+  /* ── Iconos dibujados a mano ───────────────────────────────────────────────── */
+  .icono { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ── Buscador ──────────────────────────────────────────────────────────────── */
+  .buscador {
+    display: flex; align-items: center; gap: 10px;
+    height: 52px; padding: 0 4px 0 14px;
+    background: var(--papel); color: var(--tinta);
+    border-radius: var(--radio-tecla);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, .28), 0 0 0 3px rgba(0, 0, 0, .25);
+  }
+  .buscador:focus-within { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .buscador > svg { width: 20px; height: 20px; flex: none; color: var(--tinta-2); }
+  .buscador input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: 600 17px var(--fuente); color: var(--tinta); }
+  .buscador input::placeholder { color: var(--tinta-2); font-weight: 500; }
+  .buscador button { width: 44px; height: 44px; flex: none; display: grid; place-items: center; color: var(--tinta-2); }
+  .buscador button svg { width: 18px; height: 18px; }
+
+  /* ── Avisos ────────────────────────────────────────────────────────────────── */
+  .aviso {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 6px 10px 14px;
+    border-radius: var(--radio-aviso);
+    background: radial-gradient(120% 160% at 30% 0%, var(--ambar-claro), var(--ambar) 70%);
+    color: var(--tinta);
+    box-shadow: 0 0 26px rgba(245, 165, 36, .4);
+  }
+  .aviso__texto { flex: 1; min-width: 0; }
+  .aviso__titulo { font-size: 16px; font-weight: 700; }
+  .aviso__meta { font-size: 14px; }
+  .aviso a, .aviso button { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; font-weight: 700; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+  /* AÑADIDO: aviso de error (cereza) y de información (madera), sin la luz. */
+  .aviso--error { background: var(--cereza); color: var(--crema); box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .6); }
+  .aviso--info { background: var(--madera-clara); color: var(--crema); box-shadow: inset 0 0 0 1px var(--borde); }
+
+  /* ── Días del horario ──────────────────────────────────────────────────────── */
+  .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 0; padding: 0; }
+  .dia {
+    height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: var(--radio-dia);
+    font-size: 14px; font-weight: 600; color: var(--crema-2);
+    background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+  }
+  .dia--abre {
+    color: var(--tinta); background: var(--tecla-cara);
+    box-shadow: 0 3px 0 var(--tecla-canto), inset 0 1px 0 rgba(255, 255, 255, .8);
+    transform: translateY(-2px);
+  }
+  .dia small { font-size: 11px; font-weight: 600; color: var(--cereza); }
+  .dia:not(.dia--abre) small { color: var(--ambar); }
+
+  /* ── Esperar y fallar (AÑADIDO) ────────────────────────────────────────────── */
+  .esqueleto {
+    border-radius: var(--radio-tarjeta);
+    background: linear-gradient(90deg, rgba(244, 231, 203, .06), rgba(244, 231, 203, .12), rgba(244, 231, 203, .06));
+    background-size: 200% 100%;
+    animation: esqueleto 1.4s ease-in-out infinite;
+  }
+  @keyframes esqueleto { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  .vacio { text-align: center; padding: 18px 12px; border-radius: var(--radio-caja); border: 1.5px dashed rgba(244, 231, 203, .25); color: var(--crema-2); font-size: 14px; line-height: 1.45; }
+  .vacio b { color: var(--crema); }
+}

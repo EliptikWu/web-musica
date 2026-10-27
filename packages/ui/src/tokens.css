@@ -1,0 +1,63 @@
+/*
+ * tokens.css — el único lugar donde viven los valores de la dirección Rockola (doc 05).
+ * Portados 1:1 de prototipos/rockola/estilos.css; lo añadido lleva «AÑADIDO» y su motivo.
+ * Ningún otro archivo escribe un color, una tipografía o un radio suelto.
+ */
+:root {
+  /* Madera */
+  --nogal: #2A1711;
+  --nogal-hondo: #1D0F0B;
+  --madera: #3A2218;
+  --madera-clara: #4A2C1F;
+  --borde: rgba(244, 231, 203, .14);
+
+  /* Papel y texto */
+  --crema: #F4E7CB;
+  --crema-2: rgba(244, 231, 203, .72);
+  --papel: #F4E7CB;
+  --papel-sombra: #D9C7A3;
+  --papel-apagado: #CDBFA6; /* AÑADIDO: nombre para el valor suelto de .tarjeta--apagada */
+  --tinta: #23140F;
+  --tinta-2: #5B4434;
+  --gris-apagado: #6B5A50; /* AÑADIDO: nombre para la luz apagada y la franja apagada */
+
+  /* Acentos */
+  --cereza: #B8282F;
+  --cereza-hondo: #7E171D;
+  --ambar: #F5A524;
+  --ambar-claro: #FFD27A;
+
+  /* Teclas: cara clara, canto marrón (AÑADIDO: nombres para los valores de .tecla) */
+  --tecla-cara: linear-gradient(180deg, #FFF8E6, #E8D8B6);
+  --tecla-cara-hundida: linear-gradient(180deg, #D8C7A4, #CDBB96);
+  --tecla-canto: #7A6450;
+  --tecla-cereza: linear-gradient(180deg, #C2323A, #B8282F 50%, #9A1F25);
+
+  /* Piezas de la rockola */
+  --cromo: linear-gradient(180deg, #FAFAF8 0%, #C9CDD3 42%, #8F959D 54%, #E7E9EC 100%);
+  --luz: linear-gradient(180deg, #FFD98A 0%, #F5A524 38%, #E2672B 72%, #B8282F 100%);
+  --luz-horizontal: linear-gradient(90deg, #FFD98A, #F5A524 45%, #E2672B 80%, #B8282F);
+  --apagado: linear-gradient(180deg, #5A4A42 0%, #44352E 60%, #3A2C26 100%);
+  --apagado-horizontal: linear-gradient(90deg, #5A4A42, #44352E 60%, #3A2C26);
+  --tubos: repeating-linear-gradient(90deg, rgba(255, 255, 255, .22) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(120, 20, 10, .16) 9px 10px, rgba(255, 255, 255, 0) 10px 21px);
+  --tubos-apagados: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(0, 0, 0, .14) 9px 10px, rgba(255, 255, 255, 0) 10px 21px);
+  --brillo-ambar: 0 0 70px -6px rgba(245, 165, 36, .45);
+
+  /* Tipografía: Archivo variable; next/font define --fuente-archivo en <html>. */
+  --fuente: var(--fuente-archivo, 'Archivo'), system-ui, sans-serif;
+
+  /* Radios */
+  --radio-insignia: 4px;
+  --radio-tarjeta: 6px;
+  --radio-dia: 8px;
+  --radio-tecla: 10px;
+  --radio-aviso: 12px;
+  --radio-caja: 14px;
+  --radio-marco: 18px;
+
+  /* Movimiento (AÑADIDO, doc 05 «Movimiento») */
+  --pulsar: 80ms;
+  --reordenar: 300ms;
+
+  color-scheme: dark;
+}

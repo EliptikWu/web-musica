@@ -163,3 +163,6 @@ Cumple el contrato en el navegador para trabajar sin backend (D5).
 | ADR-08 | 2026-10-26 | Archivo variable (ejes `wght` y `wdth` 62–125) con `next/font/google` | La identidad depende del ancho; `next/font` la sirve desde el propio dominio (sin peticiones a Google) | CSS de Google Fonts: petición externa y CSP más abierta |
 | ADR-09 | 2026-10-26 | `scripts/check.mjs` en Node en lugar de `check.py` | El repositorio es solo JavaScript; sin Python para el día a día | Python como lk-crm: dependencia extra sin backend Python |
 | ADR-10 | 2026-10-26 | El QR codifica `/q/[token]` | RF-035 pide que el QR regenerado invalide el anterior | QR a `/b/[bar]`: no se puede invalidar |
+| ADR-11 | 2026-10-26 | Toda página se genera por petición (`connection()` en el layout raíz) | Next solo pone el nonce de la CSP en páginas dinámicas; una estática quedaría sin scripts | Páginas estáticas: más rápidas, pero la CSP estricta las rompe |
+| ADR-12 | 2026-10-26 | MSW en `dependencies` (no en `devDependencies`) | Una demo en modo simulado se puede desplegar con `npm ci --omit=dev`; en modo real el código no se incluye | Solo en desarrollo: una demo desplegada no arrancaría |
+| ADR-13 | 2026-10-26 | Puerto 3200 para la app | El 3000 lo usan otros proyectos del equipo en la misma máquina | 3000: choque al tener dos proyectos abiertos |

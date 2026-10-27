@@ -1,0 +1,40 @@
+/*
+ * theme.css — los nombres con que Tailwind conoce los tokens Rockola. Se importa después
+ * de Tailwind. Sus paletas, fuentes y radios de serie se borran: no existe una utilidad
+ * con un color suelto (doc 05). Los valores siguen viviendo solo en tokens.css.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-nogal: var(--nogal);
+  --color-nogal-hondo: var(--nogal-hondo);
+  --color-madera: var(--madera);
+  --color-madera-clara: var(--madera-clara);
+  --color-borde: var(--borde);
+  --color-crema: var(--crema);
+  --color-crema-2: var(--crema-2);
+  --color-papel: var(--papel);
+  --color-papel-apagado: var(--papel-apagado);
+  --color-tinta: var(--tinta);
+  --color-tinta-2: var(--tinta-2);
+  --color-gris-apagado: var(--gris-apagado);
+  --color-cereza: var(--cereza);
+  --color-cereza-hondo: var(--cereza-hondo);
+  --color-ambar: var(--ambar);
+  --color-ambar-claro: var(--ambar-claro);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-*: initial;
+  --font-sans: var(--fuente);
+
+  --radius-*: initial;
+  --radius-insignia: var(--radio-insignia);
+  --radius-tarjeta: var(--radio-tarjeta);
+  --radius-dia: var(--radio-dia);
+  --radius-tecla: var(--radio-tecla);
+  --radius-aviso: var(--radio-aviso);
+  --radius-caja: var(--radio-caja);
+  --radius-marco: var(--radio-marco);
+
+  --shadow-*: initial;
+}

@@ -1,0 +1,5919 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Rockola — contrato propuesto por el frontend",
+    "version": "0.1.0",
+    "description": "Propuesta para acordar con el equipo de backend (docs/04-modelo-de-datos-y-contrato.md). Generado desde packages/contrato; no se edita a mano."
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "sesionPanel": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "rockola_panel",
+        "description": "Cookie httpOnly que pone el backend al entrar"
+      }
+    },
+    "schemas": {
+      "AccionAdmin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "fecha": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "usuario": {
+            "nullable": true,
+            "description": "null = lo hizo el sistema",
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id"
+              },
+              "nombre": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "nombre"
+            ]
+          },
+          "tipo": {
+            "$ref": "#/components/schemas/TipoAccion"
+          },
+          "objetivo": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "cancion",
+                  "usuario",
+                  "lista",
+                  "horario",
+                  "servicio",
+                  "sesion",
+                  "establecimiento",
+                  "evento"
+                ]
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "detalle": {
+                "nullable": true,
+                "description": "Para una canción, el artista",
+                "type": "string"
+              }
+            },
+            "required": [
+              "tipo",
+              "nombre",
+              "detalle"
+            ]
+          },
+          "detalle": {
+            "nullable": true,
+            "description": "Motivo, duración o mensaje de error",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fecha",
+          "usuario",
+          "tipo",
+          "objetivo",
+          "detalle"
+        ]
+      },
+      "Ahora": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Crece con cada cambio; un salto obliga a volver a pedir la foto"
+          },
+          "servidor_ahora": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/Servicio"
+          },
+          "reproduccion": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Reproduccion"
+              }
+            ]
+          },
+          "cola": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemCola"
+            }
+          },
+          "lista_casa": {
+            "nullable": true,
+            "description": "Lista activa, la que suena si la cola se vacía (RN-08)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ListaCasaResumen"
+              }
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "servidor_ahora",
+          "servicio",
+          "reproduccion",
+          "cola",
+          "lista_casa"
+        ]
+      },
+      "Alerta": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "sin_lista_activa",
+              "errores_youtube",
+              "sin_sesion"
+            ]
+          },
+          "detalle": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "tipo",
+          "detalle"
+        ]
+      },
+      "Bar": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "$ref": "#/components/schemas/Slug"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "zona_horaria": {
+            "type": "string",
+            "description": "IANA, p. ej. America/Bogota"
+          },
+          "pedidos_maximos": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "RN-01: solicitudes pendientes por teléfono y sesión"
+          },
+          "duracion_max_seg": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "RN-06: 600 = 10 minutos"
+          },
+          "ventana_no_repeticion_min": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "RN-07"
+          },
+          "horario": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Franja"
+            }
+          }
+        },
+        "required": [
+          "slug",
+          "nombre",
+          "zona_horaria",
+          "pedidos_maximos",
+          "duracion_max_seg",
+          "ventana_no_repeticion_min",
+          "horario"
+        ]
+      },
+      "Bloqueo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "motivo": {
+            "type": "string"
+          },
+          "duracion": {
+            "$ref": "#/components/schemas/DuracionBloqueo"
+          },
+          "horas": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "inicio": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "fin": {
+            "nullable": true,
+            "description": "null = hasta que alguien lo levante",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "creado_por": {
+            "type": "string"
+          },
+          "vigente": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "cancion",
+          "motivo",
+          "duracion",
+          "horas",
+          "inicio",
+          "fin",
+          "creado_por",
+          "vigente"
+        ]
+      },
+      "Busqueda": {
+        "type": "object",
+        "properties": {
+          "consulta": {
+            "type": "string"
+          },
+          "en_cola": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemCola"
+            },
+            "description": "Coincidencias que ya están en la cola: se votan en vez de pedirse (RN-02)"
+          },
+          "resultados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultadoBusqueda"
+            }
+          },
+          "desde_cache": {
+            "type": "boolean",
+            "description": "Resultados guardados porque YouTube no respondió o se agotó la cuota (PB-54)"
+          }
+        },
+        "required": [
+          "consulta",
+          "en_cola",
+          "resultados",
+          "desde_cache"
+        ]
+      },
+      "BusquedaPanel": {
+        "type": "object",
+        "properties": {
+          "consulta": {
+            "type": "string"
+          },
+          "resultados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Cancion"
+            }
+          }
+        },
+        "required": [
+          "consulta",
+          "resultados"
+        ]
+      },
+      "CambioBloqueo": {
+        "type": "object",
+        "properties": {
+          "duracion": {
+            "$ref": "#/components/schemas/DuracionBloqueo"
+          },
+          "horas": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 168
+          }
+        },
+        "required": [
+          "duracion",
+          "horas"
+        ]
+      },
+      "CambioEstablecimiento": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "zona_horaria": {
+            "type": "string"
+          },
+          "pedidos_maximos": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "duracion_max_seg": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 3600
+          },
+          "ventana_no_repeticion_min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 600
+          }
+        }
+      },
+      "CambioUsuario": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "rol": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Rol"
+              }
+            ]
+          }
+        }
+      },
+      "Cancion": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ID del video en YouTube"
+          },
+          "titulo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artista": {
+            "type": "string",
+            "description": "Derivado del canal o del título (TBD: cómo)"
+          },
+          "duracion_seg": {
+            "$ref": "#/components/schemas/Segundos"
+          },
+          "miniatura_url": {
+            "nullable": true,
+            "description": "Miniatura de i.ytimg.com",
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "video_id",
+          "titulo",
+          "artista",
+          "duracion_seg",
+          "miniatura_url"
+        ]
+      },
+      "ClaveTemporal": {
+        "type": "object",
+        "properties": {
+          "clave_temporal": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clave_temporal"
+        ]
+      },
+      "CodigoError": {
+        "type": "string",
+        "enum": [
+          "datos_invalidos",
+          "no_autenticado",
+          "credenciales_invalidas",
+          "sin_permiso",
+          "debe_cambiar_clave",
+          "no_encontrado",
+          "limite_pedidos",
+          "ya_votaste",
+          "conflicto",
+          "qr_reemplazado",
+          "no_pendiente",
+          "bloqueada",
+          "no_disponible",
+          "no_embebible",
+          "muy_larga",
+          "reproducida_hace_poco",
+          "servicio_no_disponible",
+          "cuenta_bloqueada",
+          "youtube_no_disponible",
+          "cuota_agotada",
+          "error_interno"
+        ],
+        "description": "Código estable del error; el cliente lo traduce a su texto (doc 04)."
+      },
+      "CuerpoActivacion": {
+        "type": "object",
+        "properties": {
+          "modo_rotacion": {
+            "$ref": "#/components/schemas/ModoRotacion"
+          }
+        },
+        "required": [
+          "modo_rotacion"
+        ]
+      },
+      "CuerpoBloqueo": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "motivo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "duracion": {
+            "$ref": "#/components/schemas/DuracionBloqueo"
+          },
+          "horas": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 168
+          }
+        },
+        "required": [
+          "video_id",
+          "motivo",
+          "duracion",
+          "horas"
+        ]
+      },
+      "CuerpoCambioClave": {
+        "type": "object",
+        "properties": {
+          "actual": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nueva": {
+            "type": "string",
+            "minLength": 10
+          }
+        },
+        "required": [
+          "actual",
+          "nueva"
+        ],
+        "description": "Mínimo de 10 caracteres (propuesto)"
+      },
+      "CuerpoCambioVoto": {
+        "type": "object",
+        "properties": {
+          "desde": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "hacia": {
+            "$ref": "#/components/schemas/Id"
+          }
+        },
+        "required": [
+          "desde",
+          "hacia"
+        ]
+      },
+      "CuerpoCancionLista": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "video_id"
+        ]
+      },
+      "CuerpoDispositivo": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "$ref": "#/components/schemas/TipoDispositivo"
+          }
+        },
+        "required": [
+          "tipo"
+        ]
+      },
+      "CuerpoEditarEvento": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tipo_evento": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TipoEvento"
+              }
+            ]
+          },
+          "inicio": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "fin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "descripcion": {
+            "nullable": true,
+            "type": "string"
+          }
+        }
+      },
+      "CuerpoEntrar": {
+        "type": "object",
+        "properties": {
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "clave": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "correo",
+          "clave"
+        ]
+      },
+      "CuerpoEvento": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tipo_evento": {
+            "$ref": "#/components/schemas/TipoEvento"
+          },
+          "inicio": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "fin": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "descripcion": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "nombre",
+          "tipo_evento",
+          "inicio",
+          "fin",
+          "descripcion"
+        ]
+      },
+      "CuerpoHorario": {
+        "type": "object",
+        "properties": {
+          "franjas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Franja"
+            }
+          }
+        },
+        "required": [
+          "franjas"
+        ]
+      },
+      "CuerpoLista": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          }
+        },
+        "required": [
+          "nombre"
+        ]
+      },
+      "CuerpoOrden": {
+        "type": "object",
+        "properties": {
+          "elementos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Id"
+            }
+          }
+        },
+        "required": [
+          "elementos"
+        ]
+      },
+      "CuerpoRetiro": {
+        "type": "object",
+        "properties": {
+          "motivo": {
+            "type": "string",
+            "enum": [
+              "inapropiada",
+              "duplicada",
+              "otro"
+            ]
+          },
+          "detalle": {
+            "nullable": true,
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "motivo",
+          "detalle"
+        ]
+      },
+      "CuerpoServicio": {
+        "type": "object",
+        "properties": {
+          "modo_qr": {
+            "type": "string",
+            "enum": [
+              "automatico",
+              "forzado_activo",
+              "pausado"
+            ]
+          }
+        },
+        "required": [
+          "modo_qr"
+        ]
+      },
+      "CuerpoSesion": {
+        "type": "object",
+        "properties": {
+          "tipo_evento": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "tipo_evento"
+        ]
+      },
+      "CuerpoSolicitud": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "video_id"
+        ]
+      },
+      "CuerpoUsuario": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          }
+        },
+        "required": [
+          "nombre",
+          "correo",
+          "rol"
+        ]
+      },
+      "Destacada": {
+        "type": "object",
+        "properties": {
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "votos": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "contexto": {
+            "type": "string",
+            "enum": [
+              "sonando",
+              "sono",
+              "en_cola"
+            ]
+          },
+          "hora": {
+            "nullable": true,
+            "description": "Cuándo sonó, si ya sonó",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "cancion",
+          "votos",
+          "contexto",
+          "hora"
+        ]
+      },
+      "DuracionBloqueo": {
+        "type": "string",
+        "enum": [
+          "fin_sesion",
+          "horas",
+          "indefinido"
+        ]
+      },
+      "ElementoLista": {
+        "type": "object",
+        "properties": {
+          "elemento_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "veces_reproducida": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "ultima_reproduccion": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "elemento_id",
+          "cancion",
+          "orden",
+          "veces_reproducida",
+          "ultima_reproduccion"
+        ]
+      },
+      "ErrorApi": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "$ref": "#/components/schemas/CodigoError"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "detalle": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "codigo",
+          "mensaje"
+        ],
+        "description": "Cuerpo de toda respuesta de error."
+      },
+      "Establecimiento": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "slug": {
+            "$ref": "#/components/schemas/Slug"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "zona_horaria": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "inactivo"
+            ]
+          },
+          "pedidos_maximos": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "duracion_max_seg": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 3600
+          },
+          "ventana_no_repeticion_min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 600
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "nombre",
+          "direccion",
+          "zona_horaria",
+          "estado",
+          "pedidos_maximos",
+          "duracion_max_seg",
+          "ventana_no_repeticion_min"
+        ]
+      },
+      "EstadoServicio": {
+        "type": "string",
+        "enum": [
+          "abierto",
+          "fuera_de_horario",
+          "en_pausa",
+          "mantenimiento"
+        ],
+        "description": "Resultado de combinar el horario con el modo del QR (RN-09)."
+      },
+      "EstadoSolicitud": {
+        "type": "string",
+        "enum": [
+          "pendiente",
+          "reproduciendo",
+          "reproducida",
+          "saltada",
+          "no_disponible",
+          "bloqueada",
+          "retirada",
+          "expirada"
+        ]
+      },
+      "EventoBar": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tipo_evento": {
+            "$ref": "#/components/schemas/TipoEvento"
+          },
+          "inicio": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "fin": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "descripcion": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "tipo_evento",
+          "inicio",
+          "fin",
+          "descripcion"
+        ]
+      },
+      "EventoTiempoReal": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "ahora"
+                ]
+              },
+              "ahora": {
+                "$ref": "#/components/schemas/Ahora"
+              }
+            },
+            "required": [
+              "tipo",
+              "ahora"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "panel"
+                ]
+              },
+              "recursos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecursoPanel"
+                }
+              }
+            },
+            "required": [
+              "tipo",
+              "recursos"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "ping"
+                ]
+              },
+              "servidor_ahora": {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            },
+            "required": [
+              "tipo",
+              "servidor_ahora"
+            ]
+          }
+        ]
+      },
+      "Fecha": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "description": "Fecha y hora ISO 8601 con zona."
+      },
+      "Franja": {
+        "type": "object",
+        "properties": {
+          "dia_semana": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7,
+            "description": "1 = lunes … 7 = domingo (ISO 8601)"
+          },
+          "hora_inicio": {
+            "$ref": "#/components/schemas/HoraDelDia"
+          },
+          "hora_fin": {
+            "$ref": "#/components/schemas/HoraDelDia"
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dia_semana",
+          "hora_inicio",
+          "hora_fin",
+          "activo"
+        ]
+      },
+      "HoraDelDia": {
+        "type": "string",
+        "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+        "description": "Hora local del establecimiento, 24 h (HH:MM)."
+      },
+      "Horario": {
+        "type": "object",
+        "properties": {
+          "zona_horaria": {
+            "type": "string"
+          },
+          "franjas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Franja"
+            }
+          }
+        },
+        "required": [
+          "zona_horaria",
+          "franjas"
+        ]
+      },
+      "Id": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Identificador opaco generado por el backend."
+      },
+      "ItemCola": {
+        "type": "object",
+        "properties": {
+          "solicitud_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "votos_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "fecha_solicitud": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "puesto": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "puesto_anterior": {
+            "nullable": true,
+            "description": "Puesto antes del último reordenamiento; alimenta «Subió 2 puestos»",
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          }
+        },
+        "required": [
+          "solicitud_id",
+          "cancion",
+          "votos_total",
+          "fecha_solicitud",
+          "puesto",
+          "puesto_anterior"
+        ]
+      },
+      "ListaBloqueos": {
+        "type": "object",
+        "properties": {
+          "bloqueos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bloqueo"
+            }
+          }
+        },
+        "required": [
+          "bloqueos"
+        ]
+      },
+      "ListaCasa": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "modo_rotacion": {
+            "$ref": "#/components/schemas/ModoRotacion"
+          },
+          "activa": {
+            "type": "boolean"
+          },
+          "total_canciones": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duracion_total_seg": {
+            "$ref": "#/components/schemas/Segundos"
+          },
+          "actualizada_en": {
+            "$ref": "#/components/schemas/Fecha"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "modo_rotacion",
+          "activa",
+          "total_canciones",
+          "duracion_total_seg",
+          "actualizada_en"
+        ]
+      },
+      "ListaCasaDetalle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "modo_rotacion": {
+            "$ref": "#/components/schemas/ModoRotacion"
+          },
+          "activa": {
+            "type": "boolean"
+          },
+          "total_canciones": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "duracion_total_seg": {
+            "$ref": "#/components/schemas/Segundos"
+          },
+          "actualizada_en": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "canciones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ElementoLista"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "modo_rotacion",
+          "activa",
+          "total_canciones",
+          "duracion_total_seg",
+          "actualizada_en",
+          "canciones"
+        ]
+      },
+      "ListaCasaPanel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "total_canciones": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "modo_rotacion": {
+            "type": "string",
+            "enum": [
+              "secuencial",
+              "aleatoria"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "total_canciones",
+          "modo_rotacion"
+        ]
+      },
+      "ListaCasaResumen": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "total_canciones": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nombre",
+          "total_canciones"
+        ]
+      },
+      "ListaEventos": {
+        "type": "object",
+        "properties": {
+          "eventos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventoBar"
+            }
+          }
+        },
+        "required": [
+          "eventos"
+        ]
+      },
+      "ListasCasa": {
+        "type": "object",
+        "properties": {
+          "listas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListaCasa"
+            }
+          }
+        },
+        "required": [
+          "listas"
+        ]
+      },
+      "ListaUsuarios": {
+        "type": "object",
+        "properties": {
+          "usuarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsuarioPanel"
+            }
+          }
+        },
+        "required": [
+          "usuarios"
+        ]
+      },
+      "MiSolicitud": {
+        "type": "object",
+        "properties": {
+          "solicitud_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "estado": {
+            "$ref": "#/components/schemas/EstadoSolicitud"
+          },
+          "fecha_solicitud": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "votos_total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "puesto": {
+            "nullable": true,
+            "description": "Solo si está pendiente",
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "motivo": {
+            "nullable": true,
+            "description": "Motivo del retiro o del bloqueo, si lo hay",
+            "type": "string"
+          }
+        },
+        "required": [
+          "solicitud_id",
+          "cancion",
+          "estado",
+          "fecha_solicitud",
+          "votos_total",
+          "puesto",
+          "motivo"
+        ]
+      },
+      "ModoQr": {
+        "type": "string",
+        "enum": [
+          "automatico",
+          "forzado_activo",
+          "pausado"
+        ],
+        "description": "Lo que elige el personal: seguir el horario, forzar abierto o pausar (RF-036, RF-039)."
+      },
+      "ModoRotacion": {
+        "type": "string",
+        "enum": [
+          "secuencial",
+          "aleatoria"
+        ],
+        "description": "aleatoria = sin repetir hasta agotar la lista"
+      },
+      "MotivoNoPedible": {
+        "type": "string",
+        "enum": [
+          "bloqueada",
+          "no_disponible",
+          "no_embebible",
+          "muy_larga",
+          "reproducida_hace_poco"
+        ]
+      },
+      "Noche": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "servidor_ahora": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "sesion": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id"
+              },
+              "apertura": {
+                "$ref": "#/components/schemas/Fecha"
+              },
+              "tipo_evento": {
+                "type": "string"
+              },
+              "origen": {
+                "type": "string",
+                "enum": [
+                  "horario",
+                  "manual"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "apertura",
+              "tipo_evento",
+              "origen"
+            ]
+          },
+          "servicio": {
+            "$ref": "#/components/schemas/Servicio"
+          },
+          "reproduccion": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id"
+              },
+              "cancion": {
+                "$ref": "#/components/schemas/Cancion"
+              },
+              "origen": {
+                "$ref": "#/components/schemas/OrigenReproduccion"
+              },
+              "solicitud_id": {
+                "nullable": true,
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Id"
+                  }
+                ]
+              },
+              "votos": {
+                "nullable": true,
+                "description": "Votos de la solicitud; null si suena la lista de la casa",
+                "type": "integer",
+                "minimum": 0
+              },
+              "inicio": {
+                "$ref": "#/components/schemas/Fecha"
+              },
+              "posicion_seg": {
+                "description": "Segundos reproducidos en el momento de servidor_ahora",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Segundos"
+                  }
+                ]
+              },
+              "estado": {
+                "type": "string",
+                "enum": [
+                  "sonando",
+                  "pausada"
+                ]
+              },
+              "pedida_por": {
+                "nullable": true,
+                "description": "Código corto del teléfono (p. ej. 7F3K)",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "cancion",
+              "origen",
+              "solicitud_id",
+              "votos",
+              "inicio",
+              "posicion_seg",
+              "estado",
+              "pedida_por"
+            ]
+          },
+          "cola": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "solicitud_id": {
+                  "$ref": "#/components/schemas/Id"
+                },
+                "cancion": {
+                  "$ref": "#/components/schemas/Cancion"
+                },
+                "votos_total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "fecha_solicitud": {
+                  "$ref": "#/components/schemas/Fecha"
+                },
+                "puesto": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "puesto_anterior": {
+                  "nullable": true,
+                  "description": "Puesto antes del último reordenamiento; alimenta «Subió 2 puestos»",
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "pedida_por": {
+                  "type": "string"
+                },
+                "duracion_seg": {
+                  "$ref": "#/components/schemas/Segundos"
+                }
+              },
+              "required": [
+                "solicitud_id",
+                "cancion",
+                "votos_total",
+                "fecha_solicitud",
+                "puesto",
+                "puesto_anterior",
+                "pedida_por",
+                "duracion_seg"
+              ]
+            }
+          },
+          "metricas": {
+            "type": "object",
+            "properties": {
+              "desde": {
+                "nullable": true,
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Fecha"
+                  }
+                ]
+              },
+              "solicitudes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "telefonos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "votos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "espera_promedio_seg": {
+                "nullable": true,
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Segundos"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "desde",
+              "solicitudes",
+              "telefonos",
+              "votos",
+              "espera_promedio_seg"
+            ]
+          },
+          "registro": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccionAdmin"
+            },
+            "description": "Lo de esta noche, lo más reciente primero"
+          },
+          "horario": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Franja"
+            }
+          },
+          "lista_casa": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ListaCasaPanel"
+              }
+            ]
+          },
+          "bloqueos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Bloqueo"
+            },
+            "description": "Solo los vigentes"
+          },
+          "alertas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Alerta"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "servidor_ahora",
+          "sesion",
+          "servicio",
+          "reproduccion",
+          "cola",
+          "metricas",
+          "registro",
+          "horario",
+          "lista_casa",
+          "bloqueos",
+          "alertas"
+        ]
+      },
+      "OrigenReproduccion": {
+        "type": "string",
+        "enum": [
+          "solicitud",
+          "lista_casa"
+        ]
+      },
+      "PaginaBitacora": {
+        "type": "object",
+        "properties": {
+          "acciones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccionAdmin"
+            }
+          },
+          "siguiente": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "acciones",
+          "siguiente"
+        ]
+      },
+      "QrEstablecimiento": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "token": {
+            "type": "string"
+          },
+          "generado_en": {
+            "$ref": "#/components/schemas/Fecha"
+          }
+        },
+        "required": [
+          "url",
+          "token",
+          "generado_en"
+        ]
+      },
+      "QrPublico": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "url"
+        ]
+      },
+      "RecursoPanel": {
+        "type": "string",
+        "enum": [
+          "noche",
+          "bitacora",
+          "bloqueos",
+          "listas",
+          "horario",
+          "usuarios",
+          "establecimiento",
+          "eventos"
+        ]
+      },
+      "ReportePantalla": {
+        "type": "object",
+        "properties": {
+          "posicion_seg": {
+            "$ref": "#/components/schemas/Segundos"
+          },
+          "codigo_youtube": {
+            "nullable": true,
+            "description": "Código de error del reproductor de YouTube (2, 5, 100, 101, 150, 153)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "posicion_seg",
+          "codigo_youtube"
+        ]
+      },
+      "Reproduccion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "origen": {
+            "$ref": "#/components/schemas/OrigenReproduccion"
+          },
+          "solicitud_id": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Id"
+              }
+            ]
+          },
+          "votos": {
+            "nullable": true,
+            "description": "Votos de la solicitud; null si suena la lista de la casa",
+            "type": "integer",
+            "minimum": 0
+          },
+          "inicio": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "posicion_seg": {
+            "description": "Segundos reproducidos en el momento de servidor_ahora",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "sonando",
+              "pausada"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "cancion",
+          "origen",
+          "solicitud_id",
+          "votos",
+          "inicio",
+          "posicion_seg",
+          "estado"
+        ]
+      },
+      "ResolucionQr": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "RespuestaDestacadas": {
+        "type": "object",
+        "properties": {
+          "destacadas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Destacada"
+            }
+          }
+        },
+        "required": [
+          "destacadas"
+        ]
+      },
+      "RespuestaSolicitud": {
+        "type": "object",
+        "properties": {
+          "resultado": {
+            "type": "string",
+            "enum": [
+              "creada",
+              "votada"
+            ]
+          },
+          "solicitud_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "puesto": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "espera_seg": {
+            "$ref": "#/components/schemas/Segundos"
+          },
+          "pedidos_restantes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "resultado",
+          "solicitud_id",
+          "puesto",
+          "espera_seg",
+          "pedidos_restantes"
+        ]
+      },
+      "RespuestaVoto": {
+        "type": "object",
+        "properties": {
+          "solicitud_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "votos_total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "solicitud_id",
+          "votos_total"
+        ]
+      },
+      "ResultadoBusqueda": {
+        "type": "object",
+        "properties": {
+          "cancion": {
+            "$ref": "#/components/schemas/Cancion"
+          },
+          "pedible": {
+            "type": "boolean"
+          },
+          "motivo": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MotivoNoPedible"
+              }
+            ]
+          },
+          "disponible_desde": {
+            "nullable": true,
+            "description": "Con reproducida_hace_poco: cuándo se podrá pedir otra vez",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "cancion",
+          "pedible",
+          "motivo",
+          "disponible_desde"
+        ]
+      },
+      "Rol": {
+        "type": "string",
+        "enum": [
+          "operador",
+          "administrador"
+        ],
+        "description": "En el modelo original: dj y admin"
+      },
+      "Segundos": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Duración o posición en segundos enteros."
+      },
+      "Servicio": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "$ref": "#/components/schemas/EstadoServicio"
+          },
+          "modo_qr": {
+            "$ref": "#/components/schemas/ModoQr"
+          },
+          "desde": {
+            "nullable": true,
+            "description": "Desde cuándo está en este estado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "hasta": {
+            "nullable": true,
+            "description": "Cuándo termina el estado actual según el horario (p. ej. cierra a las 2:00 a. m.)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "proxima_apertura": {
+            "nullable": true,
+            "description": "Cuándo vuelven a abrir los pedidos, si está cerrado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "estado",
+          "modo_qr",
+          "desde",
+          "hasta",
+          "proxima_apertura"
+        ]
+      },
+      "SinContenido": {
+        "type": "string",
+        "nullable": true,
+        "enum": [
+          null
+        ]
+      },
+      "Slug": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        "description": "Identificador del establecimiento en las rutas."
+      },
+      "TipoAccion": {
+        "type": "string",
+        "enum": [
+          "saltar",
+          "bloquear",
+          "desbloquear",
+          "extender_bloqueo",
+          "retirar",
+          "pausar_solicitudes",
+          "reanudar_solicitudes",
+          "forzar_apertura",
+          "pausar_reproduccion",
+          "reanudar_reproduccion",
+          "mantenimiento",
+          "abrir_sesion",
+          "cerrar_sesion",
+          "editar_horario",
+          "editar_lista",
+          "activar_lista",
+          "crear_usuario",
+          "editar_usuario",
+          "desactivar_usuario",
+          "reactivar_usuario",
+          "restablecer_clave",
+          "editar_establecimiento",
+          "regenerar_qr",
+          "editar_evento",
+          "error_youtube",
+          "intento_no_permitido"
+        ]
+      },
+      "TipoDispositivo": {
+        "type": "string",
+        "enum": [
+          "movil",
+          "tableta",
+          "otro"
+        ],
+        "description": "Según el ancho de pantalla, no el modelo"
+      },
+      "TipoEvento": {
+        "type": "string",
+        "enum": [
+          "normal",
+          "karaoke",
+          "partido",
+          "tematica",
+          "otro"
+        ]
+      },
+      "UsuarioCreado": {
+        "type": "object",
+        "properties": {
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioPanel"
+          },
+          "clave_temporal": {
+            "type": "string",
+            "description": "Se muestra una sola vez; obliga a cambiarla al entrar"
+          }
+        },
+        "required": [
+          "usuario",
+          "clave_temporal"
+        ]
+      },
+      "UsuarioPanel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correo": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "inactivo"
+            ]
+          },
+          "debe_cambiar_clave": {
+            "type": "boolean"
+          },
+          "ultimo_acceso": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "rol",
+          "estado",
+          "debe_cambiar_clave",
+          "ultimo_acceso"
+        ],
+        "description": "Nunca lleva la contraseña ni su hash"
+      },
+      "Yo": {
+        "type": "object",
+        "properties": {
+          "pedidos_maximos": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+          },
+          "pedidos_restantes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "solicitudes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MiSolicitud"
+            }
+          },
+          "votos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Id"
+            },
+            "description": "IDs de las solicitudes por las que votó este teléfono"
+          },
+          "aviso_visto_en": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "pedidos_maximos",
+          "pedidos_restantes",
+          "solicitudes",
+          "votos",
+          "aviso_visto_en"
+        ]
+      },
+      "YoPanel": {
+        "type": "object",
+        "properties": {
+          "usuario": {
+            "$ref": "#/components/schemas/UsuarioPanel"
+          },
+          "establecimiento": {
+            "type": "object",
+            "properties": {
+              "slug": {
+                "$ref": "#/components/schemas/Slug"
+              },
+              "nombre": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "slug",
+              "nombre"
+            ]
+          }
+        },
+        "required": [
+          "usuario",
+          "establecimiento"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/qr/{token}": {
+      "get": {
+        "operationId": "resolverQr",
+        "summary": "Resolver el QR al bar",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-001, RF-035.",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolucionQr"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "qr_reemplazado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}": {
+      "get": {
+        "operationId": "bar",
+        "summary": "Datos públicos del bar y su horario",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-001, RF-003.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bar"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/ahora": {
+      "get": {
+        "operationId": "ahora",
+        "summary": "Foto actual: servicio, lo que suena y la cola",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-003, RF-015, RF-016, RF-017, RF-018.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Ahora"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/destacadas": {
+      "get": {
+        "operationId": "destacadas",
+        "summary": "Lo más votado de la noche",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-015.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaDestacadas"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/dispositivo": {
+      "post": {
+        "operationId": "registrarDispositivo",
+        "summary": "Registrar el teléfono y devolver lo suyo",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-002.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoDispositivo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Yo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "yo",
+        "summary": "Cupo, solicitudes y votos de este teléfono",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-011, RF-013.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Yo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/dispositivo/aviso": {
+      "post": {
+        "operationId": "avisoVisto",
+        "summary": "Registrar que vio el aviso de datos",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-004.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/busqueda": {
+      "get": {
+        "operationId": "buscar",
+        "summary": "Buscar en YouTube y en la cola",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-005, RF-006, RF-007, RF-008.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Busqueda"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "youtube_no_disponible, cuota_agotada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/solicitudes": {
+      "post": {
+        "operationId": "pedir",
+        "summary": "Pedir una canción (si ya está, cuenta como voto)",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-009, RF-007.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoSolicitud"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaSolicitud"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "limite_pedidos, ya_votaste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "bloqueada, no_disponible, no_embebible, muy_larga, reproducida_hace_poco",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "servicio_no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/solicitudes/{id}/votos": {
+      "post": {
+        "operationId": "votar",
+        "summary": "Votar por una solicitud",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-010, RF-011, RF-012.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaVoto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ya_votaste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "no_pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "servicio_no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/dispositivo/voto": {
+      "put": {
+        "operationId": "cambiarVoto",
+        "summary": "Mover un voto a otra solicitud",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-014.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoCambioVoto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaVoto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "ya_votaste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "no_pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "servicio_no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/qr-publico": {
+      "get": {
+        "operationId": "qrPublico",
+        "summary": "URL que codifica el QR de la placa",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-035.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrPublico"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/pantalla/reproducciones/{id}/inicio": {
+      "post": {
+        "operationId": "reportarInicio",
+        "summary": "El reproductor empezó la canción",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-019.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportePantalla"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/pantalla/reproducciones/{id}/fin": {
+      "post": {
+        "operationId": "reportarFin",
+        "summary": "El reproductor terminó la canción",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-019, RF-020.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportePantalla"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/pantalla/reproducciones/{id}/error": {
+      "post": {
+        "operationId": "reportarError",
+        "summary": "El reproductor no pudo reproducir la canción",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-007.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportePantalla"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/sesion": {
+      "post": {
+        "operationId": "entrar",
+        "summary": "Entrar al panel",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-021.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoEntrar"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoPanel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "credenciales_invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "cuenta_bloqueada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "salir",
+        "summary": "Salir del panel",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-021.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          }
+        }
+      }
+    },
+    "/panel/yo": {
+      "get": {
+        "operationId": "yoPanel",
+        "summary": "Usuario actual y su establecimiento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-021, RF-022. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/yo/clave": {
+      "put": {
+        "operationId": "cambiarClave",
+        "summary": "Cambiar la clave propia",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-023, RF-025. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoCambioClave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado, credenciales_invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/noche": {
+      "get": {
+        "operationId": "noche",
+        "summary": "Todo lo de la operación de esta noche",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-037, RF-044, RF-049. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Noche"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/sesiones": {
+      "post": {
+        "operationId": "abrirSesion",
+        "summary": "Abrir la noche a mano",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-037. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoSesion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/sesiones/actual/cierre": {
+      "post": {
+        "operationId": "cerrarSesion",
+        "summary": "Cerrar la noche a mano",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-037. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/servicio": {
+      "put": {
+        "operationId": "cambiarServicio",
+        "summary": "Pausar o reanudar solicitudes, o forzar abierto",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-036, RF-039. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoServicio"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/servicio/mantenimiento": {
+      "post": {
+        "operationId": "mantenimiento",
+        "summary": "Modo mantenimiento: cierra la sesión y expira lo pendiente",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-038. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/reproduccion/{id}/salto": {
+      "post": {
+        "operationId": "saltar",
+        "summary": "Saltar la canción que suena",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-040. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/reproduccion/{id}/pausa": {
+      "post": {
+        "operationId": "pausarReproduccion",
+        "summary": "Pausar la reproducción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-040. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/reproduccion/{id}/reanudacion": {
+      "post": {
+        "operationId": "reanudarReproduccion",
+        "summary": "Reanudar la reproducción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-040. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/solicitudes/{id}/retiro": {
+      "post": {
+        "operationId": "retirar",
+        "summary": "Retirar una solicitud con motivo",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-041. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoRetiro"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "no_pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/bloqueos": {
+      "get": {
+        "operationId": "bloqueos",
+        "summary": "Bloqueos vigentes y vencidos",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-043. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "vigencia",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaBloqueos"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "bloquear",
+        "summary": "Bloquear un video",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-042. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoBloqueo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bloqueo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/bloqueos/{id}": {
+      "patch": {
+        "operationId": "extenderBloqueo",
+        "summary": "Cambiar la duración de un bloqueo",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-043. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambioBloqueo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bloqueo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "desbloquear",
+        "summary": "Levantar un bloqueo",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-043. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/horario": {
+      "get": {
+        "operationId": "horario",
+        "summary": "Horario semanal",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-036. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Horario"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "guardarHorario",
+        "summary": "Guardar el horario semanal",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-036. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoHorario"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Horario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas": {
+      "get": {
+        "operationId": "listas",
+        "summary": "Listas de la casa",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-028. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListasCasa"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "crearLista",
+        "summary": "Crear una lista",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-027. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoLista"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas/{id}": {
+      "get": {
+        "operationId": "lista",
+        "summary": "Una lista con sus canciones",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-028. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "renombrarLista",
+        "summary": "Renombrar una lista",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-029. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoLista"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "eliminarLista",
+        "summary": "Eliminar una lista (no la activa)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-030. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas/{id}/canciones": {
+      "post": {
+        "operationId": "agregarALista",
+        "summary": "Agregar una canción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-031. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoCancionLista"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "bloqueada, no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas/{id}/canciones/{elemento}": {
+      "delete": {
+        "operationId": "quitarDeLista",
+        "summary": "Quitar una canción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-032. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "elemento",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas/{id}/orden": {
+      "put": {
+        "operationId": "ordenarLista",
+        "summary": "Reordenar las canciones",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-032. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoOrden"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/listas/{id}/activacion": {
+      "post": {
+        "operationId": "activarLista",
+        "summary": "Activar una lista y su rotación",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-033. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoActivacion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaCasaDetalle"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/busqueda": {
+      "get": {
+        "operationId": "buscarPanel",
+        "summary": "Buscar en YouTube para armar listas",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-031. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusquedaPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "youtube_no_disponible, cuota_agotada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/usuarios": {
+      "get": {
+        "operationId": "usuarios",
+        "summary": "Personal",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-024. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaUsuarios"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "crearUsuario",
+        "summary": "Crear un usuario",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-023. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoUsuario"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioCreado"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/usuarios/{id}": {
+      "patch": {
+        "operationId": "editarUsuario",
+        "summary": "Editar un usuario",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-025. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambioUsuario"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/usuarios/{id}/clave-temporal": {
+      "post": {
+        "operationId": "claveTemporal",
+        "summary": "Restablecer la clave",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-025. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaveTemporal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/usuarios/{id}/desactivacion": {
+      "post": {
+        "operationId": "desactivarUsuario",
+        "summary": "Desactivar un usuario",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-026. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/usuarios/{id}/reactivacion": {
+      "post": {
+        "operationId": "reactivarUsuario",
+        "summary": "Reactivar un usuario",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-026. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/establecimiento": {
+      "get": {
+        "operationId": "establecimiento",
+        "summary": "Datos del establecimiento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-034. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Establecimiento"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "editarEstablecimiento",
+        "summary": "Editar el establecimiento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-034. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambioEstablecimiento"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Establecimiento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/establecimiento/qr": {
+      "get": {
+        "operationId": "qrEstablecimiento",
+        "summary": "QR vigente",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-035. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrEstablecimiento"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/establecimiento/qr/regeneracion": {
+      "post": {
+        "operationId": "regenerarQr",
+        "summary": "Regenerar el QR (el anterior deja de funcionar)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-035. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrEstablecimiento"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/bitacora": {
+      "get": {
+        "operationId": "bitacora",
+        "summary": "Bitácora de acciones",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-044, RF-008. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "usuario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tipo",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaBitacora"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/eventos": {
+      "get": {
+        "operationId": "eventos",
+        "summary": "Calendario de eventos",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-045. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaEventos"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "crearEvento",
+        "summary": "Crear un evento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-045. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoEvento"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventoBar"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/eventos/{id}": {
+      "patch": {
+        "operationId": "editarEvento",
+        "summary": "Editar un evento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-045. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoEditarEvento"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventoBar"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "eliminarEvento",
+        "summary": "Eliminar un evento futuro",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-045. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "rockola",
+  "private": true,
+  "description": "Frontend de Rockola: cliente, pantalla del bar y panel (doc 01).",
+  "workspaces": [
+    "apps/web",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "npm run dev -w @rockola/web",
+    "build": "npm run build -w @rockola/web",
+    "start": "npm run start -w @rockola/web",
+    "generar": "npm run generar -w @rockola/contrato",
+    "check": "node scripts/check.mjs"
+  }
+}

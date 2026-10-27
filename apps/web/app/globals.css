@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+@import '@rockola/ui/tokens.css';
+@import '@rockola/ui/theme.css';
+@import '@rockola/ui/base.css';
+@import '@rockola/ui/componentes.css';
+
+/* Tailwind no mira dentro de node_modules: los componentes de @rockola/ui se le indican aquí. */
+@source '../../../packages/ui/src';

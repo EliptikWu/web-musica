@@ -59,4 +59,4 @@ criterio de aceptación y diseño (prototipo o diseño nuevo aprobado en la crí
 
 | It. | Fechas | Qué se entregó | Verificado | Pendiente |
 |---|---|---|---|---|
-| 0 | 2026-10-26 | En curso | — | — |
+| 0 Cimientos | 2026-10-26 | Repositorio y documentación (CLAUDE.md, docs 01–10, fuentes y prototipos); `@rockola/ui` portado de los prototipos con galería en `/muestras`; `@rockola/contrato` (59 operaciones → OpenAPI); app con CSP con nonce, proxy a la API, cliente validado, tiempo real SSE; simulación (motor puro, escenarios, sincronía entre pestañas); `npm run check` | 53 pruebas de lógica, 5 de contrato, 5 e2e con axe. Comprobado en Edge: eje de ancho de Archivo, SSE simulado entre pestañas en < 3 s, CSP de producción con el Service Worker, idempotencia | WebKit (iOS) sin probar todavía: falta instalar su navegador de Playwright |

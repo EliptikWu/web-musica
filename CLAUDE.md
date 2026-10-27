@@ -18,7 +18,25 @@ navegador** que cumple el contrato propuesto (doc 04). Integrar es apuntar a la 
 - Las iteraciones van seguidas (decisión del usuario, 2026-10-26). Cada una cierra con
   capturas, revisión de diseño y accesibilidad, `npm run check` en verde, barrido y un
   **commit local**. No se sube nada a ningún remoto sin pedirlo.
-- Los comandos reales se apuntan aquí cuando existen; no se escriben antes.
+- Rockola corre en el puerto **3200** (el 3000 lo usan otros proyectos del equipo).
+
+Comandos (desde la raíz):
+
+| Para | Comando |
+|---|---|
+| Arrancar en local (modo simulado) | `npm run dev` → `http://localhost:3200` |
+| Todo lo que correría el CI | `npm run check` (o `npm run check -- --sin-e2e`) |
+| Una parte | `npm run lint\|typecheck\|test\|build\|e2e -w @rockola/web` |
+| Regenerar el contrato para el backend | `npm run generar` (el chequeo falla si `packages/contrato/generado/` no está al día) |
+| Capturas de revisión | `npm run capturas -w @rockola/web` → `apps/web/capturas/` |
+| Texto de los documentos fuente | `python -I scripts/extraer-fuentes.py` |
+
+- Las pruebas de extremo a extremo usan el Edge instalado y la app ya compilada
+  (`npm run build -w @rockola/web`).
+- En la simulación: `?escenario=<nombre>&reloj=fijo|rapido&reiniciar` en cualquier URL;
+  panel con `admin@rockola.demo` u `operador@rockola.demo` y clave `rockola-demo`.
+- Los tokens de diseño viven solo en `packages/ui/src/tokens.css`.
+- `prototipos/` es referencia: nada de `apps/` lo importa.
 
 ## La documentación manda
 

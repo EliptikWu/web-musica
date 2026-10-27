@@ -1,0 +1,23 @@
+{
+  "name": "@rockola/contrato",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Contrato propuesto entre el frontend y la API de Rockola: esquemas zod, endpoints y su exportación a OpenAPI (doc 04).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generar": "node scripts/generar.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}
