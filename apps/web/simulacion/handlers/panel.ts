@@ -26,7 +26,7 @@ function usuarioAContrato(u: UsuarioSim) {
 }
 
 function yoPanel(estado: EstadoSim, u: UsuarioSim) {
-  return { usuario: usuarioAContrato(u), establecimiento: { slug: estado.bar.slug, nombre: estado.bar.nombre } };
+  return { usuario: usuarioAContrato(u), establecimiento: { slug: estado.bar.slug, nombre: estado.bar.nombre, zona_horaria: estado.bar.zona_horaria } };
 }
 
 function quien(p: Peticion) {

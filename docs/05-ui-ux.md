@@ -210,3 +210,8 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | 2026-10-26 | TV | Estados nuevos: fuera de horario y mantenimiento (cartel con el horario y la hora de apertura), cola vacía, pausa (luz apagada y nota), sin conexión (franja cereza arriba) | El prototipo solo tenía la noche abierta |
 | 2026-10-26 | TV | «Encender la pantalla»: un toque antes de sonar | Los navegadores no dejan reproducir con audio sin un gesto |
 | 2026-10-26 | TV | En la simulación, el video es un disco que gira con la marca «Video simulado» | No hay IDs de YouTube verificados; no se finge un video real |
+| 2026-10-26 | Panel | Pantallas nuevas en el sistema Rockola: entrar, cambiar la clave, sesión caducada; diálogos de Bloquear (motivo y duración), Retirar (motivo) y confirmación de mantenimiento y de cerrar la noche | RF-021, RF-023, RF-038, RF-041, RF-042 |
+| 2026-10-26 | Panel | Junto a Saltar y Bloquear, Pausar/Reanudar música; cada fila de la cola lleva Retirar además de Bloquear; «Cerrar la noche» va en la franja de estado | RF-040, RF-041, RF-037 |
+| 2026-10-26 | Panel | El Operador no ve Modo mantenimiento, Desbloquear ni la duración del bloqueo (D9) | RF-022 |
+| 2026-10-26 | Panel | Por debajo de 1280 px una columna; en caja angosta la cola pasa a tarjetas y las teclas se reparten el ancho | El Operador lo usa desde el teléfono |
+| 2026-10-26 | Panel | La bitácora habla en segunda persona de lo propio, en tercera de lo ajeno y en impersonal de lo del sistema | Que nadie lea como suya una acción que no hizo |

@@ -161,7 +161,8 @@ export function useTiempoRealBar(slug: string) {
         } else if (evento.tipo === 'ping') {
           anotarHoraServidor(evento.servidor_ahora);
         } else {
-          void qc.invalidateQueries({ queryKey: claves.panel.todo });
+          // Solo lo que el servidor dice que cambió (nunca la sesión, que no viaja por aquí).
+          for (const recurso of evento.recursos) void qc.invalidateQueries({ queryKey: ['panel', recurso] });
         }
       },
       (estado) => {

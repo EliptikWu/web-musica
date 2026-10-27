@@ -1,0 +1,174 @@
+/*
+ * panel.css — el panel de administración (prototipos/rockola/panel-admin.html) y las piezas
+ * de formulario que el prototipo no tenía (campo, diálogo, grupo de teclas). El panel es una
+ * herramienta: denso, alineado y rápido de leer (doc 05).
+ */
+@layer components {
+  .panel-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; }
+  .panel-marca { display: flex; align-items: baseline; gap: 14px; min-width: 0; }
+  .panel-marca__bar { font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .panel-nav { display: flex; align-items: center; gap: 6px; }
+  .panel-nav a, .panel-nav button {
+    display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px;
+    font-size: 15px; font-weight: 500; text-decoration: none; color: var(--crema-2); border-radius: var(--radio-dia);
+  }
+  .panel-nav a:hover, .panel-nav button:hover { color: var(--crema); }
+  .panel-nav a[aria-current="page"] { color: var(--crema); background: rgba(0, 0, 0, .22); }
+  .panel-nav svg { width: 20px; height: 20px; }
+  .panel-usuario { color: var(--crema) !important; background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4); padding: 0 14px 0 6px !important; }
+  .panel-usuario__inicial { width: 32px; height: 32px; flex: none; border-radius: 6px; display: grid; place-items: center; background: var(--papel); color: var(--tinta); font-size: 14px; font-weight: 800; }
+  .panel-usuario__rol { font-size: 12px; color: var(--crema-2); }
+
+  /* Franja de estado: la luz encendida o apagada (horizontal). */
+  .estado-bar { margin-top: 14px; padding: 3px; border-radius: 16px; background: var(--cromo); box-shadow: 0 0 50px -10px rgba(245, 165, 36, .5); }
+  .estado-bar__luz { display: flex; align-items: center; gap: 14px; padding: 9px; border-radius: 13px; background: var(--tubos), var(--luz-horizontal); }
+  .estado-bar--apagada { box-shadow: none; }
+  .estado-bar--apagada .estado-bar__luz { background: var(--tubos-apagados), var(--apagado-horizontal); }
+  .estado-bar .ventana { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 10px 18px; text-align: left; }
+  .estado-bar__titulo { font-size: 20px; font-weight: 700; font-stretch: 112%; line-height: 1.2; }
+  .estado-bar__sub { font-size: 14px; color: var(--tinta-2); margin-top: 1px; }
+  .estado-bar__acciones { display: flex; flex-wrap: wrap; gap: 12px; padding-right: 4px; }
+  .estado-bar .tecla { width: auto; padding: 0 18px; height: 50px; font-size: 18px; }
+  .foco { width: 14px; height: 14px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 35%, var(--luz-brillo), var(--ambar) 60%); box-shadow: 0 0 10px 2px rgba(245, 165, 36, .8); }
+  .estado-bar--apagada .foco { background: var(--gris-apagado); box-shadow: none; }
+
+  .rejilla-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 18px; }
+  .rejilla-panel__col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  @media (min-width: 1280px) {
+    .rejilla-panel { grid-template-columns: minmax(0, 1fr) 404px; gap: 24px; }
+  }
+
+  .caja { padding: 14px 18px 16px; border-radius: var(--radio-caja); background: linear-gradient(180deg, rgba(74, 44, 31, .7), rgba(58, 34, 24, .7)); box-shadow: inset 0 0 0 1px var(--borde), 0 10px 24px -14px rgba(0, 0, 0, .7); container-type: inline-size; }
+  .caja__cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .caja__cabeza h2 { font-size: 17px; font-weight: 700; font-stretch: 112%; }
+  .caja__cabeza > span, .caja__cabeza > p { font-size: 14px; color: var(--crema-2); }
+
+  /* Canción actual: una tarjeta de título grande con sus teclas al lado. */
+  .actual { display: flex; align-items: center; gap: 18px; }
+  .actual .tarjeta { flex: 1; grid-template-columns: 1fr 76px; min-height: 0; }
+  .actual .tarjeta__centro { padding-top: 6px; }
+  .actual__etiqueta { font-size: 13px; font-weight: 600; color: var(--tinta-2); }
+  .actual__titulo { font-size: 32px; line-height: 1.05; padding: 0 10px; }
+  .actual .tarjeta__artista { font-size: 15px; }
+  .actual .tarjeta__votos { font-size: 30px; }
+  .actual .avance { padding: 6px 14px 8px; color: var(--tinta-2); }
+  .actual .surco { color: var(--tinta); }
+  .actual__acciones { display: flex; flex-direction: column; gap: 12px; }
+  .actual__acciones .tecla { width: 132px; }
+  @container (max-width: 560px) {
+    .actual { flex-direction: column; align-items: stretch; }
+    .actual__acciones { flex-direction: row; flex-wrap: wrap; }
+    .actual__acciones .tecla { flex: 1; width: auto; min-width: 100px; }
+  }
+
+  /* Cola en tiras de papel; en una caja angosta pasa a tarjetas. */
+  .tabla-cola { width: 100%; border-collapse: separate; border-spacing: 0 6px; margin-top: -6px; font-variant-numeric: tabular-nums; }
+  .tabla-cola th { text-align: left; font-size: 13px; font-weight: 500; color: var(--crema-2); padding: 0 12px 2px; }
+  .tabla-cola th.num { text-align: right; }
+  .tabla-cola td { background: var(--papel); color: var(--tinta); height: 46px; padding: 0 12px; font-size: 15px; box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+  .tabla-cola td:first-child { border-radius: 6px 0 0 6px; }
+  .tabla-cola td.accion { background: none; box-shadow: none; padding-right: 0; text-align: right; white-space: nowrap; width: 1%; }
+  .tabla-cola td:nth-last-child(2) { border-radius: 0 6px 6px 0; }
+  .tabla-cola .num { text-align: right; }
+  .tabla-cola td.pos { width: 44px; text-align: center; font-stretch: 75%; font-weight: 800; font-size: 18px; color: var(--tinta-2); border-right: 1px dashed rgba(35, 20, 15, .3); }
+  .tabla-cola td.cancion b { font-stretch: 75%; font-weight: 700; font-size: 19px; }
+  .tabla-cola td.cancion span { display: inline-block; margin-left: 8px; padding: 1px 8px 2px; border-radius: 3px; background: var(--cereza); color: var(--crema); font-size: 13px; font-weight: 500; }
+  .tabla-cola td.votos { font-stretch: 75%; font-weight: 800; font-size: 21px; }
+  .tabla-cola .acciones-fila { display: inline-flex; gap: 8px; }
+  .tabla-cola__pie { margin-top: 4px; font-size: 14px; color: var(--crema-2); }
+  .cola-tarjetas { display: none; }
+  @container (max-width: 640px) {
+    .tabla-cola { display: none; }
+    .cola-tarjetas { display: flex; }
+  }
+  .cola-tarjetas { list-style: none; margin: 0; padding: 0; flex-direction: column; gap: 10px; }
+  .cola-tarjetas__meta { font-size: 13px; color: var(--crema-2); margin-top: 4px; }
+  .cola-tarjetas__acciones { display: flex; gap: 8px; margin-top: 6px; }
+  .cola-tarjetas__acciones .tecla { flex: 1; }
+
+  .registro { list-style: none; margin: 0; padding: 0; }
+  .registro li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 8px 0; border-top: 1px dashed var(--borde); font-size: 15px; }
+  .registro li:first-child { border-top: 0; padding-top: 0; }
+  .registro time { color: var(--crema-2); font-variant-numeric: tabular-nums; }
+  @container (max-width: 420px) {
+    .registro li { grid-template-columns: 1fr; gap: 0; }
+  }
+
+  .metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+  .metrica { padding: 8px 14px 10px; border-radius: var(--radio-tecla); background: rgba(0, 0, 0, .24); box-shadow: inset 0 1px 4px rgba(0, 0, 0, .45); }
+  .metrica dt { font-size: 14px; color: var(--crema-2); }
+  .metrica dd { margin: 2px 0 0; font-stretch: 75%; font-weight: 800; font-size: 34px; line-height: 1; color: var(--ambar-claro); font-variant-numeric: tabular-nums; }
+  .metrica dd small { font-stretch: 100%; font-size: 16px; font-weight: 500; color: var(--crema-2); }
+
+  .caja .dias .dia { height: 40px; }
+  .horas { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .horas b { font-size: 16px; font-weight: 700; }
+
+  .casa { display: flex; align-items: center; gap: 12px; }
+  .casa .tarjeta { flex: 1; min-height: 52px; }
+  .bloqueadas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .bloqueadas li { display: flex; align-items: center; gap: 12px; }
+  .bloqueadas .tarjeta { flex: 1; min-height: 44px; }
+  .bloqueadas .tarjeta__titulo { font-size: 17px; padding-bottom: 2px; }
+  .bloqueadas .tarjeta__artista { font-size: 12px; padding: 2px 6px 3px; }
+
+  /* AÑADIDO: alertas del panel (sin lista de la casa, errores de YouTube). */
+  .alerta-panel { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; border-radius: var(--radio-aviso); background: var(--cereza); color: var(--crema); font-size: 15px; }
+  .alerta-panel svg { width: 22px; height: 22px; flex: none; }
+  .alerta-panel a { color: var(--crema); font-weight: 700; margin-left: auto; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+
+  /* ── Formularios (AÑADIDO): papel como el buscador, etiqueta encima ──────── */
+  .campo { display: flex; flex-direction: column; gap: 6px; }
+  .campo__etiqueta { font-size: 14px; font-weight: 600; color: var(--crema); }
+  .campo__ayuda { font-size: 13px; color: var(--crema-2); }
+  .campo__entrada {
+    width: 100%; min-height: 48px; padding: 10px 14px;
+    background: var(--papel); color: var(--tinta);
+    border: 0; border-radius: var(--radio-tecla);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, .28), 0 0 0 3px rgba(0, 0, 0, .25);
+    font: 500 16px var(--fuente);
+  }
+  .campo__entrada::placeholder { color: var(--tinta-2); }
+  .campo__entrada:focus { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .campo__entrada[aria-invalid="true"] { box-shadow: inset 0 2px 5px rgba(0, 0, 0, .28), 0 0 0 3px var(--cereza); }
+  textarea.campo__entrada { min-height: 84px; resize: vertical; line-height: 1.4; }
+  .campo__error { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--crema); }
+  .campo__error svg { width: 18px; height: 18px; color: var(--ambar); flex: none; }
+
+  /* Opciones como teclas (radio): la elegida queda hundida. */
+  .grupo-teclas { display: flex; flex-wrap: wrap; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+  .grupo-teclas legend { font-size: 14px; font-weight: 600; margin-bottom: 8px; padding: 0; }
+  .grupo-teclas label { position: relative; display: inline-flex; }
+  /* El radio de verdad cubre la tecla: transparente pero visible (no opacity: 0), así se toca,
+     se enfoca y lo anuncian los lectores; la tecla de debajo solo es su dibujo. */
+  .grupo-teclas input {
+    position: absolute; inset: 0; z-index: 1; margin: 0;
+    appearance: none; -webkit-appearance: none; background: transparent; border: 0;
+    border-radius: var(--radio-tecla); cursor: pointer;
+  }
+  .grupo-teclas input:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
+  .grupo-teclas input:checked + .tecla {
+    background: var(--tecla-cara-hundida);
+    box-shadow: 0 1px 0 var(--tecla-canto), inset 0 3px 6px rgba(0, 0, 0, .3);
+    transform: translateY(1px);
+  }
+  .grupo-teclas .tecla { width: auto; padding: 0 16px; height: 46px; font-size: 16px; }
+
+  /* ── Diálogo (AÑADIDO): una caja de madera sobre la penumbra ─────────────── */
+  .dialogo {
+    width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0;
+    border: 0; border-radius: var(--radio-marco); color: var(--crema);
+    background: linear-gradient(180deg, var(--madera-clara), var(--madera));
+    box-shadow: inset 0 0 0 1px var(--borde), 0 30px 60px -20px rgba(0, 0, 0, .8);
+  }
+  .dialogo::backdrop { background: rgba(29, 15, 11, .78); }
+  .dialogo__cuerpo { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 16px; }
+  .dialogo__titulo { font-size: 22px; font-weight: 800; font-stretch: 112%; line-height: 1.2; }
+  .dialogo__texto { font-size: 15px; line-height: 1.45; color: var(--crema-2); }
+  .dialogo__acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+  .dialogo__acciones .tecla { width: auto; padding: 0 18px; }
+  @media (max-width: 600px) {
+    .dialogo { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: var(--radio-marco) var(--radio-marco) 0 0; }
+    .dialogo__acciones .tecla { flex: 1; }
+  }
+}

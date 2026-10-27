@@ -659,7 +659,9 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
     servidor_ahora: iso(ahora),
     sesion: estado.sesion ? { id: estado.sesion.id, apertura: iso(estado.sesion.apertura), tipo_evento: estado.sesion.tipo_evento, origen: estado.sesion.origen } : null,
     servicio: ahoraFoto.servicio,
-    reproduccion: ahoraFoto.reproduccion ? { ...ahoraFoto.reproduccion, pedida_por: solicitudActual ? codigoTelefono(estado, solicitudActual.dispositivo) : null } : null,
+    reproduccion: ahoraFoto.reproduccion
+      ? { ...ahoraFoto.reproduccion, pedida_por: solicitudActual ? codigoTelefono(estado, solicitudActual.dispositivo) : null, pedida_en: solicitudActual ? iso(solicitudActual.fecha) : null }
+      : null,
     cola: ahoraFoto.cola.map((item) => {
       const s = estado.solicitudes.find((x) => x.id === item.solicitud_id)!;
       return { ...item, pedida_por: codigoTelefono(estado, s.dispositivo), duracion_seg: item.cancion.duracion_seg };

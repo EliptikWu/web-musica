@@ -25,7 +25,7 @@ export type UsuarioPanel = z.infer<typeof UsuarioPanel>;
 export const YoPanel = z
   .object({
     usuario: UsuarioPanel,
-    establecimiento: z.object({ slug: Slug, nombre: z.string() }),
+    establecimiento: z.object({ slug: Slug, nombre: z.string(), zona_horaria: z.string().describe('IANA, p. ej. America/Bogota') }),
   })
   .meta({ id: 'YoPanel' });
 export type YoPanel = z.infer<typeof YoPanel>;
@@ -140,7 +140,10 @@ export const Noche = z
       .object({ id: Id, apertura: Fecha, tipo_evento: z.string(), origen: z.enum(['horario', 'manual']) })
       .nullable(),
     servicio: Servicio,
-    reproduccion: Reproduccion.extend({ pedida_por: z.string().nullable().describe('Código corto del teléfono (p. ej. 7F3K)') }).nullable(),
+    reproduccion: Reproduccion.extend({
+      pedida_por: z.string().nullable().describe('Código corto del teléfono (p. ej. 7F3K)'),
+      pedida_en: Fecha.nullable().describe('Cuándo se pidió («pedida hace 31 min»)'),
+    }).nullable(),
     cola: z.array(ItemCola.extend({ pedida_por: z.string(), duracion_seg: Segundos })),
     metricas: z.object({
       desde: Fecha.nullable(),
@@ -220,4 +223,5 @@ export const EventoBar = z
   .meta({ id: 'EventoBar' });
 export type EventoBar = z.infer<typeof EventoBar>;
 export const CuerpoEvento = EventoBar.omit({ id: true }).meta({ id: 'CuerpoEvento' });
+export type CuerpoEvento = z.infer<typeof CuerpoEvento>;
 export const ListaEventos = z.object({ eventos: z.array(EventoBar) }).meta({ id: 'ListaEventos' });

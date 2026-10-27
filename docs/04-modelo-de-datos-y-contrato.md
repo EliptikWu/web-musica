@@ -40,6 +40,8 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `MiSolicitud` | `solicitud_id`, `cancion`, `estado`, `fecha_solicitud`, `votos_total`, `puesto`, `motivo` | Para «Tus pedidos» (RF-013) |
 | `Yo` (teléfono) | `pedidos_maximos`, `pedidos_restantes`, `solicitudes[]`, `votos[]` (ids), `aviso_visto_en` | |
 | `UsuarioPanel` | `id`, `nombre`, `correo`, `rol`, `estado`, `debe_cambiar_clave`, `ultimo_acceso` | Nunca contraseñas ni hashes |
+| `YoPanel` | `usuario`, `establecimiento` (`slug`, `nombre`, `zona_horaria`) | La zona formatea todas las horas del panel |
+| `Noche` | `sesion`, `servicio`, `reproduccion` (+ `pedida_por`, `pedida_en`), `cola` (+ `pedida_por`, `duracion_seg`), `metricas`, `registro`, `horario`, `lista_casa`, `bloqueos`, `alertas` | Una sola respuesta para la operación; `pedida_en` da «pedida hace 31 min» |
 | `Bloqueo` | `id`, `cancion`, `motivo`, `duracion` (`fin_sesion` \| `horas` \| `indefinido`), `inicio`, `fin`, `creado_por` | |
 | `AccionAdmin` | `id`, `fecha`, `usuario` (o `null` = sistema), `tipo`, `objetivo`, `detalle` | La interfaz arma la frase («Bloqueaste «La Bachata», de Manuel Turizo») |
 | `ListaCasa` | `id`, `nombre`, `modo_rotacion` (`secuencial` \| `aleatoria`), `activa`, `total_canciones`, `duracion_total_seg`, `canciones[]` | `aleatoria` = sin repetir hasta agotar la lista |

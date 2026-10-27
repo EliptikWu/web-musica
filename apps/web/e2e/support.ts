@@ -18,11 +18,19 @@ export async function sinViolaciones(pagina: Page, contexto: string) {
   expect(resumen, `axe en «${contexto}»`).toEqual([]);
 }
 
-/** Recoge errores de consola y de la política de contenido para revisarlos al final. */
-export function vigilarConsola(pagina: Page): string[] {
+/**
+ * Recoge errores de consola y de la política de contenido para revisarlos al final. Las
+ * respuestas fallidas solo se pasan por alto si la prueba las espera (`permitir`); el 404 de
+ * las precargas de Next siempre.
+ */
+export function vigilarConsola(pagina: Page, { permitir = [] as number[] } = {}): string[] {
   const errores: string[] = [];
+  const esperadas = [404, ...permitir];
   pagina.on('console', (m) => {
-    if (m.type() === 'error' && !/status of 404/.test(m.text())) errores.push(m.text());
+    if (m.type() !== 'error') return;
+    const estado = /status of (\d{3})/.exec(m.text())?.[1];
+    if (estado && esperadas.includes(Number(estado))) return;
+    errores.push(m.text());
   });
   pagina.on('pageerror', (e) => errores.push(e.message));
   return errores;

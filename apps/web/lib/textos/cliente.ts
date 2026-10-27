@@ -1,5 +1,5 @@
 import type { EstadoServicio, EstadoSolicitud, MotivoNoPedible } from '@rockola/contrato';
-import { formatoEspera, formatoHora } from '../formato';
+import { conPunto, formatoEspera, formatoHora } from '../formato';
 
 /**
  * Textos del cliente (doc 05, «Textos»), revisados con la skill de redacción. Vocabulario fijo:
@@ -156,7 +156,7 @@ export function servicioCerrado(estado: Exclude<EstadoServicio, 'abierto'>, prox
         luz: luzServicio(estado),
         titulo: 'Por ahora no recibimos canciones',
         // La hora ya termina en punto («8:00 p. m.»): no se le pone otro.
-        detalle: cuando ? `Los pedidos abren ${cuando}${cuando.endsWith('.') ? '' : '.'} Mientras tanto suena la lista de la casa.` : 'Mientras tanto suena la lista de la casa.',
+        detalle: cuando ? `${conPunto(`Los pedidos abren ${cuando}`)} Mientras tanto suena la lista de la casa.` : 'Mientras tanto suena la lista de la casa.',
       };
     case 'en_pausa':
       return { luz: luzServicio(estado), titulo: 'Los pedidos están en pausa', detalle: 'El bar los pausó por un momento. La cola sigue sonando y puedes verla.' };

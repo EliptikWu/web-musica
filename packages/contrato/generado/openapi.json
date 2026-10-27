@@ -1460,6 +1460,15 @@
                 "nullable": true,
                 "description": "Código corto del teléfono (p. ej. 7F3K)",
                 "type": "string"
+              },
+              "pedida_en": {
+                "nullable": true,
+                "description": "Cuándo se pidió («pedida hace 31 min»)",
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Fecha"
+                  }
+                ]
               }
             },
             "required": [
@@ -1471,7 +1480,8 @@
               "inicio",
               "posicion_seg",
               "estado",
-              "pedida_por"
+              "pedida_por",
+              "pedida_en"
             ]
           },
           "cola": {
@@ -2106,11 +2116,16 @@
               },
               "nombre": {
                 "type": "string"
+              },
+              "zona_horaria": {
+                "type": "string",
+                "description": "IANA, p. ej. America/Bogota"
               }
             },
             "required": [
               "slug",
-              "nombre"
+              "nombre",
+              "zona_horaria"
             ]
           }
         },

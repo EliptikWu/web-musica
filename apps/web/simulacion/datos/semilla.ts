@@ -125,7 +125,12 @@ function momentoB(persona: string): { estado: EstadoSim; ancla: number } {
     sesiones_panel: {},
     dispositivos: { [p]: { codigo: CODIGO_PERSONA, tipo: 'movil', primer_acceso: hace(40), aviso: hace(40) } },
     idempotencia: {},
-    eventos: [],
+    // Eventos de ejemplo (genéricos: no son eventos reales del bar).
+    eventos: [
+      { id: 'ev-1', nombre: 'Karaoke de los miércoles', tipo_evento: 'karaoke', inicio: '2026-10-21T20:00:00-05:00', fin: '2026-10-22T01:00:00-05:00', descripcion: 'La rockola se usa para el karaoke.' },
+      { id: 'ev-2', nombre: 'Transmisión del partido', tipo_evento: 'partido', inicio: '2026-10-18T15:00:00-05:00', fin: '2026-10-18T18:00:00-05:00', descripcion: null },
+      { id: 'ev-3', nombre: 'Noche de salsa en vivo', tipo_evento: 'tematica', inicio: '2026-10-30T20:00:00-05:00', fin: '2026-10-31T02:00:00-05:00', descripcion: 'Orquesta en vivo de 10:00 p. m. a 12:00 a. m.' },
+    ],
     qr: { token: 'demo-qr-1', generado_en: bogota('2026-10-01', '17:00:00'), anteriores: [] },
     // Lo que ya pasó desde las 8:00 p. m. Cuadra con el panel del prototipo: 48, 31, 162 y 11 min.
     metricas: { solicitudes: 48, telefonos: 31, votos: 162, espera_seg_suma: 38 * 660, espera_n: 38 },

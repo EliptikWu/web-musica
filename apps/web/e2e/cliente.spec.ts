@@ -104,12 +104,14 @@ test('sin pedidos libres: se dice y no hay tecla «Pedir»', async ({ page }) =>
 });
 
 test('YouTube caído: mensaje claro y reintentar (PB-09)', async ({ page }) => {
+  const errores = vigilarConsola(page, { permitir: [503] });
   await abrir(page, '/b/demo/buscar', 'youtube-caido');
   await page.getByRole('searchbox').fill('salsa');
   // Next tiene su propio anunciador de rutas con role=alert: se filtra por el texto.
   await expect(page.getByRole('alert').filter({ hasText: 'YouTube no respondió' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
   await sinViolaciones(page, 'youtube caído');
+  expect(errores).toEqual([]);
 });
 
 test('cuota agotada: resultados guardados, avisando que pueden estar incompletos (PB-54)', async ({ page }) => {

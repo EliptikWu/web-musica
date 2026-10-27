@@ -131,3 +131,8 @@ export function resumenHorario(franjas: readonly FranjaResumible[]): { dias: str
       return { dias: capitalizar(nombrarDias(dias)), horas: `${formatoHoraDelDia(inicio)} a ${formatoHoraDelDia(fin)}` };
     });
 }
+
+/** Cierra una frase con punto, sin duplicarlo cuando ya termina en «p. m.» o «a. m.». */
+export function conPunto(frase: string): string {
+  return frase.endsWith('.') ? frase : `${frase}.`;
+}
