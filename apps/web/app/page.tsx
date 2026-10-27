@@ -2,6 +2,7 @@ import { claseTecla, LuzEstado, TarjetaTitulo } from '@rockola/ui';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AvisoPantalla } from '@/components/comun/AvisoPantalla';
+import { EnlacePantalla } from '@/components/comun/EnlacePantalla';
 import { MODO } from '@/lib/modo';
 import { ESCENARIOS } from '@/simulacion/escenarios';
 
@@ -50,9 +51,15 @@ export default function Portada() {
             {SUPERFICIES.map((s) => (
               <li key={s.href} className="fila">
                 <TarjetaTitulo titulo={s.titulo} artista={s.detalle} />
-                <Link href={s.href} className={claseTecla('cereza')} aria-label={`${s.boton}: ${s.titulo}`}>
-                  {s.boton}
-                </Link>
+                {s.href.endsWith('/pantalla') ? (
+                  <EnlacePantalla slug={SLUG} className={claseTecla('cereza')} aria-label={`${s.boton}: ${s.titulo}`}>
+                    {s.boton}
+                  </EnlacePantalla>
+                ) : (
+                  <Link href={s.href} className={claseTecla('cereza')} aria-label={`${s.boton}: ${s.titulo}`}>
+                    {s.boton}
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

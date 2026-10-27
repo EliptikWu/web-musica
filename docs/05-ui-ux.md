@@ -205,3 +205,8 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | 2026-10-26 | Cola | «Tus pedidos» es una sección al final de la cola, no una pantalla aparte | PB-22 la sitúa en «La cola»; una cuarta pestaña rompería el pie del prototipo |
 | 2026-10-26 | Bienvenida, cola | Sin conexión en vivo, la luz se apaga y dice «Sin conexión» | La crítica de diseño vio que «En vivo» contradecía el banner |
 | 2026-10-26 | Teclas «Votaste» y «Tuya» | Sin `aria-label`; reciben el foco al reemplazar a «+1» | Revisión de accesibilidad: ARIA prohíbe la etiqueta en un `span` y el foco del teclado se perdía |
+| 2026-10-26 | TV | «Suena ahora, pedida por el público» o «de la lista de la casa»; con la lista de la casa, la columna de votos dice «Lista de la casa» | RF-016: origen de lo que suena |
+| 2026-10-26 | TV | Espera de cada canción en la franja, como en el teléfono | RF-018 |
+| 2026-10-26 | TV | Estados nuevos: fuera de horario y mantenimiento (cartel con el horario y la hora de apertura), cola vacía, pausa (luz apagada y nota), sin conexión (franja cereza arriba) | El prototipo solo tenía la noche abierta |
+| 2026-10-26 | TV | «Encender la pantalla»: un toque antes de sonar | Los navegadores no dejan reproducir con audio sin un gesto |
+| 2026-10-26 | TV | En la simulación, el video es un disco que gira con la marca «Video simulado» | No hay IDs de YouTube verificados; no se finge un video real |

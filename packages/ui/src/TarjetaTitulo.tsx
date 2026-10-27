@@ -14,6 +14,10 @@ type Props = {
   duracion?: string;
   /** Miniatura del video (RF-006, RF-015). Con ella, el puesto va encima como etiqueta. */
   miniatura?: string | null;
+  /** Una columna más antes de los votos (la TV pone ahí lo que subió, ↑N). */
+  columnaExtra?: ReactNode;
+  /** Mostrar «votos» bajo la cifra (en la TV no: la cifra grande basta y se lee de lejos). */
+  etiquetaVotos?: boolean;
   /** Nombre del elemento: `li` dentro de una lista, `div` dentro de una fila con tecla. */
   como?: 'div' | 'li';
   className?: string;
@@ -24,7 +28,7 @@ type Props = {
  * título condensado con su grafía real y franja cereza con el artista; ámbar si es tuya,
  * apagada si no se puede pedir.
  */
-export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, votos, duracion, miniatura, como = 'div', className }: Props) {
+export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, votos, duracion, miniatura, columnaExtra, etiquetaVotos = true, como = 'div', className }: Props) {
   const Elemento = como;
   const esResultado = puesto === undefined;
   const sinCifra = votos === undefined && duracion === undefined;
@@ -60,10 +64,11 @@ export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, vo
         <p className="tarjeta__titulo">{titulo}</p>
         <p className="tarjeta__artista">{artista}</p>
       </div>
+      {columnaExtra}
       {votos !== undefined && (
         <p className="tarjeta__votos">
           {votos}
-          <small>{votos === 1 ? 'voto' : 'votos'}</small>
+          {etiquetaVotos ? <small>{votos === 1 ? 'voto' : 'votos'}</small> : <span className="solo-lector">{votos === 1 ? ' voto' : ' votos'}</span>}
         </p>
       )}
       {duracion !== undefined && (

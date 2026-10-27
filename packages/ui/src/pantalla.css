@@ -1,0 +1,100 @@
+/*
+ * pantalla.css — la pantalla del bar (prototipos/rockola/pantalla-bar.html). Se diseña en un
+ * lienzo fijo de 1280 × 720 que la app amplía con `zoom` hasta llenar la TV (doc 05,
+ * «Responsive»): las medidas son las del prototipo, una a una.
+ */
+@layer components {
+  .tv-marco { position: fixed; inset: 0; display: grid; place-items: center; overflow: hidden; background: var(--nogal-hondo); }
+  /* min-height: 0 porque también es .madera (100dvh): ampliado, la TV se saldría de la pantalla. */
+  .tv-lienzo { position: relative; width: 1280px; height: 720px; min-height: 0; overflow: hidden; }
+  .tv {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: 700px 1fr; column-gap: 36px;
+    height: 100%; padding: 26px 40px 30px;
+  }
+  .tv__izq { display: flex; flex-direction: column; min-height: 0; }
+  .tv__der { display: flex; flex-direction: column; min-height: 0; }
+
+  /* El arco de la TV es más bajo que el del teléfono. */
+  .tv .arco { width: 700px; border-radius: 50% 50% 22px 22px / 23% 23% 22px 22px; }
+  .tv .arco__luz { padding: 14px 16px 16px; border-radius: 50% 50% 18px 18px / 22% 22% 18px 18px; }
+  .placa-bar {
+    width: max-content; max-width: 100%; margin: 8px auto 12px; padding: 6px 22px 7px;
+    background: var(--papel); color: var(--tinta); border-radius: var(--radio-dia);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, .18), 0 2px 0 rgba(0, 0, 0, .3);
+    font-size: 22px; line-height: 1.1;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .video {
+    position: relative; aspect-ratio: 16 / 9; border-radius: var(--radio-tecla); overflow: hidden;
+    background:
+      radial-gradient(60% 80% at 30% 40%, rgba(245, 165, 36, .35), transparent 70%),
+      radial-gradient(50% 70% at 75% 65%, rgba(184, 40, 47, .35), transparent 70%),
+      var(--video-fondo);
+    box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .5);
+  }
+  .video iframe, .video > div[data-reproductor] { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video__marca {
+    position: absolute; left: 16px; bottom: 14px; z-index: 1;
+    display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 10px;
+    border-radius: 6px; background: rgba(29, 15, 11, .7); color: var(--crema);
+    font-size: 15px; font-weight: 500;
+  }
+  .video__marca svg { width: 22px; height: 22px; }
+  .video__centro { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--crema); }
+  /* AÑADIDO: el reproductor simulado gira un disco mientras suena (se detiene en pausa). */
+  .video__disco { width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle, var(--crema) 0 6%, var(--nogal-hondo) 7% 22%, var(--cereza) 23% 34%, var(--nogal-hondo) 35%); box-shadow: 0 0 40px rgba(245, 165, 36, .25), inset 0 0 0 2px rgba(255, 255, 255, .06); }
+  .video__disco--gira { animation: girar 3.2s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+
+  .ahora-tv { margin-top: 16px; display: grid; grid-template-columns: 1fr 96px; }
+  .ahora-tv .tarjeta__centro { padding-top: 8px; }
+  .ahora-tv__etiqueta { font-size: 14px; font-weight: 600; color: var(--tinta-2); }
+  .ahora-tv__titulo { font-size: 46px; line-height: 1.08; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 12px; }
+  .ahora-tv .tarjeta__artista { font-size: 20px; padding: 4px 8px 5px; }
+  .ahora-tv .tarjeta__votos { font-size: 40px; }
+  .ahora-tv .tarjeta__votos small { font-size: 15px; }
+  .ahora-tv .avance { padding: 8px 16px 10px; font-size: 15px; color: var(--tinta-2); }
+  .ahora-tv .surco { color: var(--tinta); }
+  .ahora-tv__casa { font-stretch: 100%; font-weight: 600; font-size: 15px; line-height: 1.2; color: var(--tinta-2); text-align: center; padding: 0 6px; }
+
+  .tv__cabeza { display: flex; justify-content: space-between; align-items: center; height: 40px; }
+  .tv__cabeza h2 { font-size: 26px; }
+  .tv__cabeza .luz-estado { font-size: 17px; }
+  .viene { margin-top: 12px; gap: 8px; }
+  .viene .tarjeta { grid-template-columns: 40px 1fr 46px 56px; min-height: 72px; }
+  .viene .tarjeta--miniatura { grid-template-columns: 64px 1fr 46px 56px; }
+  .viene .tarjeta__titulo { font-size: 23px; -webkit-line-clamp: 1; }
+  .viene .tarjeta__artista { font-size: 15px; }
+  .viene .tarjeta__votos { font-size: 26px; }
+  .viene .tarjeta__num { font-size: 22px; }
+  .sube { display: flex; align-items: center; justify-content: center; gap: 1px; color: var(--cereza); font-weight: 800; font-stretch: 75%; font-size: 19px; border-left: 1px dashed rgba(35, 20, 15, .3); }
+  .sube svg { width: 17px; height: 17px; stroke-width: 2.6; }
+  .viene__mas { margin-top: 10px; font-size: 15px; line-height: 1.35; }
+
+  .qr-tv { margin-top: auto; padding: 4px; border-radius: var(--radio-caja); background: var(--cromo); }
+  .qr-tv__placa { display: flex; align-items: center; gap: 18px; padding: 12px 16px 12px 12px; border-radius: 11px; background: var(--papel); color: var(--tinta); }
+  .qr-tv__codigo { flex: none; width: 118px; height: 118px; padding: 8px; background: var(--qr-fondo); border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+  .qr-tv__codigo svg { display: block; width: 100%; height: 100%; }
+  .qr-tv h2 { font-size: 30px; line-height: 1.05; }
+  .qr-tv p { margin-top: 4px; font-size: 17px; color: var(--tinta-2); }
+  .qr-tv .qr-tv__enlace { margin-top: 8px; color: var(--tinta); font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+
+  /* AÑADIDO: el cartel de la TV cuando no se reciben canciones o la cola está vacía. */
+  .tv-aviso { margin-top: 12px; padding: 18px 20px 20px; border-radius: var(--radio-caja); background: var(--papel); color: var(--tinta); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12), 0 2px 0 rgba(0, 0, 0, .3); }
+  .tv-aviso h3 { font-stretch: 75%; font-weight: 700; font-size: 34px; line-height: 1; }
+  .tv-aviso p { margin-top: 8px; font-size: 17px; line-height: 1.4; color: var(--tinta-2); }
+  .tv-aviso .dias { margin-top: 14px; }
+  .tv-aviso .dia { height: 46px; }
+  .tv-aviso .dia:not(.dia--abre) { color: var(--tinta-2); background: rgba(35, 20, 15, .1); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .25); }
+  .tv-aviso .dia:not(.dia--abre) small { color: var(--cereza); }
+
+  /* AÑADIDO: aviso de conexión arriba de la TV. */
+  .tv-banner { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding: 8px 40px; background: var(--cereza); color: var(--crema); font-size: 17px; font-weight: 600; }
+
+  /* AÑADIDO: «Encender la pantalla», el toque que el navegador pide antes de sonar con audio. */
+  .tv-encender { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(29, 15, 11, .82); }
+  .tv-encender__caja { width: 560px; text-align: center; }
+  .tv-encender h2 { font-size: 36px; }
+  .tv-encender p { margin: 12px auto 28px; max-width: 460px; font-size: 18px; line-height: 1.45; color: var(--crema-2); }
+}

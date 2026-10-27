@@ -15,7 +15,7 @@
   .luz-estado { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--crema); }
   .luz-estado::before {
     content: ""; flex: none; width: 10px; height: 10px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #FFE7B0, var(--ambar) 60%);
+    background: radial-gradient(circle at 35% 35%, var(--luz-brillo), var(--ambar) 60%);
     box-shadow: 0 0 10px 2px rgba(245, 165, 36, .7);
   }
   .luz-estado--apagada::before { background: var(--gris-apagado); box-shadow: none; }
@@ -186,7 +186,7 @@
   .ficha { width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed rgba(244, 231, 203, .45); }
   .ficha--libre {
     border: 0;
-    background: radial-gradient(circle at 35% 30%, #FFF0C4, var(--ambar) 55%, #B8741A);
+    background: radial-gradient(circle at 35% 30%, var(--ficha-brillo), var(--ambar) 55%, var(--ficha-canto));
     box-shadow: 0 0 8px rgba(245, 165, 36, .5), inset 0 0 0 2px rgba(120, 70, 10, .35);
   }
 
@@ -199,8 +199,8 @@
   .pie {
     position: sticky; bottom: 0; z-index: 2;
     padding: 10px 12px calc(14px + env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, var(--madera-clara), var(--madera) 40%, #2E1A12);
-    border-top: 2px solid #9EA3AA;
+    background: linear-gradient(180deg, var(--madera-clara), var(--madera) 40%, var(--pie-fondo));
+    border-top: 2px solid var(--pie-filete);
     box-shadow: 0 -12px 30px rgba(0, 0, 0, .45);
   }
   .mini { display: flex; align-items: center; gap: 12px; padding: 0 6px 6px; }

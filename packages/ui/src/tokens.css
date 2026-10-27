@@ -27,6 +27,15 @@
   --ambar: #F5A524;
   --ambar-claro: #FFD27A;
 
+  /* AÑADIDO: nombres para valores sueltos del prototipo (brillos, pie, video, QR). */
+  --luz-brillo: #FFE7B0;
+  --ficha-brillo: #FFF0C4;
+  --ficha-canto: #B8741A;
+  --pie-fondo: #2E1A12;
+  --pie-filete: #9EA3AA;
+  --video-fondo: #1A0E0A;
+  --qr-fondo: #FFFFFF;
+
   /* Teclas: cara clara, canto marrón (AÑADIDO: nombres para los valores de .tecla) */
   --tecla-cara: linear-gradient(180deg, #FFF8E6, #E8D8B6);
   --tecla-cara-hundida: linear-gradient(180deg, #D8C7A4, #CDBB96);
