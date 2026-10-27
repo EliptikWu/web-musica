@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fuera de horario, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    body { background: radial-gradient(90% 60% at 50% 110%, rgba(0, 0, 0, .45), transparent 70%), var(--nogal); }
+    .cabeza { text-align: center; }
+    .cabeza h1 { font-size: 25px; line-height: 1.15; }
+    .cabeza .luz-estado { margin-top: 8px; }
+
+    .arco { margin-top: 34px; }
+    .arco__luz { height: 322px; padding: 104px 18px 18px; }
+    .ventana { padding: 16px 16px 18px; }
+    .ventana h2 { font-size: 34px; line-height: .98; }
+    .ventana p { margin-top: 10px; font-size: 15px; line-height: 1.4; color: var(--tinta-2); }
+
+    .horario { margin-top: 36px; }
+    .horario h2 { text-align: center; }
+    .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 12px 0 0; padding: 0; }
+    .dia { height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--crema-2); background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4); }
+    .dia--abre { color: var(--tinta); background: linear-gradient(180deg, #FFF8E6, #E8D8B6); box-shadow: 0 3px 0 #7A6450, inset 0 1px 0 rgba(255, 255, 255, .8); transform: translateY(-2px); }
+    .dia small { font-size: 11px; font-weight: 600; color: var(--cereza); }
+    .horas { margin-top: 14px; text-align: center; font-size: 16px; }
+    .horas b { font-weight: 700; }
+
+    .accion { position: absolute; left: 16px; right: 16px; bottom: 26px; z-index: 1; text-align: center; }
+    .privacidad { margin-top: 10px; font-size: 14px; }
+    .privacidad a { display: inline-flex; align-items: center; min-height: 44px; color: var(--crema); font-weight: 600; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="movil">
+  <main class="capa contenido">
+    <header class="cabeza">
+      <h1 class="placa">[Nombre del bar]</h1>
+      <p class="luz-estado luz-estado--apagada">Pedidos cerrados</p>
+    </header>
+
+    <section class="arco arco--apagado" aria-label="Estado de la rockola">
+      <div class="arco__luz">
+        <div class="ventana">
+          <h2 class="condensada">Por ahora no recibimos canciones</h2>
+          <p>Los pedidos abren hoy a las 8:00 p. m. Mientras tanto suena la lista de la casa.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="horario" aria-labelledby="t-horario">
+      <h2 class="titulo-seccion" id="t-horario">Horario de pedidos</h2>
+      <ul class="dias">
+        <li class="dia">Lun</li><li class="dia">Mar</li><li class="dia">Mié</li>
+        <li class="dia dia--abre">Jue<small>Hoy</small></li><li class="dia dia--abre">Vie</li><li class="dia dia--abre">Sáb</li>
+        <li class="dia">Dom</li>
+      </ul>
+      <p class="horas secundario">Jueves a sábado, <b style="color:var(--crema)">8:00 p. m. a 2:00 a. m.</b></p>
+    </section>
+  </main>
+
+  <div class="accion">
+    <a class="tecla tecla--cereza tecla--grande" href="cliente-1-bienvenida.html">Ver qué está sonando</a>
+    <p class="privacidad"><a href="#politica">Política de datos</a></p>
+  </div>
+</body>
+</html>

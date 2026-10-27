@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280">
+  <title>Pantalla del bar, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    body { width: 1280px; height: 720px; }
+    .tv { position: relative; z-index: 1; display: grid; grid-template-columns: 700px 1fr; column-gap: 36px; height: 100%; padding: 26px 40px 30px; }
+
+    .arco { width: 700px; }
+    .arco__luz { padding: 14px 16px 16px; border-radius: 50% 50% 18px 18px / 22% 22% 18px 18px; }
+    .arco { border-radius: 50% 50% 22px 22px / 23% 23% 22px 22px; }
+    .placa-bar {
+      width: max-content; margin: 8px auto 12px; padding: 6px 22px 7px;
+      background: var(--papel); color: var(--tinta); border-radius: 8px;
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, .18), 0 2px 0 rgba(0, 0, 0, .3);
+      font-size: 22px; line-height: 1.1;
+    }
+    .video {
+      position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden;
+      background:
+        radial-gradient(60% 80% at 30% 40%, rgba(245, 165, 36, .35), transparent 70%),
+        radial-gradient(50% 70% at 75% 65%, rgba(184, 40, 47, .35), transparent 70%),
+        #1A0E0A;
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .5);
+    }
+    .video__marca { position: absolute; left: 16px; bottom: 14px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px 0 10px; border-radius: 6px; background: rgba(29, 15, 11, .7); font-size: 15px; font-weight: 500; }
+    .video__marca svg { width: 22px; height: 22px; }
+
+    .ahora { margin-top: 16px; display: grid; grid-template-columns: 1fr 96px; min-height: 0; }
+    .ahora__centro { padding-top: 8px; }
+    .ahora__etiqueta { font-size: 14px; font-weight: 600; color: var(--tinta-2); }
+    .ahora__titulo { font-size: 46px; line-height: 1.08; }
+    .ahora .tarjeta__artista { font-size: 20px; padding: 4px 8px 5px; }
+    .ahora .tarjeta__votos { font-size: 40px; }
+    .ahora .tarjeta__votos small { font-size: 15px; }
+    .ahora .avance { padding: 8px 16px 10px; font-size: 15px; color: var(--tinta-2); }
+    .ahora .surco { color: var(--tinta); }
+
+    .der { display: flex; flex-direction: column; }
+    .der__cabeza { display: flex; justify-content: space-between; align-items: center; height: 40px; }
+    .der__cabeza h2 { font-size: 26px; }
+    .der__cabeza .luz-estado { font-size: 17px; }
+    .viene { margin-top: 12px; gap: 8px; }
+    .viene .tarjeta { grid-template-columns: 40px 1fr 46px 56px; min-height: 72px; }
+    .viene .tarjeta__titulo { font-size: 23px; }
+    .viene .tarjeta__artista { font-size: 15px; }
+    .viene .tarjeta__votos { font-size: 26px; }
+    .viene .tarjeta__num { font-size: 22px; }
+    .sube { display: flex; align-items: center; justify-content: center; gap: 1px; color: var(--cereza); font-weight: 800; font-stretch: 75%; font-size: 19px; border-left: 1px dashed rgba(35, 20, 15, .3); }
+    .sube svg { width: 17px; height: 17px; }
+    .viene__mas { margin-top: 10px; font-size: 15px; line-height: 1.35; }
+
+    .qr { margin-top: auto; padding: 4px; border-radius: 14px; background: var(--cromo); }
+    .qr__placa { display: flex; align-items: center; gap: 18px; padding: 12px 16px 12px 12px; border-radius: 11px; background: var(--papel); color: var(--tinta); }
+    .qr__codigo { flex: none; width: 118px; height: 118px; padding: 8px; background: #fff; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+    .qr__codigo svg { display: block; width: 100%; height: 100%; }
+    .qr h2 { font-size: 30px; line-height: 1.05; }
+    .qr p { margin-top: 4px; font-size: 17px; color: var(--tinta-2); }
+    .qr .qr__enlace { margin-top: 8px; color: var(--tinta); font-weight: 600; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div class="tv">
+    <section>
+      <div class="arco">
+        <div class="arco__luz">
+          <h1 class="placa-bar placa">[Nombre del bar]</h1>
+          <div class="video" role="img" aria-label="Video de YouTube de la canción que suena">
+            <span class="video__marca"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="m10.5 9.5 4 2.5-4 2.5z" fill="currentColor"/></svg>Video de YouTube</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ahora tarjeta" aria-label="Suena ahora">
+        <div class="tarjeta__centro ahora__centro">
+          <p class="ahora__etiqueta">Suena ahora</p>
+          <h2 class="ahora__titulo condensada">Rebelión</h2>
+          <p class="tarjeta__artista">Joe Arroyo</p>
+          <div class="avance"><span>2:41</span><div class="surco"><span style="--v:45%"></span></div><span>5:58</span></div>
+        </div>
+        <p class="tarjeta__votos">24<small>votos</small></p>
+      </div>
+    </section>
+
+    <section class="der">
+      <div class="der__cabeza">
+        <h2 class="placa">Lo que viene</h2>
+        <p class="luz-estado">En vivo</p>
+      </div>
+      <ol class="filas viene">
+        <li class="tarjeta"><span class="tarjeta__num">1</span><div class="tarjeta__centro"><p class="tarjeta__titulo">Cali Pachanguero</p><p class="tarjeta__artista">Grupo Niche</p></div><span class="sube"></span><p class="tarjeta__votos">21</p></li>
+        <li class="tarjeta"><span class="tarjeta__num">2</span><div class="tarjeta__centro"><p class="tarjeta__titulo">DtMF</p><p class="tarjeta__artista">Bad Bunny</p></div><span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 1 puesto" style="stroke-width:2.6"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>1</span><p class="tarjeta__votos">18</p></li>
+        <li class="tarjeta"><span class="tarjeta__num">3</span><div class="tarjeta__centro"><p class="tarjeta__titulo">Monaco</p><p class="tarjeta__artista">Bad Bunny</p></div><span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 2 puestos" style="stroke-width:2.6"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>2</span><p class="tarjeta__votos">15</p></li>
+        <li class="tarjeta"><span class="tarjeta__num">4</span><div class="tarjeta__centro"><p class="tarjeta__titulo">La Bicicleta</p><p class="tarjeta__artista">Carlos Vives y Shakira</p></div><span class="sube"></span><p class="tarjeta__votos">15</p></li>
+        <li class="tarjeta"><span class="tarjeta__num">5</span><div class="tarjeta__centro"><p class="tarjeta__titulo">NUEVAYoL</p><p class="tarjeta__artista">Bad Bunny</p></div><span class="sube"></span><p class="tarjeta__votos">14</p></li>
+      </ol>
+      <p class="viene__mas secundario">Y 4 más en la cola. Con los mismos votos, va primero la que se pidió antes.</p>
+
+      <div class="qr">
+        <div class="qr__placa">
+          <div class="qr__codigo" role="img" aria-label="Código QR para pedir y votar">
+            <svg viewBox="0 0 29 29" aria-hidden="true"><path stroke="#23140F" d="M0 0.5h7m1 0h3m1 0h1m6 0h2m1 0h7m-29 1h1m5 0h1m2 0h1m1 0h3m3 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m4 0h3m8 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h3m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h2m2 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m3 0h7m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-18 1h1m4 0h1m1 0h3m-20 1h7m1 0h1m1 0h4m1 0h1m2 0h1m3 0h2m3 0h1m-29 1h4m4 0h5m2 0h3m1 0h6m1 0h1m1 0h1m-27 1h1m3 0h1m1 0h2m2 0h3m2 0h2m2 0h2m1 0h1m-25 1h5m3 0h1m3 0h2m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m-28 1h4m1 0h7m3 0h1m1 0h1m3 0h1m1 0h1m2 0h3m-29 1h2m1 0h2m3 0h1m1 0h1m5 0h7m1 0h2m2 0h1m-27 1h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m8 0h1m-22 1h3m2 0h1m1 0h1m2 0h2m1 0h2m2 0h1m4 0h2m-22 1h7m2 0h4m1 0h1m2 0h1m3 0h2m-27 1h2m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h8m2 0h2m-29 1h1m3 0h3m4 0h2m1 0h4m2 0h1m1 0h1m1 0h2m-26 1h1m3 0h2m1 0h1m1 0h5m1 0h1m3 0h1m2 0h1m1 0h2m-26 1h1m1 0h5m5 0h1m2 0h1m1 0h1m1 0h6m1 0h1m1 0h1m-21 1h1m1 0h1m2 0h1m4 0h3m3 0h2m1 0h2m-29 1h7m1 0h2m3 0h4m1 0h3m1 0h1m1 0h1m-25 1h1m5 0h1m1 0h2m4 0h2m2 0h3m3 0h2m1 0h2m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h6m2 0h1m1 0h7m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h7m1 0h1m1 0h2m-27 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m4 0h7m1 0h1m-28 1h1m5 0h1m1 0h2m3 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h1m-28 1h7m2 0h4m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3"/></svg>
+          </div>
+          <div>
+            <h2 class="placa">Escanea y vota</h2>
+            <p>Sin descargas ni registro</p>
+            <p class="qr__enlace">[enlace del bar]</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

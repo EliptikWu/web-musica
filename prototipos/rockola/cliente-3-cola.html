@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cola en tiempo real, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .cabeza { display: flex; justify-content: space-between; align-items: flex-start; }
+    .cabeza h1 { font-size: 24px; line-height: 1.15; }
+    .cabeza p { margin-top: 4px; font-size: 14px; }
+    .cabeza .luz-estado { margin-top: 6px; }
+
+    .tuya { margin-top: 16px; padding: 4px; border-radius: 18px; background: var(--cromo); box-shadow: 0 0 50px -8px rgba(245, 165, 36, .5); }
+    .tuya__luz { padding: 9px; border-radius: 14px; background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .22) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(120, 20, 10, .16) 9px 10px, rgba(255, 255, 255, 0) 10px 21px), var(--luz); }
+    .tuya .ventana { text-align: left; padding: 10px 14px 12px; }
+    .tuya__arriba { display: flex; justify-content: space-between; align-items: center; }
+    .tuya__etiqueta { font-size: 14px; font-weight: 600; color: var(--tinta-2); }
+    .tuya__subio { display: inline-flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px 0 7px; border-radius: 4px; background: var(--cereza); color: var(--crema); font-size: 13px; font-weight: 600; }
+    .tuya__subio svg { width: 15px; height: 15px; }
+    .tuya__medio { display: flex; align-items: baseline; gap: 12px; margin-top: 2px; }
+    .tuya__puesto { font-stretch: 75%; font-weight: 800; font-size: 60px; line-height: 1; letter-spacing: -.01em; }
+    .tuya__cancion { font-size: 30px; line-height: 1; }
+    .tuya__meta { font-size: 14px; color: var(--tinta-2); margin-top: 3px; }
+
+    .filas { margin-top: 14px; }
+    .regla { margin-top: 12px; font-size: 14px; line-height: 1.45; }
+    .regla b { color: var(--crema); font-weight: 700; }
+  </style>
+</head>
+<body class="movil">
+  <main class="capa contenido">
+    <header class="cabeza">
+      <div>
+        <h1 class="placa">La cola</h1>
+        <p class="secundario">9 canciones, unos 36 min</p>
+      </div>
+      <p class="luz-estado">En vivo</p>
+    </header>
+
+    <section class="tuya" aria-label="Tu canción">
+      <div class="tuya__luz">
+        <div class="ventana">
+          <div class="tuya__arriba">
+            <p class="tuya__etiqueta">Tu canción va de</p>
+            <span class="tuya__subio"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width:2.4"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>Subió 2 puestos</span>
+          </div>
+          <div class="tuya__medio">
+            <p class="tuya__puesto">#3</p>
+            <div>
+              <p class="tuya__cancion condensada">Monaco</p>
+              <p class="tuya__meta">Bad Bunny, 15 votos</p>
+            </div>
+          </div>
+          <p class="tuya__meta" style="margin-top:6px">Suena en unos 13 min</p>
+        </div>
+      </div>
+    </section>
+
+    <ol class="filas">
+      <li class="fila">
+        <div class="tarjeta"><span class="tarjeta__num">1</span>
+          <div class="tarjeta__centro"><p class="tarjeta__titulo">Cali Pachanguero</p><p class="tarjeta__artista">Grupo Niche</p></div>
+          <p class="tarjeta__votos">21<small>votos</small></p></div>
+        <button class="tecla" aria-label="Votar por Cali Pachanguero">+1</button>
+      </li>
+      <li class="fila">
+        <div class="tarjeta"><span class="tarjeta__num">2</span>
+          <div class="tarjeta__centro"><p class="tarjeta__titulo">DtMF</p><p class="tarjeta__artista">Bad Bunny</p></div>
+          <p class="tarjeta__votos">18<small>votos</small></p></div>
+        <span class="tecla tecla--hundida">Votaste</span>
+      </li>
+      <li class="fila">
+        <div class="tarjeta tarjeta--tuya"><span class="tarjeta__num">3</span>
+          <div class="tarjeta__centro"><p class="tarjeta__titulo">Monaco</p><p class="tarjeta__artista">Bad Bunny</p></div>
+          <p class="tarjeta__votos">15<small>votos</small></p></div>
+        <span class="tecla tecla--tuya">Tuya</span>
+      </li>
+      <li class="fila">
+        <div class="tarjeta"><span class="tarjeta__num">4</span>
+          <div class="tarjeta__centro"><p class="tarjeta__titulo">La Bicicleta</p><p class="tarjeta__artista">Carlos Vives y Shakira</p></div>
+          <p class="tarjeta__votos">15<small>votos</small></p></div>
+        <button class="tecla" aria-label="Votar por La Bicicleta">+1</button>
+      </li>
+      <li class="fila">
+        <div class="tarjeta"><span class="tarjeta__num">5</span>
+          <div class="tarjeta__centro"><p class="tarjeta__titulo">NUEVAYoL</p><p class="tarjeta__artista">Bad Bunny</p></div>
+          <p class="tarjeta__votos">14<small>votos</small></p></div>
+        <button class="tecla" aria-label="Votar por NUEVAYoL">+1</button>
+      </li>
+    </ol>
+
+    <p class="regla secundario">Con los mismos votos, suena primero la que se pidió antes. Por eso <b>Monaco</b> va antes que <b>La Bicicleta</b>.</p>
+  </main>
+
+  <footer class="pie" data-capa>
+    <div class="mini" aria-label="Suena ahora">
+      <span class="mini__luz" aria-hidden="true"></span>
+      <div class="mini__texto"><p class="mini__etiqueta">Suena ahora</p><p class="mini__titulo condensada">Rebelión <span>Joe Arroyo</span></p></div>
+      <p class="mini__votos"><b>24</b>votos</p>
+    </div>
+    <div class="mini-avance" aria-hidden="true"><span style="--v:45%"></span></div>
+    <nav class="pestanas" aria-label="Secciones">
+      <a class="pestana" href="cliente-1-bienvenida.html"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.5 12 4.5l7.5 6V19a1 1 0 0 1-1 1H15v-5.5H9V20H5.5a1 1 0 0 1-1-1z"/></svg>Inicio</a>
+      <a class="pestana" href="cliente-2-buscar.html"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></svg>Buscar</a>
+      <a class="pestana" href="cliente-3-cola.html" aria-current="page"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h9"/></svg>Cola</a>
+    </nav>
+  </footer>
+</body>
+</html>

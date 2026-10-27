@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1440">
+  <title>Panel de administración, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    body { width: 1440px; height: 1000px; }
+    .panel { position: relative; z-index: 1; padding: 20px 32px 24px; }
+
+    .cabeza { display: flex; align-items: center; justify-content: space-between; height: 52px; }
+    .marca { display: flex; align-items: baseline; gap: 14px; }
+    .marca__bar { font-size: 22px; }
+    .nav { display: flex; align-items: center; gap: 6px; }
+    .nav a { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; font-size: 15px; font-weight: 500; text-decoration: none; color: var(--crema-2); border-radius: 8px; }
+    .nav a svg { width: 20px; height: 20px; }
+    .nav .usuario { color: var(--crema); background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4); margin-left: 8px; padding: 0 14px 0 6px; }
+    .usuario__inicial { width: 32px; height: 32px; border-radius: 6px; display: grid; place-items: center; background: var(--papel); color: var(--tinta); font-size: 14px; font-weight: 800; }
+
+    /* Franja de estado: la luz encendida o apagada */
+    .estado-bar { margin-top: 14px; padding: 3px; border-radius: 16px; background: var(--cromo); box-shadow: 0 0 50px -10px rgba(245, 165, 36, .5); }
+    .estado-bar__luz { display: flex; align-items: center; gap: 14px; padding: 9px; border-radius: 13px;
+      background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .22) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(120, 20, 10, .16) 9px 10px, rgba(255, 255, 255, 0) 10px 21px), linear-gradient(90deg, #FFD98A, #F5A524 45%, #E2672B 80%, #B8282F); }
+    .estado-bar .ventana { flex: 1; display: flex; align-items: center; gap: 14px; padding: 10px 18px; text-align: left; }
+    .estado-bar__titulo { font-size: 20px; font-weight: 700; font-stretch: 112%; }
+    .estado-bar__sub { font-size: 14px; color: var(--tinta-2); margin-top: 1px; }
+    .estado-bar__acciones { display: flex; gap: 12px; padding-right: 4px; }
+    .estado-bar .tecla { width: auto; padding: 0 18px; height: 50px; font-size: 18px; }
+    .foco { width: 14px; height: 14px; border-radius: 50%; flex: none; background: radial-gradient(circle at 35% 35%, #FFE7B0, var(--ambar) 60%); box-shadow: 0 0 10px 2px rgba(245, 165, 36, .8); }
+    .estado-bar--pausa { display: none; box-shadow: none; }
+    .estado-bar--pausa .estado-bar__luz { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(0, 0, 0, .14) 9px 10px, rgba(255, 255, 255, 0) 10px 21px), linear-gradient(90deg, #5A4A42, #3A2C26); }
+    .estado-bar--pausa .foco { background: #6B5A50; box-shadow: none; }
+    body:has(#pausa:target) .estado-bar--abierto { display: none; }
+    body:has(#pausa:target) .estado-bar--pausa { display: block; }
+    body:not(:has(#pausa:target)) .solo-pausa { display: none !important; }
+    body:has(#pausa:target) .sin-pausa { display: none !important; }
+
+    .rejilla { display: grid; grid-template-columns: 1fr 404px; gap: 24px; margin-top: 18px; }
+    .col { display: flex; flex-direction: column; gap: 14px; }
+    .caja { padding: 14px 18px 16px; border-radius: 14px; background: linear-gradient(180deg, rgba(74, 44, 31, .7), rgba(58, 34, 24, .7)); box-shadow: inset 0 0 0 1px var(--borde), 0 10px 24px -14px rgba(0, 0, 0, .7); }
+    .caja__cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+    .caja__cabeza h2 { font-size: 17px; font-weight: 700; font-stretch: 112%; white-space: nowrap; }
+    .caja__cabeza span { font-size: 14px; }
+    .tecla--chica { width: auto; height: 44px; padding: 0 14px; font-size: 15px; }
+
+    /* Canción actual: una tarjeta de título grande */
+    .actual { display: flex; align-items: center; gap: 18px; }
+    .actual .tarjeta { flex: 1; grid-template-columns: 1fr 76px; min-height: 0; }
+    .actual .tarjeta__centro { padding-top: 6px; }
+    .actual__etiqueta { font-size: 13px; font-weight: 600; color: var(--tinta-2); }
+    .actual__titulo { font-size: 32px; line-height: 1.05; }
+    .actual .tarjeta__artista { font-size: 15px; }
+    .actual .tarjeta__votos { font-size: 30px; }
+    .actual .avance { padding: 6px 14px 8px; color: var(--tinta-2); }
+    .actual .surco { color: var(--tinta); }
+    .actual__acciones { display: flex; flex-direction: column; gap: 12px; }
+    .actual__acciones .tecla { width: 132px; }
+    .actual__meta { margin-top: 8px; font-size: 14px; }
+
+    /* Cola en tarjetas de título */
+    .tabla { width: 100%; border-collapse: separate; border-spacing: 0 6px; margin-top: -6px; font-variant-numeric: tabular-nums; }
+    .tabla th { text-align: left; font-size: 13px; font-weight: 500; color: var(--crema-2); padding: 0 12px 2px; }
+    .tabla td { background: var(--papel); color: var(--tinta); height: 46px; padding: 0 12px; font-size: 15px; box-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+    .tabla td:first-child { border-radius: 6px 0 0 6px; }
+    .tabla td.accion { background: none; box-shadow: none; padding-right: 0; text-align: right; width: 120px; }
+    .tabla td:nth-last-child(2) { border-radius: 0 6px 6px 0; }
+    .tabla .num { text-align: right; }
+    .tabla td.pos { width: 44px; text-align: center; font-stretch: 75%; font-weight: 800; font-size: 18px; color: var(--tinta-2); border-right: 1px dashed rgba(35, 20, 15, .3); }
+    .tabla td.cancion b { font-stretch: 75%; font-weight: 700; font-size: 19px; }
+    .tabla td.cancion span { display: inline-block; margin-left: 8px; padding: 1px 8px 2px; border-radius: 3px; background: var(--cereza); color: var(--crema); font-size: 13px; font-weight: 500; }
+    .tabla td.votos { font-stretch: 75%; font-weight: 800; font-size: 21px; }
+    .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .tabla__pie { margin-top: 4px; font-size: 14px; }
+
+    .registro { list-style: none; margin: 0; padding: 0; }
+    .registro li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; padding: 8px 0; border-top: 1px dashed var(--borde); font-size: 15px; }
+    .registro li:first-child { border-top: 0; padding-top: 0; }
+    .registro time { color: var(--crema-2); font-variant-numeric: tabular-nums; }
+
+    .metricas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+    .metrica { padding: 8px 14px 10px; border-radius: 10px; background: rgba(0, 0, 0, .24); box-shadow: inset 0 1px 4px rgba(0, 0, 0, .45); }
+    .metrica dt { font-size: 14px; color: var(--crema-2); }
+    .metrica dd { margin: 2px 0 0; font-stretch: 75%; font-weight: 800; font-size: 34px; line-height: 1; color: var(--ambar-claro); font-variant-numeric: tabular-nums; }
+    .metrica dd small { font-stretch: 100%; font-size: 16px; font-weight: 500; color: var(--crema-2); }
+
+    .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 0; padding: 0; }
+    .dia { height: 40px; display: grid; place-items: center; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--crema-2); background: rgba(0, 0, 0, .22); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4); }
+    .dia--abre { color: var(--tinta); background: linear-gradient(180deg, #FFF8E6, #E8D8B6); box-shadow: 0 3px 0 #7A6450, inset 0 1px 0 rgba(255, 255, 255, .8); transform: translateY(-2px); }
+    .horas { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+    .horas b { font-size: 16px; font-weight: 700; }
+
+    .casa { display: flex; align-items: center; gap: 12px; }
+    .casa .tarjeta { flex: 1; grid-template-columns: 1fr; min-height: 52px; }
+    .bloqueadas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .bloqueadas li { display: flex; align-items: center; gap: 12px; }
+    .bloqueadas .tarjeta { flex: 1; grid-template-columns: 1fr; min-height: 44px; }
+    .bloqueadas .tarjeta__titulo { font-size: 17px; padding-bottom: 2px; }
+    .bloqueadas .tarjeta__artista { font-size: 12px; padding: 2px 6px 3px; }
+  </style>
+</head>
+<body>
+  <span id="pausa"></span>
+  <div class="panel">
+    <header class="cabeza">
+      <div class="marca">
+        <p class="marca__bar placa">[Nombre del bar]</p>
+        <p class="secundario">Panel de la rockola</p>
+      </div>
+      <nav class="nav" aria-label="Panel">
+        <a href="#tablero"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-5"/></svg>Tablero analítico</a>
+        <a href="#manual"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H18v14H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H18"/></svg>Manual de uso</a>
+        <a class="usuario" href="#cuenta"><span class="usuario__inicial" aria-hidden="true">U</span>[Usuario]</a>
+      </nav>
+    </header>
+
+    <section class="estado-bar estado-bar--abierto" aria-label="Estado de las solicitudes">
+      <div class="estado-bar__luz">
+        <div class="ventana">
+          <span class="foco" aria-hidden="true"></span>
+          <div>
+            <p class="estado-bar__titulo">Abierto, recibiendo canciones</p>
+            <p class="estado-bar__sub">Desde las 8:00 p. m. Cierra a las 2:00 a. m. según el horario del QR.</p>
+          </div>
+        </div>
+        <div class="estado-bar__acciones">
+          <a class="tecla tecla--cereza" href="#pausa">Pausar solicitudes</a>
+          <button class="tecla">Modo mantenimiento</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="estado-bar estado-bar--pausa" aria-label="Estado de las solicitudes">
+      <div class="estado-bar__luz">
+        <div class="ventana">
+          <span class="foco" aria-hidden="true"></span>
+          <div>
+            <p class="estado-bar__titulo">En pausa, no se reciben canciones nuevas</p>
+            <p class="estado-bar__sub">La cola sigue sonando. Quien escanee el QR verá que las solicitudes están en pausa.</p>
+          </div>
+        </div>
+        <div class="estado-bar__acciones">
+          <a class="tecla tecla--cereza" href="#">Reanudar solicitudes</a>
+          <button class="tecla">Modo mantenimiento</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="rejilla">
+      <div class="col">
+        <section class="caja" aria-label="Canción actual">
+          <div class="actual">
+            <div class="tarjeta">
+              <div class="tarjeta__centro">
+                <p class="actual__etiqueta">Suena ahora</p>
+                <h1 class="actual__titulo condensada">Rebelión</h1>
+                <p class="tarjeta__artista">Joe Arroyo, pedida por el teléfono 7F3K hace 31 min</p>
+                <div class="avance"><span>2:41</span><div class="surco"><span style="--v:45%"></span></div><span>5:58</span></div>
+              </div>
+              <p class="tarjeta__votos">24<small>votos</small></p>
+            </div>
+            <div class="actual__acciones">
+              <button class="tecla">Saltar</button>
+              <button class="tecla">Bloquear</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="caja" aria-labelledby="t-cola">
+          <div class="caja__cabeza">
+            <h2 id="t-cola">Cola</h2>
+            <span class="secundario">9 canciones, unos 36 min. Ordenada por votos; en empate, por hora de pedido.</span>
+          </div>
+          <table class="tabla">
+            <thead><tr><th style="text-align:center">#</th><th>Canción</th><th class="num">Duración</th><th class="num">Pedida hace</th><th class="num">Votos</th><th><span class="oculto" data-revisar="no">Acción</span></th></tr></thead>
+            <tbody>
+              <tr><td class="pos">1</td><td class="cancion"><b>Cali Pachanguero</b><span>Grupo Niche</span></td><td class="num">5:52</td><td class="num">26 min</td><td class="num votos">21</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+              <tr><td class="pos">2</td><td class="cancion"><b>DtMF</b><span>Bad Bunny</span></td><td class="num">3:57</td><td class="num">31 min</td><td class="num votos">18</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+              <tr><td class="pos">3</td><td class="cancion"><b>Monaco</b><span>Bad Bunny</span></td><td class="num">4:27</td><td class="num">14 min</td><td class="num votos">15</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+              <tr><td class="pos">4</td><td class="cancion"><b>La Bicicleta</b><span>Carlos Vives y Shakira</span></td><td class="num">3:47</td><td class="num">9 min</td><td class="num votos">15</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+              <tr><td class="pos">5</td><td class="cancion"><b>NUEVAYoL</b><span>Bad Bunny</span></td><td class="num">3:03</td><td class="num">22 min</td><td class="num votos">14</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+              <tr><td class="pos">6</td><td class="cancion"><b>TQG</b><span>Karol G y Shakira</span></td><td class="num">3:17</td><td class="num">7 min</td><td class="num votos">9</td><td class="accion"><button class="tecla tecla--chica">Bloquear</button></td></tr>
+            </tbody>
+          </table>
+          <p class="tabla__pie secundario">Y 3 más: Luna, Una aventura y Tití Me Preguntó.</p>
+        </section>
+
+        <section class="caja" aria-labelledby="t-registro">
+          <div class="caja__cabeza"><h2 id="t-registro">Registro de acciones</h2><span class="secundario">Esta noche</span></div>
+          <ol class="registro">
+            <li class="solo-pausa"><time>10:46 p. m.</time><p>Pausaste las solicitudes</p></li>
+            <li><time>10:41 p. m.</time><p>Bloqueaste «La Bachata», de Manuel Turizo</p></li>
+            <li><time>10:32 p. m.</time><p>Saltaste «Gasolina», de Daddy Yankee, y la bloqueaste</p></li>
+            <li class="sin-pausa"><time>8:00 p. m.</time><p>Se abrieron las solicitudes con el horario del QR</p></li>
+          </ol>
+        </section>
+      </div>
+
+      <aside class="col">
+        <section class="caja" aria-labelledby="t-metricas">
+          <div class="caja__cabeza"><h2 id="t-metricas">Métricas de la noche</h2><span class="secundario">Desde las 8:00 p. m.</span></div>
+          <dl class="metricas">
+            <div class="metrica"><dt>Solicitudes</dt><dd>48</dd></div>
+            <div class="metrica"><dt>Teléfonos</dt><dd>31</dd></div>
+            <div class="metrica"><dt>Votos</dt><dd>162</dd></div>
+            <div class="metrica"><dt>Espera promedio</dt><dd>11 <small>min</small></dd></div>
+          </dl>
+        </section>
+
+        <section class="caja" aria-labelledby="t-horario">
+          <div class="caja__cabeza"><h2 id="t-horario">Horario del QR</h2></div>
+          <ul class="dias">
+            <li class="dia">Lun</li><li class="dia">Mar</li><li class="dia">Mié</li>
+            <li class="dia dia--abre">Jue</li><li class="dia dia--abre">Vie</li><li class="dia dia--abre">Sáb</li><li class="dia">Dom</li>
+          </ul>
+          <div class="horas"><b>8:00 p. m. a 2:00 a. m.</b><button class="tecla tecla--chica">Editar horario</button></div>
+        </section>
+
+        <section class="caja" aria-labelledby="t-casa">
+          <div class="caja__cabeza"><h2 id="t-casa">Lista de la casa</h2><span class="secundario">Suena si la cola se vacía</span></div>
+          <div class="casa">
+            <div class="tarjeta"><div class="tarjeta__centro"><p class="tarjeta__titulo">Salsa y tropical de la casa</p><p class="tarjeta__artista">42 canciones</p></div></div>
+            <button class="tecla tecla--chica">Cambiar</button>
+          </div>
+        </section>
+
+        <section class="caja" aria-labelledby="t-bloq">
+          <div class="caja__cabeza"><h2 id="t-bloq">Canciones bloqueadas</h2><span class="secundario">3</span></div>
+          <ul class="bloqueadas">
+            <li><div class="tarjeta tarjeta--apagada"><div class="tarjeta__centro"><p class="tarjeta__titulo">La Bachata</p><p class="tarjeta__artista">Manuel Turizo</p></div></div><button class="tecla tecla--chica">Desbloquear</button></li>
+            <li><div class="tarjeta tarjeta--apagada"><div class="tarjeta__centro"><p class="tarjeta__titulo">Gasolina</p><p class="tarjeta__artista">Daddy Yankee</p></div></div><button class="tecla tecla--chica">Desbloquear</button></li>
+            <li><div class="tarjeta tarjeta--apagada"><div class="tarjeta__centro"><p class="tarjeta__titulo">Despechá</p><p class="tarjeta__artista">Rosalía</p></div></div><button class="tecla tecla--chica">Desbloquear</button></li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,229 @@
+/* Rockola, dirección «Rockola». El teléfono es el panel de selección del mueble:
+   arco de luz (lo que suena), tarjetas de título (cada canción), teclas (votar, pedir)
+   y fichas (los pedidos). La luz es el estado: encendida, se reciben canciones. */
+
+:root {
+  --nogal: #2A1711;
+  --nogal-hondo: #1D0F0B;
+  --madera: #3A2218;
+  --madera-clara: #4A2C1F;
+  --borde: rgba(244, 231, 203, .14);
+  --crema: #F4E7CB;
+  --crema-2: rgba(244, 231, 203, .72);
+  --papel: #F4E7CB;
+  --papel-sombra: #D9C7A3;
+  --cereza: #B8282F;
+  --cereza-hondo: #7E171D;
+  --ambar: #F5A524;
+  --ambar-claro: #FFD27A;
+  --tinta: #23140F;
+  --tinta-2: #5B4434;
+  --cromo: linear-gradient(180deg, #FAFAF8 0%, #C9CDD3 42%, #8F959D 54%, #E7E9EC 100%);
+  --luz: linear-gradient(180deg, #FFD98A 0%, #F5A524 38%, #E2672B 72%, #B8282F 100%);
+  --apagado: linear-gradient(180deg, #5A4A42 0%, #44352E 60%, #3A2C26 100%);
+
+  --fuente: 'Archivo', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 400 15px/1.4 var(--fuente);
+  font-stretch: 100%;
+  color: var(--crema);
+  background:
+    radial-gradient(130% 55% at 50% -5%, rgba(245, 165, 36, .16), transparent 60%),
+    radial-gradient(90% 60% at 50% 110%, rgba(0, 0, 0, .45), transparent 70%),
+    var(--nogal);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+/* Veta de la madera: muy tenue, de anchos irregulares para que no parezca rayado. */
+body::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, rgba(255, 220, 170, .025) 0 2px, transparent 2px 13px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .04) 0 3px, transparent 3px 29px);
+}
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
+
+.capa { position: relative; z-index: 1; }
+.secundario { color: var(--crema-2); }
+
+/* Tipografía: un solo Archivo, tres anchos. */
+.placa { font-stretch: 125%; font-weight: 800; letter-spacing: -.01em; }
+/* Los títulos de canción van con su grafía real (DtMF, NUEVAYoL): sin mayúsculas forzadas. */
+.condensada { font-stretch: 75%; font-weight: 700; letter-spacing: .005em; }
+.titulo-seccion { font-size: 16px; font-weight: 600; font-stretch: 112%; }
+
+/* Indicador de luz: encendida o apagada */
+.luz-estado { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--crema); }
+.luz-estado::before {
+  content: ""; width: 10px; height: 10px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #FFE7B0, var(--ambar) 60%);
+  box-shadow: 0 0 10px 2px rgba(245, 165, 36, .7);
+}
+.luz-estado--apagada::before { background: #6B5A50; box-shadow: none; }
+
+/* Arco: marco de cromo, tubos de luz, ventana de papel. Tapa elíptica. */
+.arco {
+  padding: 4px;
+  border-radius: 50% 50% 22px 22px / 34% 34% 22px 22px;
+  background: var(--cromo);
+  box-shadow: 0 0 70px -6px rgba(245, 165, 36, .45), 0 20px 40px -20px rgba(0, 0, 0, .8);
+}
+.arco__luz {
+  position: relative;
+  border-radius: 50% 50% 18px 18px / 33% 33% 18px 18px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .22) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(120, 20, 10, .16) 9px 10px, rgba(255, 255, 255, 0) 10px 21px),
+    var(--luz);
+  box-shadow: inset 0 0 26px rgba(80, 10, 0, .35);
+}
+.arco--apagado { box-shadow: 0 20px 40px -20px rgba(0, 0, 0, .8); }
+.arco--apagado .arco__luz {
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 5px, rgba(255, 255, 255, 0) 5px 9px, rgba(0, 0, 0, .14) 9px 10px, rgba(255, 255, 255, 0) 10px 21px),
+    var(--apagado);
+}
+.ventana {
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12), 0 2px 0 rgba(0, 0, 0, .18);
+  text-align: center;
+}
+
+/* Tarjeta de título: papel, título condensado arriba, franja cereza con el artista. */
+.tarjeta {
+  display: grid; grid-template-columns: 34px 1fr 46px; align-items: stretch;
+  min-height: 56px;
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .14), 0 2px 0 rgba(0, 0, 0, .3);
+  overflow: hidden;
+}
+.tarjeta__num {
+  display: grid; place-items: center;
+  font-stretch: 75%; font-weight: 800; font-size: 18px; color: var(--tinta-2);
+  border-right: 1px dashed rgba(35, 20, 15, .3);
+}
+.tarjeta__centro { display: flex; flex-direction: column; justify-content: center; text-align: center; min-width: 0; padding: 6px 0 0; }
+.tarjeta__titulo { font-stretch: 75%; font-weight: 700; font-size: 19px; line-height: 1.12; padding: 0 6px 4px; }
+.tarjeta__artista {
+  background: var(--cereza); color: var(--crema);
+  font-size: 13px; font-weight: 500; line-height: 1.25;
+  padding: 3px 6px 4px;
+}
+.tarjeta__votos {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-left: 1px dashed rgba(35, 20, 15, .3);
+  font-stretch: 75%; font-weight: 800; font-size: 20px; line-height: 1;
+}
+.tarjeta__votos small { font-stretch: 100%; font-weight: 500; font-size: 11px; color: var(--tinta-2); margin-top: 2px; }
+.tarjeta--tuya .tarjeta__artista { background: var(--ambar); color: var(--tinta); }
+.tarjeta--apagada { background: #CDBFA6; }
+.tarjeta--apagada .tarjeta__artista { background: #6B5A50; }
+
+/* Fila: tarjeta + tecla */
+.fila { display: flex; align-items: center; gap: 10px; }
+.fila .tarjeta { flex: 1; min-width: 0; }
+.filas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+/* Teclas */
+.tecla {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 76px; height: 48px;
+  border-radius: 10px;
+  font-stretch: 75%; font-weight: 800; font-size: 18px; text-transform: uppercase; letter-spacing: .02em;
+  color: var(--tinta);
+  background: linear-gradient(180deg, #FFF8E6, #E8D8B6);
+  border: 1px solid rgba(0, 0, 0, .35);
+  box-shadow: 0 4px 0 #7A6450, 0 7px 10px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .8);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+.tecla--hundida {
+  background: linear-gradient(180deg, #D8C7A4, #CDBB96);
+  box-shadow: 0 1px 0 #7A6450, inset 0 3px 6px rgba(0, 0, 0, .3);
+  transform: translateY(1px);
+  font-size: 16px;
+}
+.tecla--cereza {
+  color: var(--crema);
+  background: linear-gradient(180deg, #C2323A, var(--cereza) 50%, #9A1F25);
+  border-color: rgba(0, 0, 0, .45);
+  box-shadow: 0 4px 0 var(--cereza-hondo), 0 7px 12px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+.tecla--tuya {
+  background: radial-gradient(120% 140% at 50% 0%, var(--ambar-claro), var(--ambar) 70%);
+  box-shadow: 0 0 16px rgba(245, 165, 36, .55), inset 0 1px 0 rgba(255, 255, 255, .6);
+  transform: none;
+  font-size: 16px;
+}
+.tecla--grande { width: 100%; height: 58px; font-size: 22px; letter-spacing: .04em; }
+
+/* Fichas: los pedidos que quedan */
+.fichas { display: inline-flex; gap: 6px; }
+.ficha { width: 18px; height: 18px; border-radius: 50%; border: 1.5px dashed rgba(244, 231, 203, .45); }
+.ficha--libre {
+  border: 0;
+  background: radial-gradient(circle at 35% 30%, #FFF0C4, var(--ambar) 55%, #B8741A);
+  box-shadow: 0 0 8px rgba(245, 165, 36, .5), inset 0 0 0 2px rgba(120, 70, 10, .35);
+}
+
+/* Barra de avance */
+.avance { display: flex; align-items: center; gap: 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.surco { flex: 1; height: 4px; border-radius: 2px; background: rgba(35, 20, 15, .25); overflow: hidden; }
+.surco > span { display: block; height: 100%; width: var(--v); background: currentColor; }
+
+/* Móvil con pie */
+.movil { height: 844px; }
+.contenido { padding: 22px 16px 0; }
+.pie {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  padding: 10px 12px 22px;
+  background: linear-gradient(180deg, var(--madera-clara), var(--madera) 40%, #2E1A12);
+  border-top: 2px solid #9EA3AA;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, .45);
+}
+.mini { display: flex; align-items: center; gap: 12px; padding: 0 6px 6px; }
+.mini__luz { flex: none; width: 10px; height: 40px; border-radius: 5px; background: var(--luz); box-shadow: 0 0 12px rgba(245, 165, 36, .6); }
+.mini__texto { flex: 1; min-width: 0; }
+.mini__etiqueta { font-size: 12px; color: var(--crema-2); }
+.mini__titulo { font-size: 19px; line-height: 1.15; }
+.mini__titulo span { font-stretch: 100%; font-weight: 400; font-size: 14px; color: var(--crema-2); }
+.mini-avance { height: 3px; margin: 0 6px 10px; border-radius: 2px; background: rgba(244, 231, 203, .16); overflow: hidden; }
+.mini-avance > span { display: block; height: 100%; width: var(--v); background: var(--ambar); }
+.mini__votos { font-size: 13px; color: var(--crema-2); text-align: right; }
+.mini__votos b { display: block; color: var(--crema); font-stretch: 75%; font-weight: 800; font-size: 20px; line-height: 1; }
+.mini .surco { flex: none; }
+
+.pestanas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.pestana {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: 54px; border-radius: 10px;
+  font-size: 12px; font-weight: 600; color: var(--crema-2);
+  text-decoration: none;
+  background: rgba(0, 0, 0, .22);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+}
+.pestana svg { width: 22px; height: 22px; }
+.pestana[aria-current="page"] {
+  color: var(--tinta);
+  background: linear-gradient(180deg, #FFF8E6, #E8D8B6);
+  box-shadow: 0 3px 0 #7A6450, inset 0 1px 0 rgba(255, 255, 255, .8);
+  transform: translateY(-2px);
+}
+.icono { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* El buscador ya tiene su botón de borrar: sin la «x» nativa del navegador. */
+input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
