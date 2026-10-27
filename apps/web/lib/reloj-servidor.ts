@@ -60,3 +60,8 @@ export function useAhoraServidor(): number {
   const desfase = useSyncExternalStore(suscribirDesfase, () => desfaseMs, () => 0);
   return ahora === 0 ? 0 : ahora + desfase;
 }
+
+/** El reloj del teléfono, al segundo (0 en el servidor y en la hidratación). */
+export function useTic(): number {
+  return useSyncExternalStore(suscribirTic, () => tic, () => 0);
+}

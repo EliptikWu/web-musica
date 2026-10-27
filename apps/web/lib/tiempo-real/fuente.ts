@@ -25,6 +25,8 @@ export const conectarSse: ConectarTiempoReal = (slug, alEvento, alEstado) => {
   let reintento: ReturnType<typeof setTimeout> | undefined;
   let vigilante: ReturnType<typeof setTimeout> | undefined;
 
+  let sano = false;
+
   const vigilar = () => {
     clearTimeout(vigilante);
     vigilante = setTimeout(() => reconectar(), SIN_PING_MS);
@@ -32,6 +34,13 @@ export const conectarSse: ConectarTiempoReal = (slug, alEvento, alEstado) => {
 
   const recibir = (mensaje: MessageEvent<string>) => {
     vigilar();
+    // Conectado es «llegan datos», no «se abrió»: un servidor que acepta y corta enseguida no
+    // cuenta, y así el contador de intentos sigue subiendo hasta «desconectado».
+    if (!sano) {
+      intento = 0;
+      sano = true;
+      alEstado('conectado');
+    }
     let datos: unknown;
     try {
       datos = JSON.parse(mensaje.data);
@@ -49,16 +58,13 @@ export const conectarSse: ConectarTiempoReal = (slug, alEvento, alEstado) => {
     if (cerrado) return;
     alEstado(intento === 0 ? 'conectando' : 'reconectando');
     fuente = new EventSource(`${BASE_API}/bares/${encodeURIComponent(slug)}/eventos`);
-    fuente.onopen = () => {
-      intento = 0;
-      alEstado('conectado');
-      vigilar();
-    };
+    fuente.onopen = () => vigilar();
     for (const tipo of ['ahora', 'panel', 'ping'] as const) fuente.addEventListener(tipo, recibir);
     fuente.onerror = () => reconectar();
   };
 
   const reconectar = () => {
+    sano = false;
     fuente?.close();
     fuente = null;
     clearTimeout(vigilante);

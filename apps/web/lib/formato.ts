@@ -42,6 +42,14 @@ export function formatoEspera(segundos: number): string {
   return `en unos ${minutos} min`;
 }
 
+/** Forma corta para las listas: «en 3 min» (que es estimada se dice una vez, aparte). */
+export function formatoEsperaCorta(segundos: number): string {
+  const minutos = minutosEnteros(segundos);
+  if (minutos < 1) return 'en menos de 1 min';
+  if (minutos >= 120) return 'en más de 2 h';
+  return `en ${minutos} min`;
+}
+
 /** «9 canciones, unos 36 min». */
 export function formatoResumenCola(canciones: number, segundos: number): string {
   if (canciones === 0) return 'Sin canciones en la cola';
@@ -90,4 +98,36 @@ export function formatoHoraDelDia(hhmm: string): string {
 /** Primera letra en mayúscula: «jueves» → «Jueves». */
 export function capitalizar(texto: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+type FranjaResumible = { dia_semana: number; hora_inicio: string; hora_fin: string; activo: boolean };
+
+/** Días seguidos como rango («jueves a sábado»); sueltos, en lista («lunes y jueves»). */
+function nombrarDias(dias: number[]): string {
+  const tramos: number[][] = [];
+  for (const d of [...dias].sort((a, b) => a - b)) {
+    const ultimo = tramos.at(-1);
+    if (ultimo && ultimo.at(-1) === d - 1) ultimo.push(d);
+    else tramos.push([d]);
+  }
+  const partes = tramos.map((t) => (t.length >= 3 ? `${nombreDia(t[0]!)} a ${nombreDia(t.at(-1)!)}` : t.map(nombreDia).join(' y ')));
+  return partes.length > 1 ? `${partes.slice(0, -1).join(', ')} y ${partes.at(-1)}` : (partes[0] ?? '');
+}
+
+/**
+ * El horario en una línea, como en el prototipo: «Jueves a sábado» + «8:00 p. m. a 2:00 a. m.».
+ * Si los días tienen horas distintas, una línea por grupo de horas.
+ */
+export function resumenHorario(franjas: readonly FranjaResumible[]): { dias: string; horas: string }[] {
+  const porHoras = new Map<string, number[]>();
+  for (const f of franjas.filter((x) => x.activo && x.hora_inicio !== x.hora_fin)) {
+    const clave = `${f.hora_inicio}-${f.hora_fin}`;
+    porHoras.set(clave, [...(porHoras.get(clave) ?? []), f.dia_semana]);
+  }
+  return [...porHoras.entries()]
+    .sort(([, a], [, b]) => Math.min(...a) - Math.min(...b))
+    .map(([clave, dias]) => {
+      const [inicio = '', fin = ''] = clave.split('-');
+      return { dias: capitalizar(nombrarDias(dias)), horas: `${formatoHoraDelDia(inicio)} a ${formatoHoraDelDia(fin)}` };
+    });
 }

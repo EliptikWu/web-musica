@@ -27,7 +27,7 @@ contrato que se propone al backend y una simulación que permite usarlo todo sin
 
 | Superficie | Quién | Dispositivo | Rutas |
 |---|---|---|---|
-| Cliente | Cualquier persona en el bar, anónima | Teléfono, vertical | `/q/[token]` → `/b/[bar]`, `/b/[bar]/buscar`, `/b/[bar]/cola`, `/b/[bar]/tus-pedidos`, `/b/[bar]/politica-de-datos` |
+| Cliente | Cualquier persona en el bar, anónima | Teléfono, vertical | `/q/[token]` → `/b/[bar]`, `/b/[bar]/buscar`, `/b/[bar]/cola` (con «Tus pedidos»), `/b/[bar]/politica-de-datos` |
 | Pantalla del bar | Público (pasiva) | TV o monitor horizontal con navegador | `/b/[bar]/pantalla` |
 | Panel | Personal con cuenta | Computador; el Operador también desde el teléfono | `/panel/**` |
 

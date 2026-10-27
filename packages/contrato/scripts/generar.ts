@@ -135,7 +135,7 @@ for (const superficie of ['cliente', 'pantalla', 'panel'] as const) {
   }
   md.push('');
 }
-md.push('## Tiempo real', '', '`GET /bares/{slug}/eventos` (SSE). Cada mensaje: `event: <tipo>`, `data: <EventoTiempoReal en JSON>`, `id: <version>`.', '');
+md.push('## Tiempo real', '', '`GET /bares/{slug}/eventos` (SSE). Cada mensaje: `event: <tipo>`, `data: <EventoTiempoReal en JSON>`, `id: <version>`.', '', 'Al abrir la conexión, el servidor manda primero una foto `ahora`; después, una cada vez que algo cambia y un `ping` cada 15 s.', '');
 
 // ErrorApi se referencia aunque ningún endpoint lo nombre directamente.
 void ErrorApi;

@@ -101,6 +101,25 @@
   .tarjeta--resultado { grid-template-columns: 1fr 62px; }
   /* AÑADIDO: sin puesto ni cifra, la franja ocupa todo el ancho. */
   .tarjeta--sola { grid-template-columns: 1fr; }
+  /* AÑADIDO (rework, doc 05): la miniatura es una foto pegada en la tira; el puesto va encima. */
+  .tarjeta--miniatura { grid-template-columns: 54px 1fr 46px; }
+  .tarjeta--miniatura.tarjeta--resultado { grid-template-columns: 54px 1fr 62px; }
+  .tarjeta--miniatura.tarjeta--sola { grid-template-columns: 54px 1fr; }
+  .tarjeta__miniatura { position: relative; border-right: 1px dashed rgba(35, 20, 15, .3); }
+  .tarjeta__miniatura img {
+    position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px);
+    object-fit: cover; border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2);
+    filter: sepia(.12) saturate(.92);
+  }
+  .tarjeta__etiqueta {
+    position: absolute; left: 2px; bottom: 2px;
+    min-width: 22px; height: 22px; padding: 0 5px;
+    display: grid; place-items: center;
+    border-radius: 3px; background: var(--papel); color: var(--tinta);
+    font-stretch: 75%; font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .35);
+  }
   .tarjeta--tuya .tarjeta__artista { background: var(--ambar); color: var(--tinta); }
   .tarjeta--apagada { background: var(--papel-apagado); }
   .tarjeta--apagada .tarjeta__artista { background: var(--gris-apagado); }

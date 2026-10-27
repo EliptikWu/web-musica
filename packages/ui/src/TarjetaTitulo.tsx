@@ -12,6 +12,8 @@ type Props = {
   /** Votos o, en un resultado, la duración ya formateada. */
   votos?: number;
   duracion?: string;
+  /** Miniatura del video (RF-006, RF-015). Con ella, el puesto va encima como etiqueta. */
+  miniatura?: string | null;
   /** Nombre del elemento: `li` dentro de una lista, `div` dentro de una fila con tecla. */
   como?: 'div' | 'li';
   className?: string;
@@ -22,7 +24,7 @@ type Props = {
  * título condensado con su grafía real y franja cereza con el artista; ámbar si es tuya,
  * apagada si no se puede pedir.
  */
-export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, votos, duracion, como = 'div', className }: Props) {
+export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, votos, duracion, miniatura, como = 'div', className }: Props) {
   const Elemento = como;
   const esResultado = puesto === undefined;
   const sinCifra = votos === undefined && duracion === undefined;
@@ -30,15 +32,29 @@ export function TarjetaTitulo({ titulo, artista, variante = 'normal', puesto, vo
     'tarjeta',
     esResultado && (sinCifra ? 'tarjeta--sola' : 'tarjeta--resultado'),
     variante !== 'normal' && `tarjeta--${variante}`,
+    miniatura && 'tarjeta--miniatura',
     className,
   ].filter(Boolean).join(' ');
   return (
     <Elemento className={clases}>
-      {puesto !== undefined && (
-        <span className="tarjeta__num">
-          <span className="solo-lector">Puesto </span>
-          {puesto}
+      {miniatura ? (
+        <span className="tarjeta__miniatura">
+          {/* Decorativa: el título y el artista ya dicen qué canción es. */}
+          <img src={miniatura} alt="" width={120} height={90} loading="lazy" decoding="async" />
+          {puesto !== undefined && (
+            <span className="tarjeta__etiqueta">
+              <span className="solo-lector">Puesto </span>
+              {puesto}
+            </span>
+          )}
         </span>
+      ) : (
+        puesto !== undefined && (
+          <span className="tarjeta__num">
+            <span className="solo-lector">Puesto </span>
+            {puesto}
+          </span>
+        )
       )}
       <div className="tarjeta__centro">
         <p className="tarjeta__titulo">{titulo}</p>

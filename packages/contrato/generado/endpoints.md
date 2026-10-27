@@ -80,3 +80,5 @@
 ## Tiempo real
 
 `GET /bares/{slug}/eventos` (SSE). Cada mensaje: `event: <tipo>`, `data: <EventoTiempoReal en JSON>`, `id: <version>`.
+
+Al abrir la conexión, el servidor manda primero una foto `ahora`; después, una cada vez que algo cambia y un `ping` cada 15 s.

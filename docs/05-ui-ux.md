@@ -136,7 +136,7 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | Cliente: Bienvenida | `/b/[bar]` | `cliente-1-bienvenida` | abierto, en pausa, mantenimiento, fuera de horario (`cliente-4`), cargando, bar no encontrado, primer ingreso (aviso de datos) |
 | Cliente: Buscar | `/b/[bar]/buscar` | `cliente-2-buscar` (+ `#pedido`) | sin consulta, escribiendo, resultados, sin resultados, YouTube caído, desde caché, después de pedir, 0 de 3, motivos de rechazo, servicio no disponible |
 | Cliente: Cola | `/b/[bar]/cola` | `cliente-3-cola` | con canción propia, sin canción propia, vacía (suena la lista de la casa), cargando, sin conexión |
-| Cliente: Tus pedidos | `/b/[bar]/tus-pedidos` | — (nuevo) | sin pedidos, cada estado de solicitud |
+| Cliente: Tus pedidos | Sección al final de `/b/[bar]/cola` | — (nuevo) | sin pedidos, cada estado de solicitud |
 | Cliente: Política de datos | `/b/[bar]/politica-de-datos` | — (nuevo) | texto `TBD` rotulado |
 | Pantalla del bar | `/b/[bar]/pantalla` | `pantalla-bar` | encender, sonando (pedidos / lista de la casa), cerrado, en pausa, mantenimiento, cola vacía, sin conexión, video no disponible |
 | Panel: Entrar | `/panel/entrar`, `/panel/cambiar-clave` | — (nuevo) | error genérico, cuenta bloqueada, sesión caducada, cambio forzado |
@@ -200,3 +200,8 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | 2026-10-26 | Cola y TV | Se añade la espera estimada de cada canción | RF-018 la pide por canción |
 | 2026-10-26 | TV | Se añade la etiqueta de origen (pedidos del público / lista de la casa) | RF-016 |
 | 2026-10-26 | Panel | Se añaden Pausar/Reanudar reproducción y Retirar con motivo | RF-040 y RF-041 |
+| 2026-10-26 | Tarjeta de título | La miniatura es una foto pegada a la izquierda de la tira (54 px); el puesto va encima como etiqueta de papel. Sin miniatura, la tarjeta es la del prototipo | RF-006 y RF-015 piden miniatura también en la cola; a 360 px no cabe una columna más sin partir los títulos |
+| 2026-10-26 | Cola | La espera de cada canción va en la franja, en forma corta («Grupo Niche, en 3 min»); que es estimada se dice una vez debajo de la cola y en «Tu canción» («unos 13 min») | RF-018; con «suena en unos» casi todas las franjas se partían en dos líneas |
+| 2026-10-26 | Cola | «Tus pedidos» es una sección al final de la cola, no una pantalla aparte | PB-22 la sitúa en «La cola»; una cuarta pestaña rompería el pie del prototipo |
+| 2026-10-26 | Bienvenida, cola | Sin conexión en vivo, la luz se apaga y dice «Sin conexión» | La crítica de diseño vio que «En vivo» contradecía el banner |
+| 2026-10-26 | Teclas «Votaste» y «Tuya» | Sin `aria-label`; reciben el foco al reemplazar a «+1» | Revisión de accesibilidad: ARIA prohíbe la etiqueta en un `span` y el foco del teclado se perdía |

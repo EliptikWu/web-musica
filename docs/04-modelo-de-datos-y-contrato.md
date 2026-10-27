@@ -164,6 +164,10 @@ emparejada desde el panel), para que un cliente no pueda reportar «fin» y salt
 | `panel` | `{ recursos: [...] }` (`noche`, `bitacora`, `bloqueos`, `listas`…) | Cambió algo del panel; el panel vuelve a pedir esos recursos. Sin datos privados |
 | `ping` | `{ servidor_ahora }` | Cada 15 s, para detectar la desconexión |
 
+Al abrir la conexión, el servidor manda **primero una foto `ahora`**: el cliente solo se
+considera conectado cuando llegan datos (un canal que acepta y corta no cuenta) y así se
+resincroniza al reconectar.
+
 ## Códigos de error
 
 | Código | HTTP | Cuándo |

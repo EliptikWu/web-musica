@@ -22,8 +22,10 @@ type PropsFija = HTMLAttributes<HTMLSpanElement> & {
 
 /**
  * Tecla que no se pulsa: «Votaste» (hundida) y «Tuya» (ámbar). Es texto, no un botón
- * deshabilitado: dice el estado en vez de esconder la acción (doc 05).
+ * deshabilitado: dice el estado en vez de esconder la acción (doc 05). Sin `aria-label`: en un
+ * `span` ARIA lo prohíbe; dentro de su fila, el texto visible ya se entiende. Acepta el foco
+ * por programa (`tabIndex={-1}`) para que el teclado no se pierda cuando reemplaza a «+1».
  */
 export function TeclaFija({ variante, tamano = 'normal', className, ...resto }: PropsFija) {
-  return <span className={claseTecla(variante, tamano, className)} {...resto} />;
+  return <span className={claseTecla(variante, tamano, className)} tabIndex={-1} data-tecla-fija="" {...resto} />;
 }

@@ -28,7 +28,9 @@ export default defineConfig({
   webServer: {
     command: 'npm run start',
     url: 'http://localhost:3200',
-    reuseExistingServer: !CI,
+    // Nunca reutiliza un servidor en marcha: podría servir una compilación vieja y las pruebas
+    // mirarían otra cosa. Si el 3200 está ocupado, falla y lo dice.
+    reuseExistingServer: false,
     timeout: 60_000,
     env: { NEXT_PUBLIC_API_MODE: 'simulado' },
   },
