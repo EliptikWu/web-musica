@@ -11,6 +11,13 @@
   --madera-clara: #4A2C1F;
   --borde: rgba(244, 231, 203, .14);
   --hueco: rgba(0, 0, 0, .22); /* AÑADIDO: fondo hundido en la madera (pestañas, días, etiquetas) */
+  /* AÑADIDO (iteración 5): gráficos del tablero. Forma «énfasis»: el ámbar (la luz) es el dato
+     que importa y el resto va en un tono apagado. Validado con el script de la skill dataviz sobre
+     la madera (#3A2218): ΔE daltonismo 22,1, ΔE normal 25,1, contraste ≥ 3:1 (doc 05). */
+  --dato: var(--ambar);
+  --dato-contexto: #85715F;
+  --rejilla: rgba(244, 231, 203, .10);
+  --eje: rgba(244, 231, 203, .28);
 
   /* Papel y texto */
   --crema: #F4E7CB;

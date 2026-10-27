@@ -165,6 +165,7 @@ const VERBO: Partial<Record<TipoAccion, [tu: string, otro: string]>> = {
   editar_establecimiento: ['Editaste los datos del bar', 'editó los datos del bar'],
   regenerar_qr: ['Regeneraste el QR', 'regeneró el QR'],
   editar_evento: ['Editaste el evento', 'editó el evento'],
+  editar_umbrales: ['Cambiaste los umbrales del tablero', 'cambió los umbrales del tablero'],
   extender_bloqueo: ['Cambiaste el bloqueo de', 'cambió el bloqueo de'],
 };
 
@@ -183,7 +184,12 @@ export function fraseAccion(a: AccionAdmin, yoId: string | undefined): string {
   if (a.tipo === 'intento_no_permitido') return `${a.usuario?.nombre ?? 'Alguien'} intentó algo que su rol no permite${a.detalle ? `: ${a.detalle.toLowerCase()}` : ''}`;
   const [tu, otro] = VERBO[a.tipo] ?? ['Hiciste un cambio', 'hizo un cambio'];
   const sujeto = !a.usuario ? `El sistema ${otro}` : a.usuario.id !== yoId ? `${a.usuario.nombre} ${otro}` : tu;
-  const cola = a.tipo === 'retirar' && a.detalle ? ` de la cola: ${a.detalle}` : a.tipo === 'extender_bloqueo' && a.detalle ? `: ${a.detalle.toLowerCase()}` : '';
+  const cola =
+    a.tipo === 'retirar' && a.detalle
+      ? ` de la cola: ${a.detalle}`
+      : (a.tipo === 'extender_bloqueo' || a.tipo === 'editar_umbrales') && a.detalle
+        ? `: ${a.detalle.toLowerCase()}`
+        : '';
   return `${sujeto}${objetivoTexto(a)}${cola}`;
 }
 

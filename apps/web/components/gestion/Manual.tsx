@@ -147,6 +147,18 @@ const SECCIONES: Seccion[] = [
     imagen: { archivo: 'eventos.jpg', texto: 'El calendario de eventos.' },
   },
   {
+    id: 'tablero',
+    titulo: 'Leer el tablero analítico',
+    para: 'administrador',
+    pasos: [
+      'En «Tablero analítico» elige las noches arriba: todas, las últimas cuatro semanas, una noche o unas fechas. Cada noche entra al tablero cuando se cierra.',
+      '«Resumen» dice cuánto se pidió, cuánto se esperó y cuánto sonó lo pedido frente a la lista de la casa. «Participación» muestra los géneros y las horas con más movimiento.',
+      '«Diagnóstico» señala las canciones muy votadas que no sonaron, si pocos teléfonos deciden la cola y las noches flojas; los umbrales se cambian ahí mismo.',
+      '«Recomendaciones» sugiere cambios con el dato en que se basa y te lleva a la sección donde decides. Nada se aplica solo.',
+    ],
+    imagen: { archivo: 'tablero.jpg', texto: 'El resumen del tablero analítico.' },
+  },
+  {
     id: 'mantenimiento',
     titulo: 'Cerrar la noche o ponerla en mantenimiento',
     para: 'administrador',

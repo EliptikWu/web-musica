@@ -5,6 +5,7 @@
 @import '@rockola/ui/componentes.css';
 @import '@rockola/ui/pantalla.css';
 @import '@rockola/ui/panel.css';
+@import '@rockola/ui/analitica.css';
 
 /* Tailwind no mira dentro de node_modules: los componentes de @rockola/ui se le indican aquí. */
 @source '../../../packages/ui/src';

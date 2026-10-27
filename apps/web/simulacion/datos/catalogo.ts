@@ -27,11 +27,12 @@ const FILAS: Fila[] = [
   ['la-bachata', 'La Bachata', 'Manuel Turizo', '3:02', 'urbano'],
   ['despecha', 'Despechá', 'Rosalía', '2:37', 'pop'],
   // Más resultados para buscar
-  ['baile-inolvidable', 'BAILE INoLVIDABLE', 'Bad Bunny', '6:07', 'urbano'],
+  // Sin género en los metadatos: el tablero las cuenta como «sin clasificar» (RF-051).
+  ['baile-inolvidable', 'BAILE INoLVIDABLE', 'Bad Bunny', '6:07', 'sin_clasificar'],
   ['me-porto-bonito', 'Me Porto Bonito', 'Bad Bunny y Chencho Corleone', '2:58', 'urbano'],
   ['ojitos-lindos', 'Ojitos Lindos', 'Bad Bunny y Bomba Estéreo', '4:18', 'urbano'],
   ['provenza', 'PROVENZA', 'Karol G', '3:30', 'urbano'],
-  ['classy-101', 'CLASSY 101', 'Feid y Young Miko', '3:15', 'urbano'],
+  ['classy-101', 'CLASSY 101', 'Feid y Young Miko', '3:15', 'sin_clasificar'],
   // Salsa y tropical de la casa (los que no estaban arriba)
   ['en-barranquilla-me-quedo', 'En Barranquilla me quedo', 'Joe Arroyo', '4:55', 'salsa'],
   ['la-noche', 'La noche', 'Joe Arroyo', '4:28', 'salsa'],

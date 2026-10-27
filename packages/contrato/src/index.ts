@@ -8,4 +8,5 @@ export * from './solicitudes.ts';
 export * from './pantalla.ts';
 export * from './tiempo-real.ts';
 export * from './panel.ts';
+export * from './analitica.ts';
 export * from './endpoints.ts';

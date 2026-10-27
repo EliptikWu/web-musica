@@ -1,7 +1,7 @@
 'use client';
 
 import type { Establecimiento as DatosBar } from '@rockola/contrato';
-import { Campo, claseTecla, Icono, LuzEstado, Tecla } from '@rockola/ui';
+import { Campo, claseTecla, Icono, LuzEstado, Selector, Tecla } from '@rockola/ui';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
@@ -114,16 +114,13 @@ function FormularioBar({
       </div>
       <Campo etiqueta="Nombre" value={datos.nombre} onChange={poner('nombre')} error={errores.nombre} maxLength={80} />
       <Campo etiqueta="Dirección" value={datos.direccion} onChange={poner('direccion')} maxLength={160} />
-      <label className="campo">
-        <span className="campo__etiqueta">Zona horaria</span>
-        <select className="campo__entrada" value={datos.zona_horaria} onChange={poner('zona_horaria')}>
-          {ZONAS.map(([valor, texto]) => (
-            <option key={valor} value={valor}>
-              {texto}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Selector etiqueta="Zona horaria" value={datos.zona_horaria} onChange={poner('zona_horaria')}>
+        {ZONAS.map(([valor, texto]) => (
+          <option key={valor} value={valor}>
+            {texto}
+          </option>
+        ))}
+      </Selector>
       <div className="formulario-fila">
         <Campo etiqueta="Pedidos por teléfono" ayuda="Canciones de un mismo teléfono en la cola a la vez." type="number" min={1} max={10} value={datos.pedidos_maximos} onChange={poner('pedidos_maximos')} error={errores.pedidos} />
         <Campo etiqueta="Duración máxima (min)" ayuda="Las canciones más largas no se pueden pedir." type="number" min={1} max={60} value={datos.duracion_max_min} onChange={poner('duracion_max_min')} error={errores.duracion} />

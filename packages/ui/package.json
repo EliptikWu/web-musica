@@ -11,7 +11,8 @@
     "./base.css": "./src/base.css",
     "./componentes.css": "./src/componentes.css",
     "./pantalla.css": "./src/pantalla.css",
-    "./panel.css": "./src/panel.css"
+    "./panel.css": "./src/panel.css",
+    "./analitica.css": "./src/analitica.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

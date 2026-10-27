@@ -1,6 +1,6 @@
 'use client';
 
-import { type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes, useEffect, useId, useRef } from 'react';
+import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useEffect, useId, useRef } from 'react';
 import { Icono } from './Icono';
 
 /** Campo con etiqueta visible, ayuda y error unidos por `aria-describedby` (doc 05). */
@@ -9,11 +9,23 @@ export function Campo({
   ayuda,
   error,
   multilinea = false,
+  claseEntrada,
+  invalido = false,
   ...resto
-}: { etiqueta: string; ayuda?: string; error?: string | null; multilinea?: boolean } & InputHTMLAttributes<HTMLInputElement> & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+}: {
+  etiqueta: string;
+  ayuda?: string;
+  error?: string | null;
+  multilinea?: boolean;
+  /** Clase extra de la entrada (p. ej. `campo__entrada--hora`). */
+  claseEntrada?: string;
+  /** Marca la entrada como inválida aunque el mensaje esté en otro lado (p. ej. un tramo del horario). */
+  invalido?: boolean;
+} & InputHTMLAttributes<HTMLInputElement> &
+  TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const id = useId();
   const describe = [ayuda && `${id}-ayuda`, error && `${id}-error`].filter(Boolean).join(' ') || undefined;
-  const comunes = { id, className: 'campo__entrada', 'aria-invalid': error ? true : undefined, 'aria-describedby': describe };
+  const comunes = { id, className: claseEntrada ? `campo__entrada ${claseEntrada}` : 'campo__entrada', 'aria-invalid': error || invalido ? true : undefined, 'aria-describedby': describe };
   return (
     <div className="campo">
       <label className="campo__etiqueta" htmlFor={id}>
@@ -31,6 +43,24 @@ export function Campo({
           {error}
         </p>
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * Lista desplegable con etiqueta visible unida por `id`: su nombre accesible es solo la
+ * etiqueta (envuelta en el `<label>`, algunos lectores le suman las opciones).
+ */
+export function Selector({ etiqueta, children, ...resto }: { etiqueta: string; children: ReactNode } & SelectHTMLAttributes<HTMLSelectElement>) {
+  const id = useId();
+  return (
+    <div className="campo">
+      <label className="campo__etiqueta" htmlFor={id}>
+        {etiqueta}
+      </label>
+      <select {...resto} id={id} className="campo__entrada">
+        {children}
+      </select>
     </div>
   );
 }

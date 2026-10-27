@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ComparacionAnalitica, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
 import { Bar } from './bar.ts';
 import { Busqueda } from './busqueda.ts';
 import { Ahora, Destacada } from './cola.ts';
@@ -117,6 +118,16 @@ export const endpoints = {
   crearEvento: definir({ metodo: 'POST', ruta: '/panel/eventos', resumen: 'Crear un evento', superficie: 'panel', rf: ['RF-045'], cuerpo: CuerpoEvento, respuesta: EventoBar, estado: 201, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'conflicto'] }),
   editarEvento: definir({ metodo: 'PATCH', ruta: '/panel/eventos/{id}', resumen: 'Editar un evento', superficie: 'panel', rf: ['RF-045'], cuerpo: CuerpoEvento.partial(), respuesta: EventoBar, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
   eliminarEvento: definir({ metodo: 'DELETE', ruta: '/panel/eventos/{id}', resumen: 'Eliminar un evento futuro', superficie: 'panel', rf: ['RF-045'], respuesta: SinContenido, estado: 204, rol: 'administrador', errores: [...PANEL_ERR, 'conflicto', 'no_encontrado'] }),
+
+  // Tablero analítico (RF-049 a RF-054): solo lectura, salvo los umbrales del diagnóstico.
+  nochesAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/noches', resumen: 'Noches cerradas que tiene el tablero', superficie: 'panel', rf: ['RF-049', 'RF-053'], respuesta: ListaNoches, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  resumenAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/resumen', resumen: 'Tablero descriptivo: solicitudes, popular, teléfonos, historial, esperas y lista de la casa', superficie: 'panel', rf: ['RF-049', 'RF-050'], consulta: FiltroAnalitica, respuesta: ResumenAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
+  participacionAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/participacion', resumen: 'Géneros y franjas horarias de mayor participación', superficie: 'panel', rf: ['RF-051'], consulta: FiltroAnalitica, respuesta: ParticipacionAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
+  diagnosticoAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/diagnostico', resumen: 'Muy votadas que no sonaron, concentración de votos y noches con poca participación', superficie: 'panel', rf: ['RF-052'], consulta: FiltroAnalitica, respuesta: DiagnosticoAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
+  umbralesAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/umbrales', resumen: 'Umbrales del diagnóstico', superficie: 'panel', rf: ['RF-052'], respuesta: UmbralesAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  guardarUmbrales: definir({ metodo: 'PUT', ruta: '/panel/analitica/umbrales', resumen: 'Cambiar los umbrales del diagnóstico', superficie: 'panel', rf: ['RF-052'], cuerpo: UmbralesAnalitica, respuesta: UmbralesAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
+  compararAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/comparacion', resumen: 'Indicadores por noche, día de la semana o tipo de evento', superficie: 'panel', rf: ['RF-053'], consulta: z.object({ agrupar: z.enum(['noche', 'dia', 'evento']), noches: z.string().optional().describe('IDs separados por coma (con agrupar=noche)'), desde: z.string().optional(), hasta: z.string().optional() }), respuesta: ComparacionAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
+  recomendacionesAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/recomendaciones', resumen: 'Recomendaciones para la operación (no se aplican solas)', superficie: 'panel', rf: ['RF-054'], consulta: FiltroAnalitica, respuesta: ListaRecomendaciones, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
 } as const satisfies Record<string, Endpoint>;
 
 export type Endpoints = typeof endpoints;

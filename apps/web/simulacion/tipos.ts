@@ -1,4 +1,4 @@
-import type { AccionAdmin, DuracionBloqueo, EventoBar, Franja, ModoQr, Rol, TipoAccion } from '@rockola/contrato';
+import type { AccionAdmin, DuracionBloqueo, EventoBar, Franja, ModoQr, Rol, TipoAccion, UmbralesAnalitica } from '@rockola/contrato';
 
 /**
  * Estado interno de la simulación: se parece más a la base de datos que al contrato. Las
@@ -131,6 +131,8 @@ export type EstadoSim = {
   dispositivos: Record<string, { codigo: string; tipo: string; primer_acceso: number; aviso: number | null }>;
   idempotencia: Record<string, { estado: number; cuerpo: unknown; en: number }>;
   eventos: EventoBar[];
+  /** Umbrales del diagnóstico del tablero (RF-052); sin ellos, los de `analitica.ts`. */
+  umbrales_analitica?: UmbralesAnalitica;
   qr: { token: string; generado_en: number; anteriores: string[] };
   /** Contadores de la noche (datos de ejemplo al sembrar; suben con cada acción). */
   metricas: { solicitudes: number; telefonos: number; votos: number; espera_seg_suma: number; espera_n: number };

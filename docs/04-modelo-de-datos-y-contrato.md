@@ -156,7 +156,21 @@ emparejada desde el panel), para que un cliente no pueda reportar «fin» y salt
 | `GET/PATCH /panel/establecimiento` · `GET …/qr` · `POST …/qr/regeneracion` | Establecimiento y QR | 034, 035 |
 | `GET /panel/bitacora?desde&hasta&usuario&tipo&cursor` | Bitácora (incluye errores de YouTube) | 044, 008 |
 | `GET/POST /panel/eventos` · `PATCH/DELETE /panel/eventos/{id}` | Calendario de eventos | 045 |
-| `GET /panel/analitica/…` | Tablero (se define en la iteración 5) | 049–054 |
+| `GET /panel/analitica/noches` | Noches cerradas que tiene el tablero, con su evento del calendario | 049, 053 |
+| `GET /panel/analitica/resumen?noche\|desde&hasta` | Solicitudes, teléfonos únicos, votos, la más votada, esperas (promedio y máxima), tiempo de pedidos frente a lista de la casa, solicitudes que no sonaron; de una noche, el historial | 049, 050 |
+| `GET /panel/analitica/participacion?noche\|desde&hasta&dia_semana` | Géneros por solicitudes y votos (`null` = sin clasificar) y franjas horarias con solicitudes, votos y teléfonos | 051 |
+| `GET /panel/analitica/diagnostico?…` | Muy votadas que no sonaron con su causa probable, concentración de votos (por noche) y participación por noche, con los umbrales | 052 |
+| `GET/PUT /panel/analitica/umbrales` | Umbrales del diagnóstico (`votos_minimos`, `concentracion_pct`, `participacion_minima`); el cambio queda en la bitácora (`editar_umbrales`) | 052 |
+| `GET /panel/analitica/comparacion?agrupar=noche\|dia\|evento&noches=…\|desde&hasta` | Indicadores en promedio por noche, por noche, día de la semana o tipo de evento; lo planeado (lista de la casa) frente a lo pedido | 053 |
+| `GET /panel/analitica/recomendaciones?…` | Sugerencias con el dato en que se basan y la sección donde se decide; **nunca se aplican solas** | 054 |
+
+**Tablero analítico** *(propuesto)*. Todas sus respuestas traen `datos: OrigenDatos`
+(`origen` `registrado` o `ejemplo`, `actualizado_en`, `noches`, `desde`, `hasta`), que la
+interfaz muestra siempre (RNF-015). Las cifras salen del modelo analítico (RF-047, RF-048):
+la noche en curso entra cuando se cierra. Las fechas de los filtros son `AAAA-MM-DD` en la
+zona del bar. La concentración de votos se mide **por noche** (en un rango, el promedio):
+sumar noches juntaría a los habituales y daría una alerta falsa. Umbrales por defecto
+*(propuestos)*: 6 votos, 40 % y 15 teléfonos.
 
 ## Eventos de tiempo real
 

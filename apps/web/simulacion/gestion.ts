@@ -17,7 +17,7 @@ function siguiente(estado: EstadoSim, prefijo: string) {
   return `${prefijo}-${estado.secuencia}`;
 }
 
-function anotar(estado: EstadoSim, ahora: number, quien: Personal, tipo: TipoAccion, objetivo: AccionSim['objetivo'], detalle: string | null = null) {
+export function anotar(estado: EstadoSim, ahora: number, quien: Personal, tipo: TipoAccion, objetivo: AccionSim['objetivo'], detalle: string | null = null) {
   estado.acciones.push({ id: siguiente(estado, 'a'), fecha: ahora, usuario: quien, tipo, objetivo, detalle });
   tocar(estado);
 }

@@ -416,6 +416,16 @@
           "miniatura_url"
         ]
       },
+      "CausaNoSono": {
+        "type": "string",
+        "enum": [
+          "omitida",
+          "bloqueada",
+          "fuera_de_tiempo",
+          "retirada",
+          "no_disponible"
+        ]
+      },
       "ClaveTemporal": {
         "type": "object",
         "properties": {
@@ -453,6 +463,86 @@
           "error_interno"
         ],
         "description": "Código estable del error; el cliente lo traduce a su texto (doc 04)."
+      },
+      "ComparacionAnalitica": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "agrupar": {
+            "type": "string",
+            "enum": [
+              "noche",
+              "dia",
+              "evento"
+            ]
+          },
+          "grupos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "clave": {
+                  "type": "string"
+                },
+                "etiqueta": {
+                  "type": "string"
+                },
+                "noches": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "solicitudes": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "telefonos": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "votos": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "espera_promedio_seg": {
+                  "nullable": true,
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Segundos"
+                    }
+                  ]
+                },
+                "pedidos_seg": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Lo reproducido por solicitudes"
+                },
+                "lista_casa_seg": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Lo planeado: la lista de la casa"
+                }
+              },
+              "required": [
+                "clave",
+                "etiqueta",
+                "noches",
+                "solicitudes",
+                "telefonos",
+                "votos",
+                "espera_promedio_seg",
+                "pedidos_seg",
+                "lista_casa_seg"
+              ]
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "agrupar",
+          "grupos"
+        ]
       },
       "CuerpoActivacion": {
         "type": "object",
@@ -788,6 +878,118 @@
           "votos",
           "contexto",
           "hora"
+        ]
+      },
+      "DiagnosticoAnalitica": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "umbrales": {
+            "$ref": "#/components/schemas/UmbralesAnalitica"
+          },
+          "no_sonaron": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "solicitud_id": {
+                  "$ref": "#/components/schemas/Id"
+                },
+                "cancion": {
+                  "$ref": "#/components/schemas/Cancion"
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "noche_id": {
+                  "$ref": "#/components/schemas/Id"
+                },
+                "noche_inicio": {
+                  "$ref": "#/components/schemas/Fecha"
+                },
+                "causa": {
+                  "$ref": "#/components/schemas/CausaNoSono"
+                }
+              },
+              "required": [
+                "solicitud_id",
+                "cancion",
+                "votos",
+                "noche_id",
+                "noche_inicio",
+                "causa"
+              ]
+            }
+          },
+          "concentracion": {
+            "type": "object",
+            "properties": {
+              "telefonos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "votos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "pct_votos_del_10": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Porcentaje de los votos que dio el 10 % de los teléfonos que más votaron"
+              }
+            },
+            "required": [
+              "telefonos",
+              "votos",
+              "pct_votos_del_10"
+            ],
+            "description": "Se mide por noche; en un rango, el promedio por noche"
+          },
+          "noches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "noche_id": {
+                  "$ref": "#/components/schemas/Id"
+                },
+                "inicio": {
+                  "$ref": "#/components/schemas/Fecha"
+                },
+                "telefonos": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "solicitudes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "pct_votos_del_10": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "required": [
+                "noche_id",
+                "inicio",
+                "telefonos",
+                "solicitudes",
+                "pct_votos_del_10"
+              ]
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "umbrales",
+          "no_sonaron",
+          "concentracion",
+          "noches"
         ]
       },
       "DuracionBloqueo": {
@@ -1273,6 +1475,42 @@
           "eventos"
         ]
       },
+      "ListaNoches": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "noches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NocheAnalitica"
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "noches"
+        ]
+      },
+      "ListaRecomendaciones": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "recomendaciones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Recomendacion"
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "recomendaciones"
+        ]
+      },
       "ListasCasa": {
         "type": "object",
         "properties": {
@@ -1623,6 +1861,103 @@
           "alertas"
         ]
       },
+      "NocheAnalitica": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "inicio": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "fin": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "dia_semana": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "evento": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "tipo_evento": {
+                "$ref": "#/components/schemas/TipoEvento"
+              }
+            },
+            "required": [
+              "id",
+              "nombre",
+              "tipo_evento"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "inicio",
+          "fin",
+          "dia_semana",
+          "evento"
+        ]
+      },
+      "OrigenDatos": {
+        "type": "object",
+        "properties": {
+          "origen": {
+            "type": "string",
+            "enum": [
+              "registrado",
+              "ejemplo"
+            ],
+            "description": "`ejemplo`: datos inventados de la simulación; la interfaz lo rotula"
+          },
+          "actualizado_en": {
+            "description": "Última carga del pipeline",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "noches": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Noches que entran en el cálculo"
+          },
+          "desde": {
+            "nullable": true,
+            "description": "Inicio de la primera noche",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "hasta": {
+            "nullable": true,
+            "description": "Inicio de la última noche (su fecha es la de la noche)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "origen",
+          "actualizado_en",
+          "noches",
+          "desde",
+          "hasta"
+        ]
+      },
       "OrigenReproduccion": {
         "type": "string",
         "enum": [
@@ -1647,6 +1982,76 @@
         "required": [
           "acciones",
           "siguiente"
+        ]
+      },
+      "ParticipacionAnalitica": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "generos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "genero": {
+                  "nullable": true,
+                  "description": "`null`: sin clasificar",
+                  "type": "string"
+                },
+                "solicitudes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "genero",
+                "solicitudes",
+                "votos"
+              ]
+            }
+          },
+          "franjas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "hora": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 23
+                },
+                "solicitudes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "telefonos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "hora",
+                "solicitudes",
+                "votos",
+                "telefonos"
+              ]
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "generos",
+          "franjas"
         ]
       },
       "QrEstablecimiento": {
@@ -1679,6 +2084,55 @@
         },
         "required": [
           "url"
+        ]
+      },
+      "Recomendacion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "agregar_a_lista",
+              "genero_en_lista",
+              "revisar_bloqueo",
+              "ajustar_horario"
+            ]
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "base": {
+            "type": "string",
+            "description": "El dato en que se basa, en palabras"
+          },
+          "destino": {
+            "type": "string",
+            "enum": [
+              "listas",
+              "bloqueos",
+              "horario"
+            ],
+            "description": "La sección del panel donde se decide"
+          },
+          "lista_id": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Id"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "titulo",
+          "base",
+          "destino",
+          "lista_id"
         ]
       },
       "RecursoPanel": {
@@ -1877,6 +2331,125 @@
           "disponible_desde"
         ]
       },
+      "ResumenAnalitica": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "solicitudes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "telefonos": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Dispositivos únicos (anonimizados en el modelo, RF-048)"
+          },
+          "votos": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "mas_popular": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "cancion": {
+                "$ref": "#/components/schemas/Cancion"
+              },
+              "votos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "solicitudes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cancion",
+              "votos",
+              "solicitudes"
+            ]
+          },
+          "espera": {
+            "nullable": true,
+            "description": "De la solicitud a que empezó a sonar",
+            "type": "object",
+            "properties": {
+              "promedio_seg": {
+                "$ref": "#/components/schemas/Segundos"
+              },
+              "maxima_seg": {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            },
+            "required": [
+              "promedio_seg",
+              "maxima_seg"
+            ]
+          },
+          "tiempo": {
+            "type": "object",
+            "properties": {
+              "pedidos_seg": {
+                "$ref": "#/components/schemas/Segundos"
+              },
+              "lista_casa_seg": {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            },
+            "required": [
+              "pedidos_seg",
+              "lista_casa_seg"
+            ],
+            "description": "Tiempo que sonó cada origen"
+          },
+          "no_sonaron": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Solicitudes que nunca llegaron a reproducirse"
+          },
+          "historial": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "inicio": {
+                  "$ref": "#/components/schemas/Fecha"
+                },
+                "cancion": {
+                  "$ref": "#/components/schemas/Cancion"
+                },
+                "origen": {
+                  "$ref": "#/components/schemas/OrigenReproduccion"
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "inicio",
+                "cancion",
+                "origen",
+                "votos"
+              ]
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "solicitudes",
+          "telefonos",
+          "votos",
+          "mas_popular",
+          "espera",
+          "tiempo",
+          "no_sonaron",
+          "historial"
+        ]
+      },
       "Rol": {
         "type": "string",
         "enum": [
@@ -1974,6 +2547,7 @@
           "editar_establecimiento",
           "regenerar_qr",
           "editar_evento",
+          "editar_umbrales",
           "error_youtube",
           "intento_no_permitido"
         ]
@@ -1995,6 +2569,34 @@
           "partido",
           "tematica",
           "otro"
+        ]
+      },
+      "UmbralesAnalitica": {
+        "type": "object",
+        "properties": {
+          "votos_minimos": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500,
+            "description": "Desde cuántos votos una canción cuenta como «muy pedida»"
+          },
+          "concentracion_pct": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 100,
+            "description": "Alerta si el 10 % de los teléfonos que más votan reúne más de este porcentaje de los votos"
+          },
+          "participacion_minima": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Teléfonos únicos por noche por debajo de los cuales la noche se marca"
+          }
+        },
+        "required": [
+          "votos_minimos",
+          "concentracion_pct",
+          "participacion_minima"
         ]
       },
       "UsuarioCreado": {
@@ -5920,6 +6522,653 @@
           },
           "409": {
             "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/noches": {
+      "get": {
+        "operationId": "nochesAnalitica",
+        "summary": "Noches cerradas que tiene el tablero",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-049, RF-053. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaNoches"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/resumen": {
+      "get": {
+        "operationId": "resumenAnalitica",
+        "summary": "Tablero descriptivo: solicitudes, popular, teléfonos, historial, esperas y lista de la casa",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-049, RF-050. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "noche",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dia_semana",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumenAnalitica"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/participacion": {
+      "get": {
+        "operationId": "participacionAnalitica",
+        "summary": "Géneros y franjas horarias de mayor participación",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-051. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "noche",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dia_semana",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParticipacionAnalitica"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/diagnostico": {
+      "get": {
+        "operationId": "diagnosticoAnalitica",
+        "summary": "Muy votadas que no sonaron, concentración de votos y noches con poca participación",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-052. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "noche",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dia_semana",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticoAnalitica"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/umbrales": {
+      "get": {
+        "operationId": "umbralesAnalitica",
+        "summary": "Umbrales del diagnóstico",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-052. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UmbralesAnalitica"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "guardarUmbrales",
+        "summary": "Cambiar los umbrales del diagnóstico",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-052. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UmbralesAnalitica"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UmbralesAnalitica"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/comparacion": {
+      "get": {
+        "operationId": "compararAnalitica",
+        "summary": "Indicadores por noche, día de la semana o tipo de evento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-053. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agrupar",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "noches",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComparacionAnalitica"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/recomendaciones": {
+      "get": {
+        "operationId": "recomendacionesAnalitica",
+        "summary": "Recomendaciones para la operación (no se aplican solas)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-054. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "noche",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desde",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dia_semana",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaRecomendaciones"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
             "content": {
               "application/json": {
                 "schema": {

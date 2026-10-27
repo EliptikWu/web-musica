@@ -1,7 +1,7 @@
 'use client';
 
 import type { Franja } from '@rockola/contrato';
-import { Tecla } from '@rockola/ui';
+import { Campo, Tecla } from '@rockola/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -97,14 +97,8 @@ function EditorHorario({
               {d.abre ? (
                 <div>
                   <div className="horario-dia__horas">
-                    <label className="campo">
-                      <span className="campo__etiqueta">Abre</span>
-                      <input type="time" className="campo__entrada campo__entrada--hora" value={d.inicio} onChange={(e) => cambiar(i, { inicio: e.target.value })} required aria-invalid={error ? true : undefined} />
-                    </label>
-                    <label className="campo">
-                      <span className="campo__etiqueta">Cierra</span>
-                      <input type="time" className="campo__entrada campo__entrada--hora" value={d.fin} onChange={(e) => cambiar(i, { fin: e.target.value })} required aria-invalid={error ? true : undefined} />
-                    </label>
+                    <Campo etiqueta="Abre" type="time" claseEntrada="campo__entrada--hora" value={d.inicio} onChange={(e) => cambiar(i, { inicio: e.target.value })} required invalido={Boolean(error)} />
+                    <Campo etiqueta="Cierra" type="time" claseEntrada="campo__entrada--hora" value={d.fin} onChange={(e) => cambiar(i, { fin: e.target.value })} required invalido={Boolean(error)} />
                   </div>
                   {error ? <p className="campo__error mt-2">{error}</p> : null}
                 </div>

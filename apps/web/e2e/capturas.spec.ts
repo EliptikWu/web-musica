@@ -49,6 +49,7 @@ test('capturas del manual', async ({ page }) => {
     ['/panel/establecimiento', 'bar-qr', 'Código QR de las mesas'],
     ['/panel/bitacora', 'bitacora', 'Quién'],
     ['/panel/eventos', 'eventos', 'Próximos'],
+    ['/panel/analitica', 'tablero', 'En estas noches'],
   ] as const) {
     await page.goto(ruta);
     await page.getByText(esperar, { exact: false }).first().waitFor();

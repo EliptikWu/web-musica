@@ -1,7 +1,7 @@
 'use client';
 
 import type { TipoAccion } from '@rockola/contrato';
-import { Tecla } from '@rockola/ui';
+import { Campo, Selector, Tecla } from '@rockola/ui';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useYoDelPanel } from '@/components/panel/MarcoPanel';
@@ -23,6 +23,7 @@ const TIPOS: { valor: '' | TipoAccion; texto: string }[] = [
   { valor: 'editar_horario', texto: 'Cambios de horario' },
   { valor: 'editar_lista', texto: 'Cambios en listas' },
   { valor: 'crear_usuario', texto: 'Usuarios creados' },
+  { valor: 'editar_umbrales', texto: 'Umbrales del tablero' },
   { valor: 'error_youtube', texto: 'Errores de YouTube' },
   { valor: 'intento_no_permitido', texto: 'Intentos sin permiso' },
 ];
@@ -55,36 +56,24 @@ export function Bitacora() {
   return (
     <PaginaGestion titulo="Bitácora" nota="Todo lo que el personal y el sistema hicieron, con fecha y hora. No se puede editar.">
       <form className="caja formulario-fila mt-4" onSubmit={(e) => e.preventDefault()} aria-label="Filtros">
-        <label className="campo">
-          <span className="campo__etiqueta">Desde</span>
-          <input type="date" className="campo__entrada" value={desde} onChange={(e) => setDesde(e.target.value)} />
-        </label>
-        <label className="campo">
-          <span className="campo__etiqueta">Hasta</span>
-          <input type="date" className="campo__entrada" value={hasta} onChange={(e) => setHasta(e.target.value)} />
-        </label>
-        <label className="campo">
-          <span className="campo__etiqueta">Quién</span>
-          <select className="campo__entrada" value={usuario} onChange={(e) => setUsuario(e.target.value)}>
-            <option value="">Todos</option>
-            <option value="sistema">El sistema</option>
-            {personal.data?.usuarios.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="campo">
-          <span className="campo__etiqueta">Qué</span>
-          <select className="campo__entrada" value={tipo} onChange={(e) => setTipo(e.target.value as '' | TipoAccion)}>
-            {TIPOS.map((t) => (
-              <option key={t.valor} value={t.valor}>
-                {t.texto}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Campo etiqueta="Desde" type="date" value={desde} onChange={(e) => setDesde(e.target.value)} />
+        <Campo etiqueta="Hasta" type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} />
+        <Selector etiqueta="Quién" value={usuario} onChange={(e) => setUsuario(e.target.value)}>
+          <option value="">Todos</option>
+          <option value="sistema">El sistema</option>
+          {personal.data?.usuarios.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.nombre}
+            </option>
+          ))}
+        </Selector>
+        <Selector etiqueta="Qué" value={tipo} onChange={(e) => setTipo(e.target.value as '' | TipoAccion)}>
+          {TIPOS.map((t) => (
+            <option key={t.valor} value={t.valor}>
+              {t.texto}
+            </option>
+          ))}
+        </Selector>
       </form>
       <section className="caja mt-4" aria-label="Acciones">
         <Cargando consulta={paginas}>

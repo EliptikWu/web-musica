@@ -17,6 +17,7 @@ const SECCIONES: { href: string; texto: string; icono: NombreIcono; permiso: Acc
   { href: '/panel/usuarios', texto: 'Personal', icono: 'usuario', permiso: 'gestion' },
   { href: '/panel/establecimiento', texto: 'Bar y QR', icono: 'qr', permiso: 'gestion' },
   { href: '/panel/eventos', texto: 'Eventos', icono: 'calendario', permiso: 'gestion' },
+  { href: '/panel/analitica', texto: 'Tablero analítico', icono: 'grafica', permiso: 'analitica' },
   { href: '/panel/manual', texto: 'Manual de uso', icono: 'libro', permiso: 'verOperacion' },
 ];
 

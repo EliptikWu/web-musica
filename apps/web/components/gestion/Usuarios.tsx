@@ -1,7 +1,7 @@
 'use client';
 
 import type { Rol, UsuarioPanel } from '@rockola/contrato';
-import { Campo, Dialogo, GrupoTeclas, Tecla } from '@rockola/ui';
+import { Campo, Dialogo, GrupoTeclas, Selector, Tecla } from '@rockola/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -61,22 +61,16 @@ export function Usuarios() {
     >
       <form className="caja formulario-fila mt-4" role="search" onSubmit={(e) => e.preventDefault()} aria-label="Buscar en el personal">
         <Campo etiqueta="Buscar" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nombre o correo" />
-        <label className="campo">
-          <span className="campo__etiqueta">Rol</span>
-          <select className="campo__entrada" value={rol} onChange={(e) => setRol(e.target.value as '' | Rol)}>
-            <option value="">Todos</option>
-            <option value="operador">Operador</option>
-            <option value="administrador">Administrador</option>
-          </select>
-        </label>
-        <label className="campo">
-          <span className="campo__etiqueta">Estado</span>
-          <select className="campo__entrada" value={estado} onChange={(e) => setEstado(e.target.value as '' | 'activo' | 'inactivo')}>
-            <option value="">Todos</option>
-            <option value="activo">Activos</option>
-            <option value="inactivo">Inactivos</option>
-          </select>
-        </label>
+        <Selector etiqueta="Rol" value={rol} onChange={(e) => setRol(e.target.value as '' | Rol)}>
+          <option value="">Todos</option>
+          <option value="operador">Operador</option>
+          <option value="administrador">Administrador</option>
+        </Selector>
+        <Selector etiqueta="Estado" value={estado} onChange={(e) => setEstado(e.target.value as '' | 'activo' | 'inactivo')}>
+          <option value="">Todos</option>
+          <option value="activo">Activos</option>
+          <option value="inactivo">Inactivos</option>
+        </Selector>
       </form>
       {aviso ? <Aviso tipo={aviso.tipo} className="mt-4" titulo={aviso.texto} /> : null}
       <section className="caja mt-4" aria-label="Personal">

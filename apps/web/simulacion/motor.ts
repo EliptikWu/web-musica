@@ -43,7 +43,7 @@ export function cancion(estado: EstadoSim, videoId: string): CancionSim {
   return estado.catalogo[videoId] ?? { video_id: videoId, titulo: videoId, artista: '', duracion_seg: 0, embebible: false, disponibilidad: 'no_disponible', genero: 'sin_clasificar' };
 }
 
-function aContrato(c: CancionSim) {
+export function aContrato(c: CancionSim) {
   return { video_id: c.video_id, titulo: c.titulo, artista: c.artista, duracion_seg: c.duracion_seg, miniatura_url: null };
 }
 

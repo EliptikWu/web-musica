@@ -48,6 +48,8 @@ paletas por defecto: una clase como `bg-blue-500` no existe.
 | `--madera-clara` | `#4A2C1F` | Parte alta del pie, cajas del panel |
 | `--borde` | `rgba(244,231,203,.14)` | Filetes sobre madera |
 | `--hueco` | `rgba(0,0,0,.22)` | Fondo hundido en la madera: pestañas, días del horario, etiquetas |
+| `--dato` / `--dato-contexto` | ámbar / `#85715F` | Gráficos: el dato que importa y el resto (forma «énfasis», abajo) |
+| `--rejilla` / `--eje` | crema al 10 % / 28 % | Rejilla de un pelo y línea base de los gráficos |
 | `--crema` (= `--papel`) | `#F4E7CB` | Texto sobre madera; papel de tarjetas y ventanas |
 | `--crema-2` | `rgba(244,231,203,.72)` | Texto secundario sobre madera |
 | `--papel-apagado` | `#CDBFA6` | Tarjeta apagada (no pedible, bloqueada) |
@@ -128,6 +130,7 @@ Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 | `PlacaQr` | Placa cromada con el QR | El QR lleva texto alternativo con el enlace |
 | `Icono` | Dibujados a mano, 24 × 24, trazo 1,9, puntas redondas | Decorativos con `aria-hidden`; con función, con nombre |
 | Pestañas del panel (`.panel-subnav`) | Una por sección que el rol puede abrir; la actual en relieve, como la tecla de papel | `<nav aria-label>` con `aria-current="page"`; en el teléfono se desplazan de lado y la actual queda a la vista |
+| `Selector` | Lista desplegable con etiqueta visible unida por `id` | Su nombre accesible es solo la etiqueta (envuelta en el `<label>`, algunos lectores le sumaban las opciones) |
 | `Etiqueta` (`.etiqueta`) | Rótulo pequeño sobre madera («Administrador», «Karaoke», «Clave temporal») | Texto, nunca solo color |
 
 La galería de todos está en `/muestras` (solo en modo simulado).
@@ -146,6 +149,29 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | Panel: Operación | `/panel` | `panel-admin` (+ `#pausa`) | abierto, en pausa, fuera de horario, mantenimiento, sin sesión, sin lista activa, vista Operador |
 | Panel: Gestión | `/panel/{usuarios,establecimiento,horario,listas,bloqueos,bitacora,eventos,manual}` | — (nuevas) | vacío, cargando, error, sin permiso |
 | Panel: Analítica | `/panel/analitica/*` | — (nuevas) | sin datos, datos de ejemplo rotulados |
+
+## Gráficos (tablero analítico)
+
+Método de la skill `dataviz`, con los tokens Rockola:
+
+- **Forma:** cifras sueltas como las «Métricas de la noche» (ámbar sobre madera); rankings en
+  barras horizontales; horas y noches en columnas; partes de un todo (lo pedido frente a la
+  lista de la casa) en una barra 100 %; un porcentaje contra su umbral en un medidor. Nunca
+  dos ejes: solicitudes, votos y teléfonos se ven de a uno (teclas para elegir) o en
+  gráficos separados.
+- **Color:** forma «énfasis». El ámbar es la luz: el dato que importa (la hora pico, la
+  noche floja, lo pedido); el resto va en `--dato-contexto`. Una serie sola va toda en
+  ámbar. Validado con `validate_palette.js` sobre `#3A2218`: ΔE con daltonismo 22,1, ΔE normal
+  25,1, contraste ≥ 3:1. La banda de luminosidad y el croma mínimo «fallan» a propósito: son
+  pruebas de paletas categóricas, y aquí el gris de contexto tiene que leerse gris.
+- **Marcas:** barras de 18 a 24 px con la punta redondeada (4 px) y la base recta; 2 px de
+  madera entre partes; rejilla de un pelo; el texto siempre en crema, nunca del color del
+  dato; rótulos solo en lo resaltado y en las puntas de las barras.
+- **Interacción y accesibilidad:** cada columna se enfoca con el teclado y muestra su valor,
+  como al pasar el puntero; cada gráfico tiene su «Ver como tabla»; las tablas anchas pasan
+  las columnas secundarias a una segunda línea cuando la caja es angosta.
+- **Datos de ejemplo:** la simulación lo dice en cada parte del tablero, junto al rango y la
+  última carga (RNF-015).
 
 ## Responsive
 
@@ -225,3 +251,6 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | 2026-10-26 | Bar y QR | Las ayudas en palabras del bar (sin códigos de regla) y las zonas horarias por país | La crítica de diseño: «RN-01» no le dice nada al personal |
 | 2026-10-26 | Personal | La clave temporal se muestra una sola vez, en un diálogo propio, con la advertencia | RF-023: nunca se ven claves después |
 | 2026-10-26 | Manual | Ilustrado con capturas reales del panel, generadas por script (`npm run capturas -w @rockola/web`) | RNF-016: el manual no se desactualiza a mano |
+| 2026-10-27 | Tablero analítico | Pantallas nuevas en el sistema Rockola: Resumen, Participación, Diagnóstico, Comparar y Recomendaciones, con una fila de filtros arriba (atajos primero) y el origen de los datos siempre a la vista | RF-049 a RF-054, RNF-015 |
+| 2026-10-27 | Operación | «Métricas de la noche» lleva al tablero (solo el Administrador) | PB-45: las métricas son un adelanto del tablero |
+| 2026-10-27 | Formularios | Las listas desplegables se nombran solo con su etiqueta (`Selector`) | Revisión de accesibilidad: el nombre incluía las opciones |

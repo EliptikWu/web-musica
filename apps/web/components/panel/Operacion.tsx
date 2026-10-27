@@ -2,6 +2,7 @@
 
 import type { Cancion, Noche } from '@rockola/contrato';
 import { Avance, DiasSemana, Icono, TarjetaTitulo, Tecla } from '@rockola/ui';
+import Link from 'next/link';
 import { type ReactNode, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
 import { codigoDe } from '@/lib/api/errores';
@@ -274,6 +275,13 @@ export function Operacion() {
               <Metrica nombre="Espera promedio" valor={n.metricas.espera_promedio_seg === null ? '—' : minutosEnteros(n.metricas.espera_promedio_seg)} unidad={n.metricas.espera_promedio_seg === null ? undefined : 'min'} />
             </dl>
             {MODO === 'simulado' ? <p className="secundario mt-2 text-[13px]">{P.datosDeEjemplo}: las cifras de la simulación no son de un bar real.</p> : null}
+            {puede(yo.usuario.rol, 'analitica') ? (
+              <p className="mt-2 text-[14px]">
+                <Link href="/panel/analitica" className="enlace">
+                  Ver el tablero analítico
+                </Link>
+              </p>
+            ) : null}
           </Caja>
 
           <Caja titulo={P.horario}>

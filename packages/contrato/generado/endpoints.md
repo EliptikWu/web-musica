@@ -76,6 +76,14 @@
 | `crearEvento` | `POST /panel/eventos` | `CuerpoEvento` → `EventoBar` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `conflicto` | RF-045 |
 | `editarEvento` | `PATCH /panel/eventos/{id}` | `CuerpoEditarEvento` → `EventoBar` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-045 |
 | `eliminarEvento` | `DELETE /panel/eventos/{id}` | 204 | administrador | `no_autenticado`, `sin_permiso`, `conflicto`, `no_encontrado` | RF-045 |
+| `nochesAnalitica` | `GET /panel/analitica/noches` | `ListaNoches` | administrador | `no_autenticado`, `sin_permiso` | RF-049, RF-053 |
+| `resumenAnalitica` | `GET /panel/analitica/resumen?noche&desde&hasta&dia_semana` | `ResumenAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-049, RF-050 |
+| `participacionAnalitica` | `GET /panel/analitica/participacion?noche&desde&hasta&dia_semana` | `ParticipacionAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-051 |
+| `diagnosticoAnalitica` | `GET /panel/analitica/diagnostico?noche&desde&hasta&dia_semana` | `DiagnosticoAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-052 |
+| `umbralesAnalitica` | `GET /panel/analitica/umbrales` | `UmbralesAnalitica` | administrador | `no_autenticado`, `sin_permiso` | RF-052 |
+| `guardarUmbrales` | `PUT /panel/analitica/umbrales` | `UmbralesAnalitica` → `UmbralesAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-052 |
+| `compararAnalitica` | `GET /panel/analitica/comparacion?agrupar&noches&desde&hasta` | `ComparacionAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-053 |
+| `recomendacionesAnalitica` | `GET /panel/analitica/recomendaciones?noche&desde&hasta&dia_semana` | `ListaRecomendaciones` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-054 |
 
 ## Tiempo real
 

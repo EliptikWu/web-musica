@@ -4,4 +4,4 @@ export { TeclaFija, claseTecla, type VarianteTecla, type TamanoTecla } from './c
 export { TarjetaTitulo, type VarianteTarjeta } from './TarjetaTitulo';
 export { Arco, Ventana, LuzEstado, Fichas, Insignia, DiasSemana, type Dia } from './Piezas';
 export { Avance, MiniAvance } from './Avance';
-export { Campo, GrupoTeclas, Dialogo, type Opcion } from './Formulario';
+export { Campo, GrupoTeclas, Dialogo, Selector, type Opcion } from './Formulario';

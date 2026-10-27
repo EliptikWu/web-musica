@@ -1,7 +1,7 @@
 'use client';
 
 import type { EventoBar } from '@rockola/contrato';
-import { Campo, Dialogo, Tecla } from '@rockola/ui';
+import { Campo, Dialogo, Selector, Tecla } from '@rockola/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -169,16 +169,13 @@ function DialogoEvento({
         {!soloDescripcion ? (
           <>
             <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} error={intento && !nombre.trim() ? 'Escribe el nombre.' : null} autoFocus />
-            <label className="campo">
-              <span className="campo__etiqueta">Tipo</span>
-              <select className="campo__entrada" value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
-                {Object.entries(TIPOS).map(([v, t]) => (
-                  <option key={v} value={v}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <Selector etiqueta="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
+              {Object.entries(TIPOS).map(([v, t]) => (
+                <option key={v} value={v}>
+                  {t}
+                </option>
+              ))}
+            </Selector>
             <div className="formulario-fila">
               <Campo etiqueta="Empieza" type="datetime-local" value={inicio} onChange={(e) => setInicio(e.target.value)} error={intento && !inicio ? 'Elige cuándo empieza.' : null} />
               <Campo etiqueta="Termina" type="datetime-local" value={fin} onChange={(e) => setFin(e.target.value)} error={errorFin ?? (intento && !fin ? 'Elige cuándo termina.' : null)} />

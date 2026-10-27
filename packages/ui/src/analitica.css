@@ -1,0 +1,93 @@
+/* ── Tablero analítico (AÑADIDO, iteración 5) ────────────────────────────────────
+   Las cifras son las de «Métricas de la noche»: ámbar sobre madera. Los gráficos son SVG
+   propios con marcas finas (≤ 24 px, punta redondeada de 4 px, base recta), rejilla de un
+   pelo y texto siempre en tinta crema, nunca del color del dato (skill dataviz, doc 05). */
+@layer components {
+  .analitica-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .analitica-nav a {
+    display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: var(--radio-tecla);
+    font-size: 15px; font-weight: 700; font-stretch: 75%; letter-spacing: .04em; text-transform: uppercase; text-decoration: none;
+    color: var(--crema); box-shadow: inset 0 0 0 1px var(--borde);
+  }
+  /* La sección actual, como la tecla de papel; las demás, filetes sobre madera. */
+  .analitica-nav a[aria-current='page'] { color: var(--tinta); background: var(--tecla-cara); box-shadow: 0 3px 0 var(--tecla-canto); transform: translateY(-2px); }
+
+  @media (max-width: 600px) {
+    .analitica-nav { gap: 6px; }
+    .analitica-nav a { padding: 0 11px; font-size: 14px; }
+  }
+  .analitica-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-top: 16px; }
+  .analitica-filtros .campo { min-width: 12rem; }
+  .analitica-origen { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-top: 10px; font-size: 14px; color: var(--crema-2); }
+  .analitica-origen .etiqueta { margin-left: 0; }
+  /* Mientras llegan datos nuevos, el cuadro anterior se queda, más tenue: sin saltos. */
+  .analitica-cuerpo[aria-busy='true'] { opacity: .55; transition: opacity var(--pulsar) ease-out; }
+
+  /* Enlace dentro de una frase: el relleno lleva el blanco a 44 px sin mover la línea. */
+  .enlace { font-weight: 700; color: var(--crema); text-decoration: underline; text-underline-offset: 3px; padding: 14px 2px; margin: -14px -2px; }
+
+  .cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 10px; margin: 0; }
+  .cifras .metrica dd { font-variant-numeric: normal; }
+  .metrica--texto dd { font-size: 22px; line-height: 1.15; font-stretch: 75%; }
+  .metrica--texto dd small { display: block; margin-top: 4px; }
+
+  .cifra-grande { margin-right: 4px; font-size: 30px; font-weight: 800; font-stretch: 75%; line-height: 1; color: var(--ambar-claro); }
+  .estado-diagnostico { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; }
+  .estado-diagnostico svg { flex: none; width: 20px; height: 20px; }
+
+  .grafico { position: relative; margin-top: 4px; }
+  .grafico svg { display: block; overflow: visible; font-family: inherit; }
+  .grafico text { fill: var(--crema); font-size: 13px; }
+  .grafico .g-suave { fill: var(--crema-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .grafico .g-valor { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .grafico .g-dato { fill: var(--dato); }
+  .grafico .g-contexto { fill: var(--dato-contexto); }
+  .grafico .g-pista { fill: var(--dato); fill-opacity: .22; }
+  .grafico .g-rejilla { stroke: var(--rejilla); stroke-width: 1; }
+  .grafico .g-eje { stroke: var(--eje); stroke-width: 1; }
+  .grafico .g-umbral { stroke: var(--crema); stroke-width: 2; }
+  .grafico .g-marca { outline: none; cursor: default; }
+  .grafico .g-marca:hover path, .grafico .g-marca:focus-visible path { filter: brightness(1.18); }
+  .grafico .g-marca:focus-visible .g-foco { stroke: var(--ambar-claro); stroke-width: 2; fill: none; }
+  .grafico-tip {
+    position: absolute; z-index: 2; pointer-events: none; min-width: 7rem; padding: 6px 10px 8px; border-radius: var(--radio-tecla);
+    background: var(--nogal-hondo); box-shadow: inset 0 0 0 1px var(--borde), 0 8px 18px -8px rgba(0, 0, 0, .8); transform: translate(-50%, calc(-100% - 10px));
+  }
+  .grafico-tip b { display: block; font-size: 18px; font-variant-numeric: tabular-nums; color: var(--crema); }
+  .grafico-tip span { font-size: 13px; color: var(--crema-2); }
+
+  .leyenda { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 14px; }
+  .leyenda li { display: flex; align-items: baseline; gap: 8px; }
+  .leyenda i { flex: none; width: 12px; height: 12px; border-radius: 3px; transform: translateY(1px); }
+  .leyenda .l-dato { background: var(--dato); }
+  .leyenda .l-contexto { background: var(--dato-contexto); }
+  .leyenda b { font-variant-numeric: tabular-nums; }
+
+  .ver-tabla { margin-top: 10px; font-size: 14px; }
+  .ver-tabla summary { display: inline-flex; align-items: center; min-height: 44px; color: var(--crema-2); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .tabla-datos { width: 100%; margin-top: 6px; border-collapse: collapse; font-size: 14px; }
+  .tabla-datos th, .tabla-datos td { padding: 7px 8px; text-align: left; border-bottom: 1px solid var(--borde); }
+  .tabla-datos th { font-weight: 600; color: var(--crema-2); }
+  .tabla-datos td.num, .tabla-datos th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tabla-datos tr[data-marcada] td:first-child { box-shadow: inset 3px 0 0 var(--dato); }
+  .tabla-datos .linea-2 { display: block; margin-top: 2px; font-size: 13px; color: var(--crema-2); }
+  /* En una caja angosta (teléfono), las columnas secundarias pasan a una segunda línea. */
+  .tabla-datos .solo-angosto { display: none; }
+  @container (max-width: 520px) {
+    .tabla-datos .solo-ancho { display: none; }
+    .tabla-datos .solo-angosto { display: block; }
+  }
+
+  .recomendacion { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; }
+  .recomendacion h2 { font-size: 18px; font-weight: 700; font-stretch: 100%; line-height: 1.3; }
+  .recomendacion p { grid-column: 1; font-size: 15px; color: var(--crema-2); }
+  .recomendacion .tecla { grid-column: 2; grid-row: 1 / span 2; }
+  @media (max-width: 600px) {
+    .recomendacion { grid-template-columns: 1fr; }
+    .recomendacion .tecla { grid-column: 1; grid-row: auto; }
+  }
+
+  .seleccion-noches { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 4px 12px; max-height: 15rem; overflow-y: auto; margin: 0; padding: 4px; }
+  .seleccion-noches label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+  .seleccion-noches input { width: 20px; height: 20px; accent-color: var(--ambar); }
+}

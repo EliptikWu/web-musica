@@ -20,5 +20,6 @@ export const claves = {
     bitacora: ['panel', 'bitacora'] as const,
     eventos: ['panel', 'eventos'] as const,
     busqueda: (q: string) => ['panel', 'busqueda', q] as const,
+    analitica: (parte: string, filtro: object = {}) => ['panel', 'analitica', parte, filtro] as const,
   },
 };
