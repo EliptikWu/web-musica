@@ -243,6 +243,30 @@ function enZona(instante: number, zona: string) {
 const fechaLocal = (instante: number, zona: string) => enZona(instante, zona).fecha;
 const horaLocal = (instante: number, zona: string) => enZona(instante, zona).hora;
 
+const popularidades = new WeakMap<NocheA[], { dia: number; mapa: Map<string, number> }>();
+
+/**
+ * La popularidad de la búsqueda (PB-51): cuántas veces se pidió cada canción en el bar en las
+ * cuatro semanas hasta `ahora`, contando la noche en curso. Lo de las noches cerradas se
+ * calcula una vez por día; lo de esta noche, en cada búsqueda (son pocas solicitudes).
+ */
+export function pedidasEnElBar(estado: EstadoSim, ahora: number): (videoId: string) => number {
+  const noches = nochesDeEjemplo(estado);
+  const dia = Math.floor(ahora / (24 * HORA));
+  let guardado = popularidades.get(noches);
+  if (!guardado || guardado.dia !== dia) {
+    const desde = ahora - 28 * 24 * HORA;
+    const mapa = new Map<string, number>();
+    for (const n of noches) if (n.inicio > desde && n.inicio <= ahora) for (const s of n.solicitudes) mapa.set(s.video_id, (mapa.get(s.video_id) ?? 0) + 1);
+    guardado = { dia, mapa };
+    popularidades.set(noches, guardado);
+  }
+  const cerradas = guardado.mapa;
+  const hoy = new Map<string, number>();
+  for (const s of estado.solicitudes) if (s.fecha >= ahora - 28 * 24 * HORA) hoy.set(s.video_id, (hoy.get(s.video_id) ?? 0) + 1);
+  return (videoId) => (cerradas.get(videoId) ?? 0) + (hoy.get(videoId) ?? 0);
+}
+
 // ── Selección ──────────────────────────────────────────────────────────────
 
 export type Filtro = { noche?: string | null; desde?: string | null; hasta?: string | null; dia_semana?: string | null };

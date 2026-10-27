@@ -112,7 +112,7 @@ Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 
 | Componente | Variantes / estados | Accesibilidad |
 |---|---|---|
-| `Tecla` | `normal`, `hundida` (Votaste, no interactiva), `cereza` (principal), `tuya` (no interactiva), tamaños `grande`, `chica`; estados `ocupada` (envío en curso) y desactivada (hundida y sin brillo, p. ej. «Subir» en la primera canción) | `<button>` o `<a>`; la hundida y la tuya son texto con `aria-label` claro; ≥ 44 px |
+| `Tecla` | `normal`, `hundida` (Votaste; se pulsa para mover el voto, y «Filtrar» abierto), `cereza` (principal), `tuya` (no interactiva), tamaños `grande`, `chica`; estados `ocupada` (envío en curso) y desactivada (hundida y sin brillo, p. ej. «Subir» en la primera canción) | `<button>` o `<a>`; la hundida y la tuya son texto con `aria-label` claro; ≥ 44 px |
 | `TarjetaTitulo` | `normal`, `tuya`, `apagada`, `resultado` (con duración, sin puesto); partes: puesto, miniatura, título, artista, votos o duración, subida (↑N) | El título y el artista se leen en orden; la subida dice «subió 2 puestos» |
 | `Arco` + `Ventana` | encendido, apagado; forma `movil` y `tv` | `<section aria-label="Suena ahora">` |
 | `Fichas` | N libres de M | Siempre acompañadas del texto «Te quedan N de M pedidos» |
@@ -254,3 +254,5 @@ Método de la skill `dataviz`, con los tokens Rockola:
 | 2026-10-27 | Tablero analítico | Pantallas nuevas en el sistema Rockola: Resumen, Participación, Diagnóstico, Comparar y Recomendaciones, con una fila de filtros arriba (atajos primero) y el origen de los datos siempre a la vista | RF-049 a RF-054, RNF-015 |
 | 2026-10-27 | Operación | «Métricas de la noche» lleva al tablero (solo el Administrador) | PB-45: las métricas son un adelanto del tablero |
 | 2026-10-27 | Formularios | Las listas desplegables se nombran solo con su etiqueta (`Selector`) | Revisión de accesibilidad: el nombre incluía las opciones |
+| 2026-10-27 | Cola | «Votaste» sigue hundida pero se pulsa: abre «Mover tu voto» con las canciones a las que puede pasar; el foco queda en la nueva «Votaste» | RF-014, PB-50: el mockup dice que mover el voto parte de ese botón |
+| 2026-10-27 | Buscar | «Filtrar» junto al título de los resultados: género, duración y popularidad en una caja hundida; la tecla se hunde mientras está abierta | RF-055, PB-51: el mockup los ubicaba junto a la caja de búsqueda |

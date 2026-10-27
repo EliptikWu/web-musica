@@ -74,6 +74,10 @@ export function formatoTiempoTotal(segundos: number): string {
   return m === 0 ? `${h} h` : `${h} h ${m} min`;
 }
 
+const GENEROS: Record<string, string> = { salsa: 'Salsa', urbano: 'Urbano', pop: 'Pop', tropical: 'Tropical', vallenato: 'Vallenato' };
+/** `salsa` → «Salsa»; `null` → «Sin clasificar» (RF-051, RF-055). */
+export const nombreGenero = (g: string | null) => (g === null ? 'Sin clasificar' : (GENEROS[g] ?? capitalizar(g)));
+
 /** «1 canción», «42 canciones». */
 export const contarCanciones = (n: number) => (n === 1 ? '1 canción' : `${n} canciones`);
 

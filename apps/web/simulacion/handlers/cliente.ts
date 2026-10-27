@@ -2,6 +2,7 @@ import type { Resultado } from '../motor';
 import {
   anotarAviso, buscar, cambiarVoto, construirAhora, construirDestacadas, construirYo, pedirCancion, registrarDispositivo, votar,
 } from '../motor';
+import { pedidasEnElBar } from '../analitica';
 import { error, manejar, ok, type Peticion } from './comun';
 
 /** Rutas del cliente y de la pantalla del bar (doc 04, «Cliente» y «Pantalla del bar»). */
@@ -40,7 +41,7 @@ export const manejadoresCliente = [
       return ok(null, 204);
     }),
   ),
-  manejar('buscar', ({ estado, ahora, consulta }) => buscar(estado, consulta.get('q') ?? '', ahora)),
+  manejar('buscar', ({ estado, ahora, consulta }) => buscar(estado, consulta.get('q') ?? '', ahora, pedidasEnElBar(estado, ahora))),
   manejar('pedir', (p) => conDispositivo(p, (d) => pedirCancion(p.estado, d, (p.cuerpo as { video_id: string }).video_id, p.ahora))),
   manejar('votar', (p) => conDispositivo(p, (d) => votar(p.estado, d, p.parametros.id ?? '', p.ahora))),
   manejar('cambiarVoto', (p) =>

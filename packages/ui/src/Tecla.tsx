@@ -4,7 +4,8 @@ import type { ButtonHTMLAttributes } from 'react';
 import { claseTecla, type TamanoTecla, type VarianteTecla } from './clases-tecla';
 
 type PropsBoton = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variante?: Exclude<VarianteTecla, 'hundida' | 'tuya'>;
+  /** `hundida`: un estado ya elegido que se puede volver a pulsar (mover el voto, cerrar los filtros). */
+  variante?: Exclude<VarianteTecla, 'tuya'>;
   tamano?: TamanoTecla;
   /** Envío en curso: la tecla no responde a otro toque (RNF-008). */
   ocupada?: boolean;

@@ -55,6 +55,7 @@ numerado y la fuente chocan, se corrige el doc numerado y se anota por qué.
 | Qué significa "hecho" | `docs/06-calidad.md` |
 | Rendimiento | `docs/07-optimizaciones.md` |
 | Iteraciones, commits, entregas | `docs/08-metodologia.md` |
+| Integración con la API del backend | `docs/11-entrega-al-backend.md` |
 | Pruebas | `docs/09-pruebas-qa.md` |
 | Un error | `docs/10-correccion-de-errores.md` |
 

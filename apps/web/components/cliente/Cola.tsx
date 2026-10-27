@@ -1,8 +1,9 @@
 'use client';
 
 import type { Ahora, ItemCola, MiSolicitud, Yo } from '@rockola/contrato';
-import { claseTecla, Icono, Insignia, LuzEstado, TarjetaTitulo } from '@rockola/ui';
+import { claseTecla, Dialogo, Icono, Insignia, LuzEstado, TarjetaTitulo, Tecla } from '@rockola/ui';
 import Link from 'next/link';
+import { useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
 import { codigoDe } from '@/lib/api/errores';
 import { useAhora, useBar, useYo } from '@/lib/api/hooks-cliente';
@@ -12,7 +13,7 @@ import { esperaHasta, restanteActual } from '@/lib/reglas/espera';
 import { aceptaPedidos, estadoTecla, solicitudesPropiasPendientes } from '@/lib/reglas/pedidos';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
-import { colaCerrada, colaVacia, conexion, desempate, ESPERAS_ESTIMADAS, estadoPedido, luzServicio, T } from '@/lib/textos/cliente';
+import { colaCerrada, colaVacia, conexion, desempate, ESPERAS_ESTIMADAS, estadoPedido, luzServicio, T, voto } from '@/lib/textos/cliente';
 import { BarNoEncontrado, CargandoCliente, EnlacePolitica, FalloCarga } from './Estados';
 import { FilaCancion } from './FilaCancion';
 import { MarcoCliente } from './MarcoCliente';
@@ -28,7 +29,9 @@ export function Cola({ slug }: { slug: string }) {
   const ahora = useAhora(slug);
   const yo = useYo(slug);
   const instante = useAhoraServidor();
-  const { alVotar, aviso, cerrarAviso, anuncio, enviando } = useVotarConAviso(slug);
+  const { alVotar, alMover, aviso, cerrarAviso, anuncio, enviando } = useVotarConAviso(slug);
+  // La canción cuyo voto se está moviendo (RF-014): abre el diálogo para elegir la otra.
+  const [moviendo, setMoviendo] = useState<ItemCola | null>(null);
   const { caida } = useConexionCaida();
 
   if (codigoDe(bar.error) === 'no_encontrado') return <BarNoEncontrado />;
@@ -84,6 +87,7 @@ export function Cola({ slug }: { slug: string }) {
               puedeVotar={abierto && Boolean(yo.data)}
               ocupada={enviando === item.solicitud_id}
               onVotar={alVotar}
+              onMover={setMoviendo}
             />
           ))}
         </ol>
@@ -113,6 +117,16 @@ export function Cola({ slug }: { slug: string }) {
       ) : null}
 
       {yo.data ? <TusPedidos yo={yo.data} /> : null}
+
+      <DialogoMoverVoto
+        desde={moviendo}
+        opciones={cola.filter((i) => estadoTecla(i.solicitud_id, yo.data) === 'votar')}
+        onCerrar={() => setMoviendo(null)}
+        onMover={(hacia) => {
+          if (moviendo) alMover(moviendo, hacia);
+          setMoviendo(null);
+        }}
+      />
 
       <EnlacePolitica slug={slug} className="mt-auto pt-6" />
     </MarcoCliente>
@@ -195,4 +209,35 @@ function varianteDe(s: MiSolicitud): 'tuya' | 'apagada' | 'normal' {
   if (s.estado === 'pendiente' || s.estado === 'reproduciendo') return 'tuya';
   if (s.estado === 'reproducida') return 'normal';
   return 'apagada';
+}
+
+/**
+ * Mover el voto (RF-014, PB-50): desde «Votaste», a otra canción de la cola por la que este
+ * teléfono no haya votado y que no sea suya. La primera pierde el voto y la otra lo gana.
+ */
+function DialogoMoverVoto({ desde, opciones, onCerrar, onMover }: { desde: ItemCola | null; opciones: ItemCola[]; onCerrar: () => void; onMover: (hacia: ItemCola) => void }) {
+  return (
+    <Dialogo abierto={desde !== null} titulo={desde ? voto.moverTitulo(desde.cancion.titulo) : ''} onCerrar={onCerrar}>
+      {opciones.length === 0 ? (
+        <p className="dialogo__texto">{voto.sinDestino}</p>
+      ) : (
+        <>
+          <p className="dialogo__texto">{voto.moverTexto}</p>
+          <ul className="filas mover-voto">
+            {opciones.map((item) => (
+              <li key={item.solicitud_id} className="fila">
+                <TarjetaTitulo puesto={item.puesto} titulo={item.cancion.titulo} artista={item.cancion.artista} votos={item.votos_total} miniatura={item.cancion.miniatura_url} />
+                <Tecla aria-label={voto.moverA(item.cancion.titulo)} onClick={() => onMover(item)}>
+                  Aquí
+                </Tecla>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <div className="dialogo__acciones">
+        <Tecla onClick={onCerrar}>Cancelar</Tecla>
+      </div>
+    </Dialogo>
+  );
 }

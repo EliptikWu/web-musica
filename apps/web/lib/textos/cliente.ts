@@ -81,6 +81,25 @@ export const busqueda = {
   desdeCache: 'YouTube no responde ahora: estos resultados son de búsquedas anteriores y pueden estar incompletos.',
 };
 
+/** Filtros de la búsqueda (RF-055, PB-51). */
+export const filtros = {
+  boton: (n: number) => (n > 0 ? `Filtrar (${n})` : 'Filtrar'),
+  genero: 'Género',
+  todos: 'Todos',
+  duracion: 'Duración',
+  cualquiera: 'Cualquiera',
+  corta: 'Hasta 4 min',
+  media: 'De 4 a 6 min',
+  larga: 'Más de 6 min',
+  popularidad: 'Popularidad',
+  todas: 'Todas',
+  pedidas: 'Ya pedidas en este bar',
+  muyPedidas: 'Muy pedidas en este bar',
+  quitar: 'Quitar filtros',
+  ninguno: 'Ningún resultado con estos filtros.',
+  cuantos: (n: number) => (n === 1 ? '1 resultado con estos filtros' : `${n} resultados con estos filtros`),
+};
+
 export const pedido = {
   entro: (titulo: string, puesto: number, esperaSeg: number) => ({ titulo: `${titulo} entró a la cola`, meta: `Puesto #${puesto}, suena ${formatoEspera(esperaSeg)}` }),
   eraVoto: (titulo: string, puesto: number) => ({ titulo: `${titulo} ya estaba en la cola`, meta: `Le sumaste tu voto: va de #${puesto}.` }),
@@ -96,6 +115,16 @@ export const voto = {
   cerrado: { titulo: 'Ahora no se puede votar', meta: 'Los pedidos y los votos están cerrados.' },
   etiqueta: (titulo: string) => `Votar por ${titulo}`,
   votaste: (titulo: string) => `Ya votaste por ${titulo}`,
+  // Mover el voto (RF-014, PB-50): parte de la tecla «Votaste».
+  mover: (titulo: string) => `Votaste por ${titulo}. Mover tu voto`,
+  moverTitulo: (titulo: string) => `Mover tu voto de ${titulo}`,
+  moverTexto: 'Elige a qué canción de la cola pasa. La cola se reordena al instante.',
+  moverA: (titulo: string) => `Mover tu voto a ${titulo}`,
+  sinDestino: 'No hay otra canción en la cola por la que no hayas votado.',
+  movido: (desde: string, hacia: string) => ({ titulo: `Tu voto pasó a ${hacia}`, meta: `${desde} tiene un voto menos.` }),
+  noMovido: (titulo: string) => ({ titulo: `No se movió tu voto de ${titulo}`, meta: 'Revisa tu conexión e inténtalo de nuevo.' }),
+  sinVotoQueMover: (titulo: string) => ({ titulo: `Tu voto por ${titulo} ya no estaba`, meta: 'La cola se acaba de actualizar: revísala y vuelve a intentarlo.' }),
+  enCamino: { titulo: 'Tu voto anterior todavía se está enviando', meta: 'Espera un segundo y vuelve a intentarlo.' },
   tuya: (titulo: string) => `${titulo} la pediste tú`,
 };
 

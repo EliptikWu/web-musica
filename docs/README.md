@@ -17,6 +17,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | [08 Metodología](08-metodologia.md) | Iteraciones, git, entregas, registro de iteraciones |
 | [09 Pruebas y QA](09-pruebas-qa.md) | Niveles de prueba, matriz de permisos, puertas de calidad |
 | [10 Corrección de errores](10-correccion-de-errores.md) | El barrido, severidad, flujo de un error |
+| [11 Entrega al backend](11-entrega-al-backend.md) | Qué recibe el equipo de backend, cómo se conecta el frontend a su API y qué falta decidir |
 | `fuente/` | Requisitos, historias, prototipos/arquitectura/modelo y backlog originales (.docx, .xlsx) |
 | `fuente/extraido/` | Su texto en Markdown (`python -I scripts/extraer-fuentes.py`) |
 

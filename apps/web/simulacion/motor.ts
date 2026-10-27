@@ -380,7 +380,8 @@ function motivoNoPedible(estado: EstadoSim, c: CancionSim, ahora: number): { mot
   return null;
 }
 
-export function buscar(estado: EstadoSim, consulta: string, ahora: number): Resultado<Busqueda> {
+/** `popularidad`: cuántas veces se pidió cada video en el bar (PB-51); sin datos, 0. */
+export function buscar(estado: EstadoSim, consulta: string, ahora: number, popularidad: (videoId: string) => number = () => 0): Resultado<Busqueda> {
   if (estado.fallos.youtube === 'caido') return mal(503, 'youtube_no_disponible', 'YouTube no respondió');
   const tokens = normalizar(consulta).split(' ').filter(Boolean);
   if (tokens.length === 0) return mal(400, 'datos_invalidos', 'Consulta vacía');
@@ -397,7 +398,14 @@ export function buscar(estado: EstadoSim, consulta: string, ahora: number): Resu
     .slice(0, 8)
     .map((c) => {
       const no = motivoNoPedible(estado, c, ahora);
-      return { cancion: aContrato(c), pedible: no === null, motivo: no?.motivo ?? null, disponible_desde: no?.desde ? iso(no.desde) : null };
+      return {
+        cancion: aContrato(c),
+        pedible: no === null,
+        motivo: no?.motivo ?? null,
+        disponible_desde: no?.desde ? iso(no.desde) : null,
+        genero: c.genero === 'sin_clasificar' ? null : c.genero,
+        pedidas_en_el_bar: popularidad(c.video_id),
+      };
     });
   return bien({ consulta, en_cola: enCola, resultados, desde_cache: estado.fallos.youtube === 'cuota' });
 }

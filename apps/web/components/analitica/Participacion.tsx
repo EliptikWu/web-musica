@@ -3,7 +3,8 @@
 import { GrupoTeclas } from '@rockola/ui';
 import { useState } from 'react';
 import { Cargando } from '@/components/gestion/PaginaGestion';
-import { Filtros, horaRedonda, nombreGenero, numero, OrigenDeLosDatos, useAnalitica, useFiltroAnalitica } from './Comun';
+import { nombreGenero } from '@/lib/formato';
+import { Filtros, horaRedonda, numero, OrigenDeLosDatos, useAnalitica, useFiltroAnalitica } from './Comun';
 import { Barras, Columnas, TablaDatos } from './Graficos';
 
 type MedidaGenero = 'solicitudes' | 'votos';

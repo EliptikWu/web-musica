@@ -120,10 +120,10 @@ origen. El detalle de cuerpos y respuestas está en `generado/endpoints.md`.
 | `POST /bares/{slug}/dispositivo` | Registrar el teléfono (`tipo` por ancho) y devolver `Yo` | 002 |
 | `GET /bares/{slug}/dispositivo` | `Yo`: cupo, mis solicitudes, mis votos | 011, 013 |
 | `POST /bares/{slug}/dispositivo/aviso` | Registrar que vio el aviso de datos | 004 |
-| `GET /bares/{slug}/busqueda?q=` | Resultados de YouTube + coincidencias en la cola | 005–008 |
+| `GET /bares/{slug}/busqueda?q=` | Resultados de YouTube + coincidencias en la cola. Cada resultado trae `genero` (`null` = sin clasificar) y `pedidas_en_el_bar` (veces pedida en el bar en las últimas cuatro semanas) para los filtros, que el teléfono aplica sin volver a buscar *(propuesto)* | 005–008, 055 |
 | `POST /bares/{slug}/solicitudes` | Pedir (`{ video_id }`); si ya está, cuenta como voto (RN-02) | 009 |
 | `POST /bares/{slug}/solicitudes/{id}/votos` | Votar | 010–012 |
-| `PUT /bares/{slug}/dispositivo/voto` | Cambiar un voto (`{ desde, hacia }`) | 014 |
+| `PUT /bares/{slug}/dispositivo/voto` | Mover un voto (`{ desde, hacia }`): las dos en espera, la de origen votada y no propia, la de destino sin votar. Errores: `no_pendiente`, `ya_votaste`, `datos_invalidos`, `servicio_no_disponible`. El backend lo registra como evento de cambio de voto (RF-046) | 014 |
 | `GET /bares/{slug}/eventos` | Tiempo real (SSE) | 017 |
 
 ### Pantalla del bar
@@ -212,7 +212,8 @@ resincroniza al reconectar.
    autocompletado necesita caché en el servidor y espera entre teclas (el cliente espera
    300 ms). RF-008 y PB-54.
 3. Cómo se deriva `artista` y de dónde sale el género (la categoría de YouTube casi
-   siempre es «Música»), para RF-051.
+   siempre es «Música»), para RF-051 y los filtros de RF-055; y si la popularidad de los
+   filtros son las veces pedida en el bar (lo propuesto) u otra medida.
 4. Autenticación de la pantalla del bar.
 5. Matriz del Operador (D9) y estado `retirada`.
 6. Valores de bloqueo de cuenta e inactividad del panel.

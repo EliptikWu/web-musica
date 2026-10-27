@@ -27,4 +27,12 @@ hasta medirlas.
 
 | Fecha | Qué | Resultado |
 |---|---|---|
-| — | Se registran aquí al cerrar cada iteración (tamaño de `next build` y tiempos medidos) | — |
+| 2026-10-27 | JavaScript que descarga cada ruta, compilación real (`NEXT_PUBLIC_API_MODE=real`), API del navegador (`encodedBodySize`) | `/b/[bar]` 211 kB comprimidos (699 kB sin comprimir), `/b/[bar]/buscar` 213 kB, `/b/[bar]/pantalla` 213 kB, `/panel/entrar` 204 kB |
+| 2026-10-27 | Qué pesa en `/b/[bar]` | React DOM 72 kB y el runtime de Next 44 kB (fijos); zod con el contrato **entero** 40 kB (incluye los esquemas del panel y de la analítica); el resto, menos de 12 kB por archivo |
+| 2026-10-27 | La simulación en la compilación real | Fuera: ningún archivo lleva MSW. En modo simulado es un archivo aparte de 110 kB comprimidos que solo se descarga en la demo |
+
+**Por encima del presupuesto propuesto** (180 kB para `/b/[bar]`): 211 kB. El siguiente paso
+es partir el registro de operaciones por superficie (`endpoints` del cliente, de la pantalla y
+del panel) para que el teléfono no descargue los esquemas del panel ni de la analítica; se
+estima que baja unos 20 kB. Si no alcanza, validar con `zod/mini`. No se hizo en este cierre
+porque cambia la firma de `pedir()` en todas las llamadas.

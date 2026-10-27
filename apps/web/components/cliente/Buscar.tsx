@@ -1,15 +1,16 @@
 'use client';
 
 import type { ResultadoBusqueda } from '@rockola/contrato';
-import { Fichas, Icono, TarjetaTitulo, Tecla, TeclaFija } from '@rockola/ui';
+import { Fichas, Icono, Selector, TarjetaTitulo, Tecla, TeclaFija } from '@rockola/ui';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
 import { codigoDe, ErrorApiCliente } from '@/lib/api/errores';
 import { nuevaClave, useAhora, useBar, useBusqueda, usePedir, useYo } from '@/lib/api/hooks-cliente';
-import { formatoDuracion, formatoHora } from '@/lib/formato';
+import { formatoDuracion, formatoHora, nombreGenero } from '@/lib/formato';
+import { cuantosFiltros, filtrarResultados, type FiltrosBusqueda, generosDe, SIN_FILTROS } from '@/lib/reglas/busqueda';
 import { aceptaPedidos, estadoTecla } from '@/lib/reglas/pedidos';
-import { busqueda as textosBusqueda, cupo, MOTIVO_CORTO, motivoLargo, pedido, sinCupo, T } from '@/lib/textos/cliente';
+import { busqueda as textosBusqueda, cupo, filtros as textosFiltros, MOTIVO_CORTO, motivoLargo, pedido, sinCupo, T } from '@/lib/textos/cliente';
 import { BarNoEncontrado, CargandoCliente, EnlacePolitica, EstadoCerrado, FalloCarga } from './Estados';
 import { FilaCancion } from './FilaCancion';
 import { MarcoCliente } from './MarcoCliente';
@@ -38,6 +39,9 @@ export function Buscar({ slug }: { slug: string }) {
   const pedir = usePedir(slug);
   const votos = useVotarConAviso(slug);
   const refAviso = useRef<HTMLDivElement>(null);
+  // Filtros de los resultados (RF-055): se quedan mientras se cambia la búsqueda.
+  const [filtros, setFiltros] = useState<FiltrosBusqueda>(SIN_FILTROS);
+  const [verFiltros, setVerFiltros] = useState(false);
 
   // Espera 300 ms tras la última tecla antes de buscar (RF-005).
   useEffect(() => {
@@ -65,6 +69,7 @@ export function Buscar({ slug }: { slug: string }) {
   const maximo = yo.data?.pedidos_maximos ?? bar.data.pedidos_maximos;
   const restantes = yo.data?.pedidos_restantes ?? maximo;
   const datos = consulta.trim().length >= 2 ? resultados.data : undefined;
+  const visibles = datos ? filtrarResultados(datos.resultados, filtros) : [];
 
   function alPedir(r: ResultadoBusqueda) {
     if (enviando) return;
@@ -194,11 +199,30 @@ export function Buscar({ slug }: { slug: string }) {
 
           {datos.resultados.length > 0 ? (
             <section className="mt-[18px]" aria-labelledby="t-yt">
-              <h2 id="t-yt" className="titulo-seccion mb-[10px]">
-                {T.resultadosYoutube}
-              </h2>
+              <div className="mb-[10px] flex items-center justify-between gap-3">
+                <h2 id="t-yt" className="titulo-seccion">
+                  {T.resultadosYoutube}
+                </h2>
+                {/* Abierta, la tecla queda hundida: se ve qué abre y cómo cerrarlo. */}
+                <Tecla tamano="chica" variante={verFiltros ? 'hundida' : 'normal'} aria-expanded={verFiltros} aria-controls="filtros-busqueda" onClick={() => setVerFiltros((v) => !v)}>
+                  {textosFiltros.boton(cuantosFiltros(filtros))}
+                </Tecla>
+              </div>
+              {verFiltros ? <PanelFiltros filtros={filtros} generos={generosDe(datos.resultados)} onCambio={setFiltros} /> : null}
+              {/* Siempre montada: una región que aparece ya con texto no se anuncia. */}
+              <p className="solo-lector" role="status">
+                {cuantosFiltros(filtros) > 0 ? textosFiltros.cuantos(visibles.length) : ''}
+              </p>
+              {visibles.length === 0 ? (
+                <div className="vacio">
+                  <p>{textosFiltros.ninguno}</p>
+                  <Tecla tamano="chica" className="mt-3" onClick={() => setFiltros(SIN_FILTROS)}>
+                    {textosFiltros.quitar}
+                  </Tecla>
+                </div>
+              ) : null}
               <ul className="filas">
-                {datos.resultados.map((r) => (
+                {visibles.map((r) => (
                   <FilaResultado
                     key={r.cancion.video_id}
                     resultado={r}
@@ -292,5 +316,41 @@ function ErrorDeBusqueda({ error, onReintentar }: { error: unknown; onReintentar
         </button>
       }
     />
+  );
+}
+
+/** Los filtros, debajo del título de los resultados (el prototipo no los tenía; RF-055). */
+function PanelFiltros({ filtros, generos, onCambio }: { filtros: FiltrosBusqueda; generos: (string | null)[]; onCambio: (f: FiltrosBusqueda) => void }) {
+  // El género elegido sigue en la lista aunque la búsqueda nueva no lo traiga (también «sin clasificar»).
+  const opciones = [...generos];
+  if (filtros.genero === 'sin' && !opciones.includes(null)) opciones.push(null);
+  if (filtros.genero && filtros.genero !== 'sin' && !opciones.includes(filtros.genero)) opciones.unshift(filtros.genero);
+  return (
+    <div id="filtros-busqueda" className="filtros-busqueda" role="group" aria-label="Filtros de los resultados">
+      <Selector etiqueta={textosFiltros.genero} value={filtros.genero} onChange={(e) => onCambio({ ...filtros, genero: e.target.value })}>
+        <option value="">{textosFiltros.todos}</option>
+        {opciones.map((g) => (
+          <option key={g ?? 'sin'} value={g ?? 'sin'}>
+            {nombreGenero(g)}
+          </option>
+        ))}
+      </Selector>
+      <Selector etiqueta={textosFiltros.duracion} value={filtros.duracion} onChange={(e) => onCambio({ ...filtros, duracion: e.target.value as FiltrosBusqueda['duracion'] })}>
+        <option value="">{textosFiltros.cualquiera}</option>
+        <option value="corta">{textosFiltros.corta}</option>
+        <option value="media">{textosFiltros.media}</option>
+        <option value="larga">{textosFiltros.larga}</option>
+      </Selector>
+      <Selector etiqueta={textosFiltros.popularidad} value={filtros.popularidad} onChange={(e) => onCambio({ ...filtros, popularidad: e.target.value as FiltrosBusqueda['popularidad'] })}>
+        <option value="">{textosFiltros.todas}</option>
+        <option value="pedidas">{textosFiltros.pedidas}</option>
+        <option value="muy_pedidas">{textosFiltros.muyPedidas}</option>
+      </Selector>
+      {cuantosFiltros(filtros) > 0 ? (
+        <Tecla tamano="chica" onClick={() => onCambio(SIN_FILTROS)}>
+          {textosFiltros.quitar}
+        </Tecla>
+      ) : null}
+    </div>
   );
 }

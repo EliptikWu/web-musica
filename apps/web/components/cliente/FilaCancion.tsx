@@ -15,13 +15,15 @@ type Props = {
   puedeVotar: boolean;
   ocupada: boolean;
   onVotar: (item: ItemCola) => void;
+  /** Con esto, «Votaste» se pulsa para mover el voto a otra canción (RF-014). */
+  onMover?: (item: ItemCola) => void;
 };
 
 /**
  * Una canción de la cola con su tecla (doc 05): «+1» para votar, «Votaste» hundida, «Tuya»
  * ámbar. Los tres estados se distinguen por texto y forma, no solo por color (WCAG 1.4.1).
  */
-export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar }: Props) {
+export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar, onMover }: Props) {
   const { titulo } = item.cancion;
   return (
     <li className="fila" data-solicitud={item.solicitud_id}>
@@ -35,6 +37,11 @@ export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar
       />
       {tecla === 'tuya' ? (
         <TeclaFija variante="tuya">Tuya</TeclaFija>
+      ) : tecla === 'votaste' && puedeVotar && onMover ? (
+        // Sigue hundida (ya votaste); al pulsarla se elige a qué otra canción pasa el voto.
+        <Tecla variante="hundida" data-tecla-fija="" aria-label={voto.mover(titulo)} aria-haspopup="dialog" ocupada={ocupada} onClick={() => onMover(item)}>
+          Votaste
+        </Tecla>
       ) : tecla === 'votaste' ? (
         <TeclaFija variante="hundida">Votaste</TeclaFija>
       ) : puedeVotar ? (

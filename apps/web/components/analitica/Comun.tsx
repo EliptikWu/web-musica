@@ -18,8 +18,6 @@ const enteros = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 1 });
 /** 1284 → «1.284»; 50.1 → «50,1». */
 export const numero = (n: number) => enteros.format(n);
 
-const GENEROS: Record<string, string> = { salsa: 'Salsa', urbano: 'Urbano', pop: 'Pop', tropical: 'Tropical', vallenato: 'Vallenato' };
-export const nombreGenero = (g: string | null) => (g === null ? 'Sin clasificar' : (GENEROS[g] ?? capitalizar(g)));
 
 /** 20 → «8 p. m.»; 0 → «12 a. m.». */
 export const horaRedonda = (h: number) => `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'a. m.' : 'p. m.'}`;

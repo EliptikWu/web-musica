@@ -15,6 +15,8 @@ export const ResultadoBusqueda = z
     pedible: z.boolean(),
     motivo: MotivoNoPedible.nullable(),
     disponible_desde: Fecha.nullable().describe('Con reproducida_hace_poco: cuándo se podrá pedir otra vez'),
+    genero: z.string().nullable().describe('Para filtrar (RF-055). `null` = sin clasificar. TBD: de dónde sale (doc 04)'),
+    pedidas_en_el_bar: z.int().nonnegative().describe('Veces que se pidió en este bar en las últimas cuatro semanas: la popularidad de los filtros (propuesto)'),
   })
   .meta({ id: 'ResultadoBusqueda' });
 export type ResultadoBusqueda = z.infer<typeof ResultadoBusqueda>;

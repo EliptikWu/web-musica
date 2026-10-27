@@ -2322,13 +2322,25 @@
                 "$ref": "#/components/schemas/Fecha"
               }
             ]
+          },
+          "genero": {
+            "nullable": true,
+            "description": "Para filtrar (RF-055). `null` = sin clasificar. TBD: de dónde sale (doc 04)",
+            "type": "string"
+          },
+          "pedidas_en_el_bar": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Veces que se pidió en este bar en las últimas cuatro semanas: la popularidad de los filtros (propuesto)"
           }
         },
         "required": [
           "cancion",
           "pedible",
           "motivo",
-          "disponible_desde"
+          "disponible_desde",
+          "genero",
+          "pedidas_en_el_bar"
         ]
       },
       "ResumenAnalitica": {

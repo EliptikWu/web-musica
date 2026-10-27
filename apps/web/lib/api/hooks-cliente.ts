@@ -118,6 +118,30 @@ export function useVotar(slug: string) {
   });
 }
 
+/** Mover un voto (RF-014): la cola se reordena al instante; si falla, se pregunta al servidor. */
+export function useMoverVoto(slug: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ desde, hacia, clave }: { desde: string; hacia: string; clave: string }) =>
+      pedir('cambiarVoto', { parametros: { slug }, cuerpo: { desde, hacia }, idempotencia: clave }),
+    retry: reintentarSoloRed,
+    onMutate: async ({ desde, hacia }) => {
+      await Promise.all([qc.cancelQueries({ queryKey: claves.ahora(slug) }), qc.cancelQueries({ queryKey: claves.yo(slug) })]);
+      const mover = <T extends { solicitud_id: string; votos_total: number }>(i: T): T =>
+        i.solicitud_id === desde ? { ...i, votos_total: Math.max(0, i.votos_total - 1) } : i.solicitud_id === hacia ? { ...i, votos_total: i.votos_total + 1 } : i;
+      qc.setQueryData<Ahora>(claves.ahora(slug), (a) => (a ? { ...a, cola: renumerar(a.cola.map(mover)) } : a));
+      qc.setQueryData<Yo>(claves.yo(slug), (y) => (y ? { ...y, votos: [...y.votos.filter((id) => id !== desde), hacia] } : y));
+    },
+    onError: () => {
+      void qc.invalidateQueries({ queryKey: claves.ahora(slug) });
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: claves.yo(slug) });
+      void qc.invalidateQueries({ queryKey: ['busqueda', slug] });
+    },
+  });
+}
+
 export function usePedir(slug: string) {
   const qc = useQueryClient();
   return useMutation({
