@@ -224,3 +224,7 @@ resincroniza al reconectar.
    ninguna pendiente, porque suya es la que suena. La simulación la cuenta.
 10. Cuánto dura «Subió N puestos» (`puesto_anterior`): la simulación lo mantiene 10 min
     *(propuesto)*.
+11. Dominio público de la web (el QR codifica `https://<dominio>/q/<token>`) y, para que el QR
+    abra la app nativa sin preguntar, `/.well-known/assetlinks.json` con el paquete y la huella
+    SHA-256 de la firma de la app (ADR-19). Sin él, Android pregunta si abrir con la app o con
+    el navegador.

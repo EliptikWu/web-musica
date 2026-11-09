@@ -54,6 +54,22 @@ interfaz.
 4. Para comprobar la API contra el contrato, validar sus respuestas con los esquemas de
    `packages/contrato` o con el OpenAPI.
 
+## La app nativa (Android)
+
+Además de la web hay una app Android para el cliente (ADR-19), en su propio repositorio. Usa
+las mismas operaciones de la superficie «Cliente» de `endpoints.md` y valida cada respuesta
+con los mismos esquemas, así que para el backend no cambia nada, salvo esto:
+
+- **Llama directo a la API**, sin el proxy de Next: la URL base se fija al compilar
+  (`-Prockola.apiUrl=https://…/api`). Con HTTPS en producción; HTTP solo en depuración.
+- **Mismas cabeceras:** `X-Rockola-Dispositivo` (UUID que guarda la app, fuera de las copias de
+  seguridad) e `Idempotency-Key` en lo idempotente. El SSE va sin cabeceras propias, como
+  `EventSource` en la web.
+- **Una conexión SSE por teléfono**, compartida por todas sus pantallas; si se corta, la app
+  reintenta (1, 2, 4, 8 y 15 s) y mientras tanto pregunta `GET …/ahora` cada 3 s.
+- **El QR:** la app se abre con `https://<dominio>/q/<token>` y `/b/<slug>`. Falta el dominio y
+  `assetlinks.json` (doc 04, «Pendiente del backend», punto 11).
+
 ## Lo que el frontend no hace
 
 - Llamar a YouTube: la búsqueda pasa por el backend (cuota, caché y claves, RF-008, PB-54).
