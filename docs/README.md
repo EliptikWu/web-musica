@@ -39,13 +39,12 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 
 | Tema | Qué falta decidir | Quién |
 |---|---|---|
-| Transporte de tiempo real | SSE (propuesto, pasa por el proxy) o WebSocket; y su autenticación | Equipo de backend |
 | Matriz del Operador | Confirmar D9 | Equipo |
 | Estado `retirada` | El modelo no lo tiene y RF-041/RF-013 lo necesitan (doc 04) | Equipo de backend |
 | Lista de la casa fuera de horario | ¿Suena aunque no haya sesión abierta? El prototipo dice que sí | Equipo |
 | Alta de establecimientos | ¿Quién crea el establecimiento y su primer Administrador? (RF-034 vs RF-023) | Equipo |
 | Bloqueo de cuenta e inactividad | Número de intentos, minutos de bloqueo y de inactividad | Equipo |
-| Emparejar la TV | Clave para que solo la pantalla del bar reporte el fin de una canción | Equipo de backend |
+| Emparejar la TV | Decidido el emparejamiento desde el panel (ADR-22); faltan los endpoints y las pantallas | Equipo de backend y frontend |
 
 ## Pendiente de recibir
 

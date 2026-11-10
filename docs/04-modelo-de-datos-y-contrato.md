@@ -35,7 +35,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `Franja` (horario) | `dia_semana` (1 = lunes … 7 = domingo), `hora_inicio`, `hora_fin` (`"20:00"`, `"02:00"`), `activo` | Una franja que cruza medianoche pertenece al día en que empieza |
 | `Servicio` | `estado`, `modo_qr`, `desde`, `hasta`, `proxima_apertura` | Ver «Estado del servicio» |
 | `Reproduccion` | `id`, `cancion`, `origen` (`solicitud` \| `lista_casa`), `solicitud_id`, `votos`, `inicio`, `posicion_seg`, `estado` (`sonando` \| `pausada`) | El avance se calcula con `posicion_seg` y el reloj del servidor |
-| `ItemCola` | `solicitud_id`, `cancion`, `votos_total`, `fecha_solicitud`, `puesto`, `puesto_anterior` | Ya ordenada (RN-05). `puesto_anterior` alimenta «Subió 2 puestos» igual en todas las pantallas |
+| `ItemCola` | `solicitud_id`, `cancion`, `votos_total`, `fecha_solicitud`, `puesto`, `puesto_anterior`, `espera_seg` | Ya ordenada (RN-05). `puesto_anterior` alimenta «Subió 2 puestos» igual en todas las pantallas. `espera_seg`: espera estimada en `servidor_ahora`, lo que le falta a lo que suena más lo que duran las de delante; el cliente le descuenta lo que avanza lo que suena (RF-018, ADR-20) |
 | `Ahora` | `version`, `servidor_ahora`, `servicio`, `reproduccion`, `cola[]`, `lista_casa` | La foto que se envía por tiempo real |
 | `MiSolicitud` | `solicitud_id`, `cancion`, `estado`, `fecha_solicitud`, `votos_total`, `puesto`, `motivo` | Para «Tus pedidos» (RF-013) |
 | `Yo` (teléfono) | `pedidos_maximos`, `pedidos_restantes`, `solicitudes[]`, `votos[]` (ids), `aviso_visto_en` | |
@@ -134,8 +134,11 @@ origen. El detalle de cuerpos y respuestas está en `generado/endpoints.md`.
 | `GET /bares/{slug}/qr-publico` | URL que codifica el QR de la placa | 035 |
 | `POST /bares/{slug}/pantalla/reproducciones/{id}/inicio` · `/fin` · `/error` | Reportar el reproductor (`posicion_seg`, `codigo_youtube`) | 007, 019, 020 |
 
-`TBD`: cómo se autentica la pantalla (propuesta: `Authorization: Pantalla <clave>`
-emparejada desde el panel), para que un cliente no pueda reportar «fin» y saltar canciones.
+Autenticación de la pantalla: emparejada desde el panel con un código de un solo uso, que
+el backend cambia por una sesión de pantalla en cookie httpOnly, solo para ese bar y para
+estos reportes, revocable y anotada en la bitácora (ADR-22). `TBD`: los endpoints, que se
+agregan al contrato en la iteración que lo construya. Un reporte con un `id` que ya no es
+el vigente no hace nada, así que dos pestañas o un reintento no saltan dos canciones.
 
 ### Panel (cookie de sesión)
 
@@ -194,7 +197,7 @@ resincroniza al reconectar.
 | `sin_permiso` | 403 | El rol no permite la acción (queda en la bitácora) |
 | `debe_cambiar_clave` | 403 | Primer ingreso o clave restablecida |
 | `no_encontrado` | 404 | Bar, solicitud, lista o usuario inexistente |
-| `limite_pedidos` | 409 | Ya tiene 3 solicitudes pendientes (RN-01) |
+| `limite_pedidos` | 409 | Ya tiene 3 solicitudes pendientes o sonando (RN-01) |
 | `ya_votaste` | 409 | Ya votó por esa solicitud (RN-04) |
 | `conflicto` | 409 | Otro cambio llegó antes (nombre de lista repetido, horario solapado…) |
 | `qr_reemplazado` | 410 | El QR se regeneró |
@@ -207,24 +210,23 @@ resincroniza al reconectar.
 
 ## Pendiente del backend (`TBD`)
 
-1. Transporte de tiempo real (SSE propuesto) y su autenticación.
+1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
 2. Cuota de YouTube: `search.list` cuesta 100 unidades de 10 000 diarias; el
    autocompletado necesita caché en el servidor y espera entre teclas (el cliente espera
    300 ms). RF-008 y PB-54.
 3. Cómo se deriva `artista` y de dónde sale el género (la categoría de YouTube casi
    siempre es «Música»), para RF-051 y los filtros de RF-055; y si la popularidad de los
    filtros son las veces pedida en el bar (lo propuesto) u otra medida.
-4. Autenticación de la pantalla del bar.
+4. Autenticación de la pantalla del bar: decidido el emparejamiento (ADR-22); faltan los endpoints.
 5. Matriz del Operador (D9) y estado `retirada`.
 6. Valores de bloqueo de cuenta e inactividad del panel.
 7. Si la lista de la casa suena fuera de horario sin sesión abierta.
 8. Quién crea establecimientos y su primer Administrador.
-9. Si la canción que **suena** cuenta para el cupo de 3 (RN-01 dice «pendientes»). Los
-   prototipos solo cuadran si cuenta: en el momento A el teléfono tiene «2 de 3» libres y
-   ninguna pendiente, porque suya es la que suena. La simulación la cuenta.
+9. ~~Si la canción que suena cuenta para el cupo de 3~~ Resuelto el 2026-11-10: cuenta hasta
+   que termina (RN-01), como en los prototipos y la simulación.
 10. Cuánto dura «Subió N puestos» (`puesto_anterior`): la simulación lo mantiene 10 min
     *(propuesto)*.
-11. Dominio público de la web (el QR codifica `https://<dominio>/q/<token>`) y, para que el QR
-    abra la app nativa sin preguntar, `/.well-known/assetlinks.json` con el paquete y la huella
-    SHA-256 de la firma de la app (ADR-19). Sin él, Android pregunta si abrir con la app o con
-    el navegador.
+11. Dominio público de la web: el QR codifica `https://<dominio>/q/<token>` y no se puede
+    cambiar una vez impreso, así que tiene que ser estable y con HTTPS. Lo publica el equipo
+    de frontend junto con `/.well-known/assetlinks.json` (paquete y huella SHA-256 de la firma
+    de la app), que sirve Next, no el backend (ADR-19).

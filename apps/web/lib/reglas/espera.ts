@@ -14,18 +14,18 @@ export function posicionActual(reproduccion: ReproduccionMinima, servidorAhoraIs
   return Math.min(base + transcurrido, reproduccion.cancion.duracion_seg);
 }
 
-/** Lo que le falta a la canción actual. */
-export function restanteActual(reproduccion: ReproduccionMinima | null, servidorAhoraIso: string, ahoraServidorMs: number): number {
+/**
+ * Segundos que sonaron desde la foto. La espera de cada canción (`espera_seg`, RF-018) la
+ * calcula el backend en `servidor_ahora`; entre una foto y la siguiente baja lo mismo que
+ * avanza lo que suena (nada si está en pausa).
+ */
+export function avanceDesdeFoto(reproduccion: ReproduccionMinima | null, servidorAhoraIso: string, ahoraServidorMs: number): number {
   if (!reproduccion) return 0;
-  return Math.max(0, reproduccion.cancion.duracion_seg - posicionActual(reproduccion, servidorAhoraIso, ahoraServidorMs));
+  const enLaFoto = Math.min(reproduccion.posicion_seg, reproduccion.cancion.duracion_seg);
+  return Math.max(0, posicionActual(reproduccion, servidorAhoraIso, ahoraServidorMs) - enLaFoto);
 }
 
-/**
- * Espera de la canción en la posición `indice` (0 = la siguiente): lo que le falta a la actual
- * más lo que duran las de delante. Es una estimación y la interfaz lo dice («unos»).
- */
-export function esperaHasta(cola: readonly { cancion: { duracion_seg: number } }[], indice: number, restante: number): number {
-  let total = restante;
-  for (let i = 0; i < indice && i < cola.length; i++) total += cola[i]!.cancion.duracion_seg;
-  return total;
+/** Espera estimada de una canción ahora mismo. Es una estimación y la interfaz lo dice («unos»). */
+export function esperaDe(item: { espera_seg: number }, avance: number): number {
+  return Math.max(0, item.espera_seg - avance);
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { duracionCola, ejemploDesempate, ordenarCola, puestosSubidos, renumerar } from './cola';
-import { esperaHasta, posicionActual, restanteActual } from './espera';
+import { avanceDesdeFoto, esperaDe, posicionActual } from './espera';
 import { abiertoPorHorario, cierreDeFranja, diasQueAbren, momentoLocal, proximaApertura, validarFranjas, type FranjaHorario } from './horario';
 import { aceptaPedidos, estadoTecla } from './pedidos';
 import { formatoEspera, formatoResumenCola, minutosEnteros } from '../formato';
@@ -68,25 +68,23 @@ describe('espera estimada (RF-018)', () => {
     expect(formatoResumenCola(9, duracionCola(COLA_B))).toBe('9 canciones, unos 36 min');
   });
 
-  it('Monaco, en el puesto 3, suena en unos 13 min', () => {
-    const ordenada = ordenarCola(COLA_B);
-    const restante = restanteActual(REBELION, AHORA, ahoraMs);
-    expect(restante).toBe(197);
-    expect(formatoEspera(esperaHasta(ordenada, 2, restante))).toBe('en unos 13 min');
+  it('la espera del backend baja lo que avanza lo que suena desde la foto, y no en pausa', () => {
+    const monaco = { espera_seg: 786 }; // momento B: suena en unos 13 min
+    expect(formatoEspera(esperaDe(monaco, avanceDesdeFoto(REBELION, AHORA, ahoraMs)))).toBe('en unos 13 min');
+    expect(esperaDe(monaco, avanceDesdeFoto(REBELION, AHORA, ahoraMs + 60_000))).toBe(726);
+    expect(avanceDesdeFoto({ ...REBELION, estado: 'pausada' }, AHORA, ahoraMs + 60_000)).toBe(0);
+    expect(avanceDesdeFoto(null, AHORA, ahoraMs + 60_000)).toBe(0);
+    expect(esperaDe({ espera_seg: 30 }, 45)).toBe(0);
   });
 
-  it('momento A: Monaco entra de cuarto y suena en unos 14 min (14:30 no redondea a 15)', () => {
-    const cola = [{ cancion: { duracion_seg: 352 } }, { cancion: { duracion_seg: 183 } }, { cancion: { duracion_seg: 237 } }];
-    const espera = esperaHasta(cola, 3, 98);
-    expect(espera).toBe(870);
-    expect(minutosEnteros(espera)).toBe(14);
+  it('momento A: 14:30 son unos 14 min, no 15', () => {
+    expect(minutosEnteros(870)).toBe(14);
   });
 
   it('el avance sigue el reloj del servidor y se detiene si la reproducción está en pausa', () => {
     expect(posicionActual(REBELION, AHORA, ahoraMs + 10_000)).toBe(171);
     expect(posicionActual({ ...REBELION, estado: 'pausada' }, AHORA, ahoraMs + 10_000)).toBe(161);
     expect(posicionActual(REBELION, AHORA, ahoraMs + 999_000)).toBe(358);
-    expect(restanteActual(null, AHORA, ahoraMs)).toBe(0);
   });
 
   it('dice «en menos de 1 min» y no «unos 0 min»', () => {

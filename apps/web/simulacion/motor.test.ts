@@ -30,6 +30,8 @@ describe('la semilla reproduce los prototipos', () => {
     ]);
     expect(foto.cola.find((i) => i.cancion.titulo === 'Monaco')?.puesto_anterior).toBe(5);
     expect(foto.cola.find((i) => i.cancion.titulo === 'DtMF')?.puesto_anterior).toBe(3);
+    // RF-018: lo que le falta a Rebelión (197 s) más Cali Pachanguero y DtMF; Monaco suena en unos 13 min
+    expect(foto.cola.map((i) => i.espera_seg).slice(0, 3)).toEqual([197, 549, 786]);
     expect(foto.servicio.estado).toBe('abierto');
     expect(foto.lista_casa).toEqual({ nombre: 'Salsa y tropical de la casa', total_canciones: 42 });
   });

@@ -11,7 +11,7 @@ import { codigoDe } from '@/lib/api/errores';
 import { useAhora, useBar } from '@/lib/api/hooks-cliente';
 import { DIAS, formatoDuracion, formatoEsperaCorta, resumenHorario } from '@/lib/formato';
 import { puestosSubidos } from '@/lib/reglas/cola';
-import { esperaHasta, posicionActual, restanteActual } from '@/lib/reglas/espera';
+import { avanceDesdeFoto, esperaDe, posicionActual } from '@/lib/reglas/espera';
 import { diasQueAbren, momentoLocal } from '@/lib/reglas/horario';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
@@ -65,7 +65,7 @@ export function PantallaBar({ slug }: { slug: string }) {
   const rep = foto.reproduccion;
   const momento = instante || Date.parse(foto.servidor_ahora);
   const posicion = rep ? posicionActual(rep, foto.servidor_ahora, momento) : 0;
-  const restante = restanteActual(rep, foto.servidor_ahora, momento);
+  const avance = avanceDesdeFoto(rep, foto.servidor_ahora, momento);
   const estado = foto.servicio.estado;
   const apagada = estado !== 'abierto';
 
@@ -123,7 +123,7 @@ export function PantallaBar({ slug }: { slug: string }) {
             </h2>
             <LuzEstado encendida={!apagada && !caida}>{caida ? conexion.luz : luzServicio(estado)}</LuzEstado>
           </div>
-          <LadoDerecho foto={foto} bar={bar.data} restante={restante} />
+          <LadoDerecho foto={foto} bar={bar.data} avance={avance} />
           <PlacaQr url={qr.data?.url ?? null} />
         </section>
       </div>
@@ -133,7 +133,7 @@ export function PantallaBar({ slug }: { slug: string }) {
   );
 }
 
-function LadoDerecho({ foto, bar, restante }: { foto: Ahora; bar: Bar; restante: number }) {
+function LadoDerecho({ foto, bar, avance }: { foto: Ahora; bar: Bar; avance: number }) {
   const estado = foto.servicio.estado;
   if (estado === 'fuera_de_horario' || estado === 'mantenimiento') {
     const abren = diasQueAbren(bar.horario);
@@ -167,7 +167,7 @@ function LadoDerecho({ foto, bar, restante }: { foto: Ahora; bar: Bar; restante:
     <>
       <ol className="filas viene">
         {visibles.map((item, i) => (
-          <FilaTv key={item.solicitud_id} item={item} espera={esperaHasta(foto.cola, i, restante)} />
+          <FilaTv key={item.solicitud_id} item={item} espera={esperaDe(item, avance)} />
         ))}
       </ol>
       <p className="viene__mas secundario">

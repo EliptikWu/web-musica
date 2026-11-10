@@ -30,6 +30,7 @@ export const ItemCola = z
     fecha_solicitud: Fecha,
     puesto: z.int().positive(),
     puesto_anterior: z.int().positive().nullable().describe('Puesto antes del último reordenamiento; alimenta «Subió 2 puestos»'),
+    espera_seg: Segundos.describe('Espera estimada en servidor_ahora: lo que le falta a lo que suena más lo que duran las de delante (RF-018)'),
   })
   .meta({ id: 'ItemCola' });
 export type ItemCola = z.infer<typeof ItemCola>;

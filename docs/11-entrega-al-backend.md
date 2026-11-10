@@ -67,8 +67,10 @@ con los mismos esquemas, así que para el backend no cambia nada, salvo esto:
   `EventSource` en la web.
 - **Una conexión SSE por teléfono**, compartida por todas sus pantallas; si se corta, la app
   reintenta (1, 2, 4, 8 y 15 s) y mientras tanto pregunta `GET …/ahora` cada 3 s.
-- **El QR:** la app se abre con `https://<dominio>/q/<token>` y `/b/<slug>`. Falta el dominio y
-  `assetlinks.json` (doc 04, «Pendiente del backend», punto 11).
+- **El QR:** la app se abre con `https://<dominio>/q/<token>` y `/b/<slug>`; si no está
+  instalada, abre la web, que funciona igual (sin instalar ni registrarse). El dominio y
+  `assetlinks.json` los publica el frontend (doc 04, «Pendiente del backend», punto 11).
+- **Espera estimada:** cada canción de la cola trae `espera_seg` (ADR-20).
 
 ## Lo que el frontend no hace
 

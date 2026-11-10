@@ -9,7 +9,7 @@ import { codigoDe } from '@/lib/api/errores';
 import { useAhora, useBar, useYo } from '@/lib/api/hooks-cliente';
 import { formatoEspera, formatoEsperaCorta, formatoResumenCola } from '@/lib/formato';
 import { duracionCola, ejemploDesempate, puestosSubidos } from '@/lib/reglas/cola';
-import { esperaHasta, restanteActual } from '@/lib/reglas/espera';
+import { avanceDesdeFoto, esperaDe } from '@/lib/reglas/espera';
 import { aceptaPedidos, estadoTecla, solicitudesPropiasPendientes } from '@/lib/reglas/pedidos';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
@@ -46,7 +46,7 @@ export function Cola({ slug }: { slug: string }) {
   const foto = ahora.data;
   const cola = foto.cola;
   const abierto = aceptaPedidos(foto.servicio.estado);
-  const restante = restanteActual(foto.reproduccion, foto.servidor_ahora, instante || Date.parse(foto.servidor_ahora));
+  const avance = avanceDesdeFoto(foto.reproduccion, foto.servidor_ahora, instante || Date.parse(foto.servidor_ahora));
   const propias = solicitudesPropiasPendientes(yo.data);
   const tuya = cola.find((i) => propias.has(i.solicitud_id));
   const par = ejemploDesempate(cola, propias);
@@ -69,7 +69,7 @@ export function Cola({ slug }: { slug: string }) {
       {foto.servicio.estado !== 'abierto' ? <Aviso tipo="info" className="mt-4" meta={colaCerrada(foto.servicio.estado)} /> : null}
 
       {tuya ? (
-        <TuCancion foto={foto} item={tuya} restante={restante} />
+        <TuCancion foto={foto} item={tuya} avance={avance} />
       ) : yo.data && foto.reproduccion?.solicitud_id && yo.data.solicitudes.some((s) => s.solicitud_id === foto.reproduccion?.solicitud_id) ? (
         <TuCancionSuena titulo={foto.reproduccion.cancion.titulo} artista={foto.reproduccion.cancion.artista} />
       ) : null}
@@ -83,7 +83,7 @@ export function Cola({ slug }: { slug: string }) {
               key={item.solicitud_id}
               item={item}
               tecla={estadoTecla(item.solicitud_id, yo.data)}
-              artista={`${item.cancion.artista}, ${formatoEsperaCorta(esperaHasta(cola, i, restante))}`}
+              artista={`${item.cancion.artista}, ${formatoEsperaCorta(esperaDe(item, avance))}`}
               puedeVotar={abierto && Boolean(yo.data)}
               ocupada={enviando === item.solicitud_id}
               onVotar={alVotar}
@@ -134,9 +134,8 @@ export function Cola({ slug }: { slug: string }) {
 }
 
 /** La tarjeta destacada (PB-19, PB-22): en qué puesto va, si subió y cuánto falta. */
-function TuCancion({ foto, item, restante }: { foto: Ahora; item: ItemCola; restante: number }) {
+function TuCancion({ foto, item, avance }: { foto: Ahora; item: ItemCola; avance: number }) {
   const { puesto } = item;
-  const indice = foto.cola.indexOf(item);
   const subio = puestosSubidos(item);
   return (
     <section className="marco mt-4" aria-label="Tu canción">
@@ -162,7 +161,7 @@ function TuCancion({ foto, item, restante }: { foto: Ahora; item: ItemCola; rest
               </p>
             </div>
           </div>
-          <p className="mt-[6px] text-[14px] text-tinta-2">Suena {formatoEspera(esperaHasta(foto.cola, indice, restante))}</p>
+          <p className="mt-[6px] text-[14px] text-tinta-2">Suena {formatoEspera(esperaDe(item, avance))}</p>
         </div>
       </div>
     </section>

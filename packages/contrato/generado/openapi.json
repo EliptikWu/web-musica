@@ -1313,6 +1313,14 @@
             "type": "integer",
             "minimum": 0,
             "exclusiveMinimum": true
+          },
+          "espera_seg": {
+            "description": "Espera estimada en servidor_ahora: lo que le falta a lo que suena más lo que duran las de delante (RF-018)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            ]
           }
         },
         "required": [
@@ -1321,7 +1329,8 @@
           "votos_total",
           "fecha_solicitud",
           "puesto",
-          "puesto_anterior"
+          "puesto_anterior",
+          "espera_seg"
         ]
       },
       "ListaBloqueos": {
@@ -1752,6 +1761,14 @@
                   "minimum": 0,
                   "exclusiveMinimum": true
                 },
+                "espera_seg": {
+                  "description": "Espera estimada en servidor_ahora: lo que le falta a lo que suena más lo que duran las de delante (RF-018)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Segundos"
+                    }
+                  ]
+                },
                 "pedida_por": {
                   "type": "string"
                 },
@@ -1766,6 +1783,7 @@
                 "fecha_solicitud",
                 "puesto",
                 "puesto_anterior",
+                "espera_seg",
                 "pedida_por",
                 "duracion_seg"
               ]

@@ -47,7 +47,7 @@ Columna «Quién»: **F** = este repositorio, **B** = equipo de backend, **F+B**
 | RF-015 | Cola pública ordenada por popularidad | Must | PB-17 | 1, 2 | F+B |
 | RF-016 | Indicación de la canción en reproducción | Must | PB-17 | 1, 2 | F |
 | RF-017 | Actualización automática de la cola | Must | PB-18 | 1, 2 | F+B |
-| RF-018 | Tiempo estimado de espera | Must | PB-19 | 1, 2 | F |
+| RF-018 | Tiempo estimado de espera (lo calcula el backend: `espera_seg`, ADR-20) | Must | PB-19 | 1, 2 | F+B |
 | RF-019 | Reproducción automática de la cola | Must | PB-20 | 2 | F+B |
 | RF-020 | Transición automática entre solicitudes y lista por defecto | Must | PB-38 | 2, 3 | F+B |
 
@@ -144,7 +144,7 @@ La regla vive en el servidor; el frontend la **explica** y la anticipa en la int
 
 | ID | Regla | Dónde se ve |
 |---|---|---|
-| RN-01 | Máximo 3 solicitudes pendientes por teléfono y sesión (configurable) | Fichas «Te quedan N de 3 pedidos» |
+| RN-01 | Máximo 3 solicitudes pendientes por teléfono y sesión (configurable). La que suena cuenta hasta que termina (2026-11-10) | Fichas «Te quedan N de 3 pedidos» |
 | RN-02 | Pedir una canción ya pendiente registra un voto, no la duplica | «Ya está en la cola: vota en vez de pedirla» |
 | RN-03 | Quien pide da automáticamente el primer voto | Su canción aparece como «Tuya» |
 | RN-04 | Un voto activo por teléfono y solicitud | Tecla hundida «Votaste» |

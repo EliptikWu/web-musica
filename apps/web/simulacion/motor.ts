@@ -266,7 +266,7 @@ function duracionMs(f: { hora_inicio: string; hora_fin: string }): number {
 
 // ── Lo que ven el cliente y la pantalla ──────────────────────────────────────
 
-function itemCola(estado: EstadoSim, s: SolicitudSim, puesto: number, ahora: number): ItemCola {
+function itemCola(estado: EstadoSim, s: SolicitudSim, puesto: number, ahora: number, espera: number): ItemCola {
   const vigente = s.subida && ahora - s.subida.en < VIGENCIA_SUBIDA_MS ? s.subida : null;
   return {
     solicitud_id: s.id,
@@ -275,7 +275,18 @@ function itemCola(estado: EstadoSim, s: SolicitudSim, puesto: number, ahora: num
     fecha_solicitud: iso(s.fecha),
     puesto,
     puesto_anterior: vigente ? puesto + vigente.puestos : null,
+    espera_seg: Math.round(espera),
   };
+}
+
+/** Espera de cada una (RF-018): lo que le falta a lo que suena más lo que duran las de delante. */
+function colaConEspera(estado: EstadoSim, ahora: number): ItemCola[] {
+  let espera = restanteSeg(estado, ahora);
+  return pendientes(estado).map((s, i) => {
+    const item = itemCola(estado, s, i + 1, ahora, espera);
+    espera += cancion(estado, s.video_id).duracion_seg;
+    return item;
+  });
 }
 
 export function construirAhora(estado: EstadoSim, ahora: number): Ahora {
@@ -298,7 +309,7 @@ export function construirAhora(estado: EstadoSim, ahora: number): Ahora {
           estado: rep.reanudada_en === null ? 'pausada' : 'sonando',
         }
       : null,
-    cola: pendientes(estado).map((s, i) => itemCola(estado, s, i + 1, ahora)),
+    cola: colaConEspera(estado, ahora),
     lista_casa: lista ? { nombre: lista.nombre, total_canciones: lista.elementos.length } : null,
   };
 }

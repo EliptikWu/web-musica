@@ -103,9 +103,10 @@ página / componente  →  hook (TanStack Query)  →  lib/api/cliente.ts  →  
 
 - Interfaz `FuenteTiempoReal` (`lib/tiempo-real/`): `conectar(slug, alEvento, alEstado)`.
   Estados `conectando | conectado | reconectando | desconectado`.
-- Implementación: **SSE** sobre `/api/bares/{slug}/eventos`. El proxy de Next no puede
-  reenviar WebSocket; SSE sí pasa. Si el backend elige WebSocket, se escribe otra
-  implementación de la misma interfaz (y se abre `connect-src` a su dominio).
+- Implementación: **SSE** sobre `/api/bares/{slug}/eventos`, confirmado por el backend el
+  2026-11-10. El proxy de Next no puede reenviar WebSocket; SSE sí pasa, sin acumular la
+  respuesta (`route.ts` reenvía el flujo con `Cache-Control: no-transform`). Si hay Nginx
+  delante, el backend responde con `X-Accel-Buffering: no`.
 - Eventos: `ahora` (foto completa de lo que suena, la cola y el estado del servicio, con
   `version`), `panel` (aviso de que cambió algo del panel; sin datos privados) y `ping`.
 - Al reconectar o volver a la pestaña se vuelve a pedir la foto (resync, RNF-012). Si la
@@ -172,3 +173,6 @@ Cumple el contrato en el navegador para trabajar sin backend (D5).
 | ADR-16 | 2026-10-26 | Playwright nunca reutiliza un servidor en marcha | Uno viejo en el 3200 sirvió una compilación anterior y las pruebas miraron otra cosa (barrido de la iteración 1) | Reutilizarlo: más rápido, pero da resultados falsos |
 | ADR-18 | 2026-10-27 | El tablero analítico solo muestra: los agregados (esperas, géneros, concentración por noche, recomendaciones) los calcula el backend sobre el modelo analítico; la simulación juega noches de ejemplo deterministas con una cola de verdad | Que el tablero no dependa de cuántos registros caben en el navegador y que lo que muestra la simulación sea lo que el backend debe entregar (doc 04) | Sumar los registros en el navegador: más simple hoy, pero no escala y duplicaría reglas del backend |
 | ADR-19 | 2026-11-09 | App nativa Android (Kotlin + Jetpack Compose, repositorio aparte) para el cliente, con el mismo contrato y la misma identidad visual; el QR abre la app si está instalada y la web si no | Decisión del usuario: el equipo entrega el frontend web y nativo. Reusar el contrato evita dos APIs; la app llama a la API directo (sin el proxy de Next) y no puede mandar cabeceras en SSE, igual que `EventSource` | Una segunda API para la app: dos contratos que mantener |
+| ADR-20 | 2026-11-10 | La espera de cada canción la calcula el backend (`espera_seg` en `ItemCola`, en el instante `servidor_ahora`); el cliente solo le descuenta lo que avanza lo que suena | Con la app Android la regla viviría en dos clientes y en el backend, y los números no coincidirían (propuesta del backend) | Que cada cliente sume duraciones: hecho hasta la iteración 6, pero se duplica en Kotlin. `restante_seg` y `generado_en` sobran: ya existen `posicion_seg` y `servidor_ahora` |
+| ADR-21 | 2026-11-10 | El teléfono se identifica con un UUID propio en `X-Rockola-Dispositivo`; el servidor guarda solo su SHA-256 (RF-002, RNF-007) | Ya funciona en la web y en Android, sin registro ni SDK. Un UUID v4 es aleatorio: su hash no se revierte | UID anónimo de Firebase con token verificado: tampoco impide crear identidades nuevas y obliga a meter su SDK en las dos apps |
+| ADR-22 | 2026-11-10 | La pantalla del bar se empareja desde el panel: el Administrador pide un código de un solo uso, la TV lo introduce y el backend le da una sesión de pantalla (cookie httpOnly que pasa por el proxy, solo ese bar y solo los reportes de reproducción), revocable y anotada en la bitácora | Que un cliente no pueda reportar «fin» y saltar canciones, sin una clave global en el JavaScript (propuesta del backend, igual a la de doc 04). Los endpoints y las pantallas entran en una iteración propia, con su diseño | Una clave en el JavaScript: la ve cualquiera. Reportar desde el servidor de Next sin autenticación propia: cualquiera que abra la ruta reporta |
