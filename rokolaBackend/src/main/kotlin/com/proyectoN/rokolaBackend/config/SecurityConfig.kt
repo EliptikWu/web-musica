@@ -20,6 +20,7 @@ class SecurityConfig {
           "/api/acceso/qr/*/dispositivos",
           "/api/establecimientos/*/codigos-qr/generar",
           "/api/sesiones/*/solicitudes",
+          "/api/solicitudes/*/votos",
         )
       }
       .authorizeHttpRequests {
@@ -31,6 +32,7 @@ class SecurityConfig {
           HttpMethod.POST,
           "/api/sesiones/*/solicitudes"
         ).permitAll()
+        it.requestMatchers(HttpMethod.POST, "/api/solicitudes/*/votos").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/establecimientos/*/codigos-qr/generar")
           .authenticated()
         it.anyRequest().authenticated()
