@@ -144,10 +144,10 @@ La galería de todos está en `/muestras` (solo en modo simulado).
 | Cliente: Cola | `/b/[bar]/cola` | `cliente-3-cola` | con canción propia, sin canción propia, vacía (suena la lista de la casa), cargando, sin conexión |
 | Cliente: Tus pedidos | Sección al final de `/b/[bar]/cola` | — (nuevo) | sin pedidos, cada estado de solicitud |
 | Cliente: Política de datos | `/b/[bar]/politica-de-datos` | — (nuevo) | texto `TBD` rotulado |
-| Pantalla del bar | `/b/[bar]/pantalla` | `pantalla-bar` | encender, sonando (pedidos / lista de la casa), cerrado, en pausa, mantenimiento, cola vacía, sin conexión, video no disponible |
+| Pantalla del bar | `/b/[bar]/pantalla` | `pantalla-bar` | sin vincular (código), pidiendo el código, sin red al pedirlo, desvinculada (aviso), encender, sonando (pedidos / lista de la casa), cerrado, en pausa, mantenimiento, cola vacía, sin conexión, video no disponible |
 | Panel: Entrar | `/panel/entrar`, `/panel/cambiar-clave` | — (nuevo) | error genérico, cuenta bloqueada, sesión caducada, cambio forzado |
 | Panel: Operación | `/panel` | `panel-admin` (+ `#pausa`) | abierto, en pausa, fuera de horario, mantenimiento, sin sesión, sin lista activa, vista Operador |
-| Panel: Gestión | `/panel/{usuarios,establecimiento,horario,listas,bloqueos,bitacora,eventos,manual}` | — (nuevas) | vacío, cargando, error, sin permiso |
+| Panel: Gestión | `/panel/{usuarios,establecimiento,horario,listas,bloqueos,bitacora,eventos,manual}` | — (nuevas) | vacío, cargando, error, sin permiso. En «Bar y QR», «Pantallas del bar»: sin pantallas, con pantallas, código que no existe o venció, desvincular (RF-058) |
 | Panel: Analítica | `/panel/analitica/*` | — (nuevas) | sin datos, datos de ejemplo rotulados |
 
 ## Gráficos (tablero analítico)
@@ -256,3 +256,5 @@ Método de la skill `dataviz`, con los tokens Rockola:
 | 2026-10-27 | Formularios | Las listas desplegables se nombran solo con su etiqueta (`Selector`) | Revisión de accesibilidad: el nombre incluía las opciones |
 | 2026-10-27 | Cola | «Votaste» sigue hundida pero se pulsa: abre «Mover tu voto» con las canciones a las que puede pasar; el foco queda en la nueva «Votaste» | RF-014, PB-50: el mockup dice que mover el voto parte de ese botón |
 | 2026-10-27 | Buscar | «Filtrar» junto al título de los resultados: género, duración y popularidad en una caja hundida; la tecla se hunde mientras está abierta | RF-055, PB-51: el mockup los ubicaba junto a la caja de búsqueda |
+| 2026-11-10 | TV | Sin vincular, la TV muestra su código dentro del arco apagado como seis teclas de selección (75 % de ancho, 68 px en el lienzo) y los tres pasos a la derecha, con la luz «Sin vincular»; no hay «Encender» hasta que queda vinculada | RF-058, ADR-23: el código se lee desde la barra y la luz apagada dice que esa TV todavía no mueve la cola |
+| 2026-11-10 | Bar y QR | Caja «Pantallas del bar» (lista con «Desvincular») y «Vincular una pantalla» (código, nombre de la pantalla y la dirección que se abre en la TV). Al desvincular, el foco va al título de la caja | RF-058. Crítica: la dirección de la TV iba solo en el estado vacío y no se encontraba para una segunda TV. Accesibilidad: el foco se perdía al desaparecer la fila |

@@ -87,7 +87,7 @@ function momentoB(persona: string): { estado: EstadoSim; ancla: number } {
   const crossover = lista('l-crossover', 'Viernes crossover', LISTA_VIERNES_CROSSOVER, false, bogota('2026-10-09', '17:05:00'));
 
   const estado: EstadoSim = {
-    esquema: 1,
+    esquema: 2,
     escenario: 'momento-b',
     version: 1,
     reloj: { ancla_sim: ahora, ancla_real: 0, velocidad: 1 },
@@ -123,6 +123,8 @@ function momentoB(persona: string): { estado: EstadoSim; ancla: number } {
       { id: 'u-nuevo', nombre: 'Mesero nuevo', correo: 'nuevo@rockola.demo', rol: 'operador', estado: 'activo', clave: 'temporal-demo', debe_cambiar_clave: true, ultimo_acceso: null, intentos: 0, bloqueado_hasta: null },
     ],
     sesiones_panel: {},
+    pantallas: [],
+    vinculos: {},
     dispositivos: { [p]: { codigo: CODIGO_PERSONA, tipo: 'movil', primer_acceso: hace(40), aviso: hace(40) } },
     idempotencia: {},
     // Eventos de ejemplo (genéricos: no son eventos reales del bar).

@@ -72,6 +72,20 @@ con los mismos esquemas, así que para el backend no cambia nada, salvo esto:
   `assetlinks.json` los publica el frontend (doc 04, «Pendiente del backend», punto 11).
 - **Espera estimada:** cada canción de la cola trae `espera_seg` (ADR-20).
 
+## La pantalla del bar (RF-058)
+
+La TV ya no reporta sin permiso. Lo que el backend tiene que construir (doc 04, «Pantalla
+del bar», y `endpoints.md`):
+
+- `GET` y `POST /bares/{slug}/pantalla/vinculo`: el `POST` pone la cookie httpOnly
+  `rockola_pantalla` y devuelve un código de 6 caracteres (sin `0`, `O`, `1`, `I`) que vence
+  a los 10 min *(propuesto)*.
+- `GET/POST /panel/pantallas` y `DELETE /panel/pantallas/{id}`, solo para el Administrador,
+  con `vincular_pantalla` y `desvincular_pantalla` en la bitácora y `pantallas` en el
+  evento `panel`.
+- Los tres reportes de reproducción responden `401 no_autenticado` sin una pantalla vinculada
+  a ese bar, y la sesión se comprueba antes de la caché de `Idempotency-Key`.
+
 ## Lo que el frontend no hace
 
 - Llamar a YouTube: la búsqueda pasa por el backend (cuota, caché y claves, RF-008, PB-54).
@@ -82,6 +96,6 @@ con los mismos esquemas, así que para el backend no cambia nada, salvo esto:
 ## Pendientes que necesitan respuesta
 
 Están numerados en el doc 04, «Pendiente del backend». Los que más afectan a la interfaz:
-transporte y autenticación del tiempo real, autenticación de la pantalla del bar, matriz
-del Operador (D9), estado `retirada`, si la canción que suena cuenta para el cupo, origen
-del género y de la popularidad, y los valores de bloqueo de cuenta.
+matriz del Operador (D9), estado `retirada`, origen del género y de la popularidad, y los
+valores de bloqueo de cuenta. El tiempo real (SSE), la pantalla del bar (RF-058) y el cupo
+(RN-01) quedaron resueltos el 2026-11-10.

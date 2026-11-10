@@ -47,3 +47,28 @@ export async function objetivosDe44(pagina: Page, selector = 'main a, main butto
   );
   expect(pequenos, 'objetivos de menos de 44 px').toEqual([]);
 }
+
+/**
+ * Vincula la TV que está mostrando su código (RF-058): entra como el Administrador de la
+ * simulación desde la misma página y escribe el código, como haría alguien desde el panel.
+ */
+export async function vincularTv(pagina: Page, nombre = 'TV de prueba') {
+  const codigo = (await pagina.locator('.codigo-tv .solo-lector').textContent({ timeout: 15_000 }))!.replace(/\s/g, '');
+  await pagina.evaluate(
+    async ({ codigo, nombre }) => {
+      const json = { 'Content-Type': 'application/json' };
+      const sesion = await fetch('/api/panel/sesion', { method: 'POST', headers: json, body: JSON.stringify({ correo: 'admin@rockola.demo', clave: 'rockola-demo' }) });
+      if (!sesion.ok) throw new Error(`entrar: ${sesion.status}`);
+      const r = await fetch('/api/panel/pantallas', { method: 'POST', headers: json, body: JSON.stringify({ codigo, nombre }) });
+      if (!r.ok) throw new Error(`vincular: ${r.status}`);
+    },
+    { codigo, nombre },
+  );
+}
+
+/** Abre la pantalla del bar ya vinculada, lista para «Encender». */
+export async function abrirTvVinculada(pagina: Page, escenario = 'momento-b') {
+  await abrir(pagina, '/b/demo/pantalla', escenario);
+  await vincularTv(pagina);
+  await expect(pagina.getByRole('button', { name: 'Encender' })).toBeVisible({ timeout: 5_000 });
+}

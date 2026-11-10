@@ -92,12 +92,23 @@ export type UsuarioSim = {
   bloqueado_hasta: number | null;
 };
 
+export type PantallaSim = {
+  id: string;
+  nombre: string;
+  /** El bar al que quedó vinculada: solo reporta para ese bar. */
+  slug: string;
+  token: string;
+  vinculada_en: number;
+  vinculada_por: { id: string; nombre: string };
+  ultimo_reporte: number | null;
+};
+
 export type SesionNocheSim = { id: string; apertura: number; tipo_evento: string; origen: 'horario' | 'manual' };
 
 export type AccionSim = Omit<AccionAdmin, 'fecha'> & { fecha: number };
 
 export type EstadoSim = {
-  esquema: 1;
+  esquema: 2;
   escenario: string;
   version: number;
   /** Reloj virtual: hora simulada = ancla_sim + (ahora real − ancla_real) × velocidad. */
@@ -128,6 +139,10 @@ export type EstadoSim = {
   acciones: AccionSim[];
   usuarios: UsuarioSim[];
   sesiones_panel: Record<string, string>;
+  /** Pantallas del bar vinculadas (RF-058); `token` es el valor de su cookie. */
+  pantallas: PantallaSim[];
+  /** Códigos que una pantalla pidió y nadie ha confirmado todavía, por token de su cookie. */
+  vinculos: Record<string, { codigo: string; expira: number }>;
   dispositivos: Record<string, { codigo: string; tipo: string; primer_acceso: number; aviso: number | null }>;
   idempotencia: Record<string, { estado: number; cuerpo: unknown; en: number }>;
   eventos: EventoBar[];

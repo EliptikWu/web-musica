@@ -56,4 +56,12 @@ test('capturas del manual', async ({ page }) => {
     await page.waitForTimeout(400);
     await tomar(page, nombre);
   }
+
+  // La TV sin vincular, con su código (RF-058). El código sale al azar en cada captura.
+  const tv = await page.context().newPage();
+  await tv.setViewportSize({ width: 1280, height: 720 });
+  await tv.goto('/b/demo/pantalla');
+  await tv.locator('.codigo-tv .tecla').first().waitFor();
+  await tv.waitForTimeout(400);
+  await tomar(tv, 'pantalla-codigo');
 });

@@ -17,6 +17,12 @@
         "in": "cookie",
         "name": "rockola_panel",
         "description": "Cookie httpOnly que pone el backend al entrar"
+      },
+      "sesionPantalla": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "rockola_pantalla",
+        "description": "Cookie httpOnly que pone el backend al pedir el código; vale cuando el Administrador lo confirma (RF-058)"
       }
     },
     "schemas": {
@@ -63,7 +69,8 @@
                   "servicio",
                   "sesion",
                   "establecimiento",
-                  "evento"
+                  "evento",
+                  "pantalla"
                 ]
               },
               "nombre": {
@@ -464,6 +471,11 @@
         ],
         "description": "Código estable del error; el cliente lo traduce a su texto (doc 04)."
       },
+      "CodigoPantalla": {
+        "type": "string",
+        "pattern": "^[A-HJ-NP-Z2-9]{6}$",
+        "description": "Seis caracteres en mayúscula, sin 0, O, 1 ni I"
+      },
       "ComparacionAnalitica": {
         "type": "object",
         "properties": {
@@ -843,6 +855,23 @@
           "nombre",
           "correo",
           "rol"
+        ]
+      },
+      "CuerpoVincularPantalla": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "$ref": "#/components/schemas/CodigoPantalla"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "required": [
+          "codigo",
+          "nombre"
         ]
       },
       "Destacada": {
@@ -1502,6 +1531,20 @@
           "noches"
         ]
       },
+      "ListaPantallas": {
+        "type": "object",
+        "properties": {
+          "pantallas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PantallaVinculada"
+            }
+          }
+        },
+        "required": [
+          "pantallas"
+        ]
+      },
       "ListaRecomendaciones": {
         "type": "object",
         "properties": {
@@ -2002,6 +2045,51 @@
           "siguiente"
         ]
       },
+      "PantallaVinculada": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "vinculada_en": {
+            "$ref": "#/components/schemas/Fecha"
+          },
+          "vinculada_por": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/components/schemas/Id"
+              },
+              "nombre": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "nombre"
+            ]
+          },
+          "ultimo_reporte": {
+            "nullable": true,
+            "description": "Último inicio, fin o error que reportó; null si todavía no",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "vinculada_en",
+          "vinculada_por",
+          "ultimo_reporte"
+        ]
+      },
       "ParticipacionAnalitica": {
         "type": "object",
         "properties": {
@@ -2164,7 +2252,8 @@
           "horario",
           "usuarios",
           "establecimiento",
-          "eventos"
+          "eventos",
+          "pantallas"
         ]
       },
       "ReportePantalla": {
@@ -2578,6 +2667,8 @@
           "regenerar_qr",
           "editar_evento",
           "editar_umbrales",
+          "vincular_pantalla",
+          "desvincular_pantalla",
           "error_youtube",
           "intento_no_permitido"
         ]
@@ -2692,6 +2783,64 @@
           "ultimo_acceso"
         ],
         "description": "Nunca lleva la contraseña ni su hash"
+      },
+      "VinculoPantalla": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "estado": {
+                "type": "string",
+                "enum": [
+                  "sin_vincular"
+                ]
+              }
+            },
+            "required": [
+              "estado"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "estado": {
+                "type": "string",
+                "enum": [
+                  "esperando"
+                ]
+              },
+              "codigo": {
+                "$ref": "#/components/schemas/CodigoPantalla"
+              },
+              "expira_en": {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            },
+            "required": [
+              "estado",
+              "codigo",
+              "expira_en"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "estado": {
+                "type": "string",
+                "enum": [
+                  "vinculada"
+                ]
+              },
+              "nombre": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "estado",
+              "nombre"
+            ]
+          }
+        ]
       },
       "Yo": {
         "type": "object",
@@ -3545,7 +3694,12 @@
         "tags": [
           "pantalla"
         ],
-        "description": "Requisitos: RF-019.",
+        "description": "Requisitos: RF-019, RF-058.",
+        "security": [
+          {
+            "sesionPantalla": []
+          }
+        ],
         "parameters": [
           {
             "name": "slug",
@@ -3586,6 +3740,16 @@
         "responses": {
           "204": {
             "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
           },
           "404": {
             "description": "no_encontrado",
@@ -3607,7 +3771,12 @@
         "tags": [
           "pantalla"
         ],
-        "description": "Requisitos: RF-019, RF-020.",
+        "description": "Requisitos: RF-019, RF-020, RF-058.",
+        "security": [
+          {
+            "sesionPantalla": []
+          }
+        ],
         "parameters": [
           {
             "name": "slug",
@@ -3648,6 +3817,16 @@
         "responses": {
           "204": {
             "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
           },
           "404": {
             "description": "no_encontrado",
@@ -3669,7 +3848,12 @@
         "tags": [
           "pantalla"
         ],
-        "description": "Requisitos: RF-007.",
+        "description": "Requisitos: RF-007, RF-058.",
+        "security": [
+          {
+            "sesionPantalla": []
+          }
+        ],
         "parameters": [
           {
             "name": "slug",
@@ -3710,6 +3894,98 @@
         "responses": {
           "204": {
             "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/pantalla/vinculo": {
+      "get": {
+        "operationId": "vinculoPantalla",
+        "summary": "Cómo está esta pantalla según su cookie",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-058.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoPantalla"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "pedirCodigoPantalla",
+        "summary": "Pedir un código para vincular esta pantalla (pone la cookie rockola_pantalla)",
+        "tags": [
+          "pantalla"
+        ],
+        "description": "Requisitos: RF-058.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VinculoPantalla"
+                }
+              }
+            }
           },
           "404": {
             "description": "no_encontrado",
@@ -6184,6 +6460,190 @@
           },
           "403": {
             "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/pantallas": {
+      "get": {
+        "operationId": "pantallas",
+        "summary": "Pantallas vinculadas",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-058. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaPantallas"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "vincularPantalla",
+        "summary": "Vincular la pantalla que muestra el código",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-058. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoVincularPantalla"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PantallaVinculada"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/pantallas/{id}": {
+      "delete": {
+        "operationId": "desvincularPantalla",
+        "summary": "Desvincular una pantalla (deja de poder reportar)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-058. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
             "content": {
               "application/json": {
                 "schema": {

@@ -92,7 +92,7 @@ for (const [nombre, e] of lista) {
     summary: e.resumen,
     tags: [e.superficie],
     description: `Requisitos: ${e.rf.join(', ')}.${e.rol ? ` Rol mínimo: ${e.rol}.` : ''}`,
-    ...(e.rol ? { security: [{ sesionPanel: [] }] } : {}),
+    ...(e.rol ? { security: [{ sesionPanel: [] }] } : 'pantalla' in e && e.pantalla ? { security: [{ sesionPantalla: [] }] } : {}),
     parameters: [...parametrosRuta, ...parametrosConsulta, ...cabeceras],
     ...(cuerpo ? { requestBody: { required: true, content: { 'application/json': { schema: ref(cuerpo) } } } } : {}),
     responses: {
@@ -111,7 +111,10 @@ const openapi = {
   },
   servers: [{ url: '/api' }],
   components: {
-    securitySchemes: { sesionPanel: { type: 'apiKey', in: 'cookie', name: 'rockola_panel', description: 'Cookie httpOnly que pone el backend al entrar' } },
+    securitySchemes: {
+      sesionPanel: { type: 'apiKey', in: 'cookie', name: 'rockola_panel', description: 'Cookie httpOnly que pone el backend al entrar' },
+      sesionPantalla: { type: 'apiKey', in: 'cookie', name: 'rockola_pantalla', description: 'Cookie httpOnly que pone el backend al pedir el código; vale cuando el Administrador lo confirma (RF-058)' },
+    },
     schemas: componentes,
   },
   paths,
@@ -130,7 +133,7 @@ for (const superficie of ['cliente', 'pantalla', 'panel'] as const) {
     const { cuerpo, respuesta } = ids.get(nombre)!;
     const consulta = e.consulta ? `?${Object.keys(e.consulta.shape).join('&')}` : '';
     md.push(
-      `| \`${nombre}\`${e.idempotente ? ' (idempotente)' : ''} | \`${e.metodo} ${e.ruta}${consulta}\` | ${cuerpo ? `\`${cuerpo}\` → ` : ''}${e.estado === 204 ? '204' : `\`${respuesta}\``} | ${e.rol ?? 'público'} | ${e.errores.map((c) => `\`${c}\``).join(', ') || '—'} | ${e.rf.join(', ')} |`,
+      `| \`${nombre}\`${e.idempotente ? ' (idempotente)' : ''} | \`${e.metodo} ${e.ruta}${consulta}\` | ${cuerpo ? `\`${cuerpo}\` → ` : ''}${e.estado === 204 ? '204' : `\`${respuesta}\``} | ${e.rol ?? ('pantalla' in e && e.pantalla ? 'pantalla vinculada' : 'público')} | ${e.errores.map((c) => `\`${c}\``).join(', ') || '—'} | ${e.rf.join(', ')} |`,
     );
   }
   md.push('');

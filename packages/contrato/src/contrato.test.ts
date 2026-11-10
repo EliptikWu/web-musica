@@ -23,6 +23,13 @@ describe('el contrato', () => {
     expect(sinRol.sort()).toEqual(['entrar', 'salir']);
   });
 
+  it('solo una pantalla vinculada reporta la reproducción (RF-058)', () => {
+    const conPantalla = Object.entries(endpoints)
+      .filter(([, e]) => 'pantalla' in e && e.pantalla)
+      .map(([n]) => n);
+    expect(conPantalla.sort()).toEqual(['reportarError', 'reportarFin', 'reportarInicio']);
+  });
+
   it('pedir y votar son idempotentes (RNF-008)', () => {
     expect(endpoints.pedir.idempotente).toBe(true);
     expect(endpoints.votar.idempotente).toBe(true);

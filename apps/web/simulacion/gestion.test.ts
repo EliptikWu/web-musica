@@ -1,9 +1,10 @@
-import { EventoBar, ListaCasaDetalle, PaginaBitacora, UsuarioPanel } from '@rockola/contrato';
+import { EventoBar, ListaCasaDetalle, ListaPantallas, PaginaBitacora, UsuarioPanel, VinculoPantalla } from '@rockola/contrato';
 import { describe, expect, it } from 'vitest';
 import { crearEstado } from './datos/semilla';
 import {
   activarLista, agregarALista, bitacora, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEvento, editarUsuario,
-  eliminarEvento, eliminarLista, guardarHorario, listaDetalle, listarUsuarios, ordenarLista, quitarDeLista, regenerarQr, restablecerClave,
+  desvincularPantalla, eliminarEvento, eliminarLista, guardarHorario, listaDetalle, listarPantallas, listarUsuarios, ordenarLista, pedirCodigo,
+  quitarDeLista, regenerarQr, restablecerClave, VIGENCIA_CODIGO_MS, vincularPantalla, vinculoDe,
 } from './gestion';
 import { ahoraSim } from './motor';
 
@@ -133,5 +134,48 @@ describe('eventos (RF-045)', () => {
     const bueno = crearEvento(estado, { ...malo, fin: '2026-11-02T01:00:00-05:00' }, ADMIN, ahora);
     if (!bueno.ok) throw new Error(bueno.mensaje);
     EventoBar.parse(bueno.cuerpo);
+  });
+});
+
+describe('pantallas del bar (RF-058)', () => {
+  it('la TV pide un código legible de lejos y queda vinculada cuando el Administrador lo escribe', () => {
+    const { estado, ahora } = escena();
+    expect(vinculoDe(estado, null, ahora)).toEqual({ estado: 'sin_vincular' });
+    const pedido = VinculoPantalla.parse(pedirCodigo(estado, 'tok-tv', ahora));
+    if (pedido.estado !== 'esperando') throw new Error('esperaba un código');
+    expect(pedido.codigo).toMatch(/^[A-HJ-NP-Z2-9]{6}$/);
+
+    const r = vincularPantalla(estado, pedido.codigo, '  TV de la barra ', ADMIN, ahora + 1000);
+    expect(r).toMatchObject({ ok: true, estado: 201, cuerpo: { nombre: 'TV de la barra', ultimo_reporte: null } });
+    expect(vinculoDe(estado, 'tok-tv', ahora + 2000)).toEqual({ estado: 'vinculada', nombre: 'TV de la barra' });
+    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'vincular_pantalla', usuario: ADMIN, objetivo: { tipo: 'pantalla', nombre: 'TV de la barra' } });
+    // El código es de un solo uso.
+    expect(vincularPantalla(estado, pedido.codigo, 'Otra', ADMIN, ahora + 3000)).toMatchObject({ ok: false, codigo: 'no_encontrado' });
+  });
+
+  it('un código vencido no vincula y la TV vuelve a quedar sin vincular', () => {
+    const { estado, ahora } = escena();
+    const pedido = pedirCodigo(estado, 'tok-tv', ahora);
+    if (pedido.estado !== 'esperando') throw new Error('esperaba un código');
+    const despues = ahora + VIGENCIA_CODIGO_MS;
+    expect(vinculoDe(estado, 'tok-tv', despues)).toEqual({ estado: 'sin_vincular' });
+    expect(vincularPantalla(estado, pedido.codigo, 'TV', ADMIN, despues)).toMatchObject({ ok: false, estado: 404, codigo: 'no_encontrado' });
+  });
+
+  it('desvincular la saca de la lista, queda en la bitácora y la TV pierde el permiso', () => {
+    const { estado, ahora } = escena();
+    const pedido = pedirCodigo(estado, 'tok-tv', ahora);
+    if (pedido.estado !== 'esperando') throw new Error('esperaba un código');
+    const r = vincularPantalla(estado, pedido.codigo, 'TV de la terraza', ADMIN, ahora);
+    if (!r.ok) throw new Error(r.mensaje);
+    const lista = listarPantallas(estado);
+    if (!lista.ok) throw new Error(lista.mensaje);
+    expect(ListaPantallas.parse(lista.cuerpo).pantallas.map((x) => x.nombre)).toEqual(['TV de la terraza']);
+
+    expect(desvincularPantalla(estado, r.cuerpo.id, ADMIN, ahora)).toMatchObject({ ok: true, estado: 204 });
+    expect(estado.pantallas).toEqual([]);
+    expect(vinculoDe(estado, 'tok-tv', ahora)).toEqual({ estado: 'sin_vincular' });
+    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'desvincular_pantalla', objetivo: { nombre: 'TV de la terraza' } });
+    expect(desvincularPantalla(estado, r.cuerpo.id, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'no_encontrado' });
   });
 });

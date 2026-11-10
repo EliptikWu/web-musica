@@ -34,6 +34,8 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D7 | 2026-10-26 | Las ingenierías de lk-crm (CLAUDE.md, docs 06, 08, 09, 10) se adaptan a este proyecto | Usuario |
 | D8 | 2026-10-26 | Las skills de diseño son obligatorias y se permiten reworks de los prototipos si la crítica lo justifica | Usuario |
 | D9 | 2026-10-26 | Matriz del Operador *(propuesto, hasta que el equipo la confirme)*: saltar, pausar/reanudar la reproducción, pausar/reanudar solicitudes, retirar de la cola y bloquear hasta el fin de la sesión. Lo demás, solo el Administrador | Claude, por contradicción entre RF-022 y RF-039/042 |
+| D10 | 2026-11-10 | Respuesta al backend: el teléfono sigue con UUID propio (ADR-21), la espera la calcula el backend (ADR-20) y la canción que suena cuenta para el cupo (RN-01) | Usuario |
+| D11 | 2026-11-10 | La TV muestra el código y el Administrador lo escribe en el panel (ADR-23, reemplaza a ADR-22) | Usuario |
 
 ## Decisiones abiertas
 
@@ -44,7 +46,6 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | Lista de la casa fuera de horario | ¿Suena aunque no haya sesión abierta? El prototipo dice que sí | Equipo |
 | Alta de establecimientos | ¿Quién crea el establecimiento y su primer Administrador? (RF-034 vs RF-023) | Equipo |
 | Bloqueo de cuenta e inactividad | Número de intentos, minutos de bloqueo y de inactividad | Equipo |
-| Emparejar la TV | Decidido el emparejamiento desde el panel (ADR-22); faltan los endpoints y las pantallas | Equipo de backend y frontend |
 
 ## Pendiente de recibir
 

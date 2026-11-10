@@ -97,4 +97,18 @@
   .tv-encender__caja { width: 560px; text-align: center; }
   .tv-encender h2 { font-size: 36px; }
   .tv-encender p { margin: 12px auto 28px; max-width: 460px; font-size: 18px; line-height: 1.45; color: var(--crema-2); }
+
+  /*
+   * AÑADIDO (RF-058): la TV sin vincular. El código va dentro de la ventana del arco apagado
+   * como seis teclas de selección de rockola: se lee desde la barra. No se pulsan.
+   */
+  .tv--vincular { align-content: center; }
+  .codigo-tv { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+  .codigo-tv__etiqueta { font-size: 18px; font-weight: 600; color: var(--crema-2); }
+  .codigo-tv__teclas { display: flex; gap: 14px; }
+  .codigo-tv .tecla { width: 78px; height: 104px; font-size: 68px; letter-spacing: 0; transform: none; }
+  .pasos-tv { margin-top: 12px; padding: 0; list-style: none; counter-reset: paso; display: grid; gap: 12px; }
+  .pasos-tv li { counter-increment: paso; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: baseline; font-size: 19px; line-height: 1.35; color: var(--tinta); }
+  .pasos-tv li::before { content: counter(paso); font-stretch: 75%; font-weight: 800; font-size: 28px; color: var(--cereza); text-align: right; }
+  .vence-tv { margin-top: 14px; font-size: 16px; line-height: 1.4; color: var(--crema-2); }
 }

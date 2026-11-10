@@ -1,6 +1,6 @@
 'use client';
 
-import type { Ahora, ItemCola, MiSolicitud, Yo } from '@rockola/contrato';
+import type { ItemCola, MiSolicitud, Yo } from '@rockola/contrato';
 import { claseTecla, Dialogo, Icono, Insignia, LuzEstado, TarjetaTitulo, Tecla } from '@rockola/ui';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -69,7 +69,7 @@ export function Cola({ slug }: { slug: string }) {
       {foto.servicio.estado !== 'abierto' ? <Aviso tipo="info" className="mt-4" meta={colaCerrada(foto.servicio.estado)} /> : null}
 
       {tuya ? (
-        <TuCancion foto={foto} item={tuya} avance={avance} />
+        <TuCancion item={tuya} avance={avance} />
       ) : yo.data && foto.reproduccion?.solicitud_id && yo.data.solicitudes.some((s) => s.solicitud_id === foto.reproduccion?.solicitud_id) ? (
         <TuCancionSuena titulo={foto.reproduccion.cancion.titulo} artista={foto.reproduccion.cancion.artista} />
       ) : null}
@@ -78,7 +78,7 @@ export function Cola({ slug }: { slug: string }) {
 
       {cola.length > 0 ? (
         <ol className="filas mt-[14px]" aria-label="Canciones en la cola">
-          {cola.map((item, i) => (
+          {cola.map((item) => (
             <FilaCancion
               key={item.solicitud_id}
               item={item}
@@ -134,7 +134,7 @@ export function Cola({ slug }: { slug: string }) {
 }
 
 /** La tarjeta destacada (PB-19, PB-22): en qué puesto va, si subió y cuánto falta. */
-function TuCancion({ foto, item, avance }: { foto: Ahora; item: ItemCola; avance: number }) {
+function TuCancion({ item, avance }: { item: ItemCola; avance: number }) {
   const { puesto } = item;
   const subio = puestosSubidos(item);
   return (

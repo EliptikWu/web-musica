@@ -133,6 +133,17 @@ const SECCIONES: Seccion[] = [
     imagen: { archivo: 'bar-qr.jpg', texto: 'Los datos del bar y su QR.' },
   },
   {
+    id: 'pantallas',
+    titulo: 'Vincular la pantalla del bar',
+    para: 'administrador',
+    pasos: [
+      'En el navegador de la TV, abre la dirección de la pantalla, que está en «Bar y QR», «Vincular una pantalla». La TV muestra un código de 6 letras y números.',
+      'En «Bar y QR», «Vincular una pantalla», escribe ese código y un nombre, como «TV de la barra». En unos segundos la TV muestra la rockola: pulsa «Encender» en la TV.',
+      'Sin una pantalla vinculada la música no avanza. «Desvincular» le quita el permiso a una TV que ya no se usa.',
+    ],
+    imagen: { archivo: 'pantalla-codigo.jpg', texto: 'La TV del bar mostrando su código.' },
+  },
+  {
     id: 'bitacora',
     titulo: 'Consultar la bitácora',
     para: 'administrador',

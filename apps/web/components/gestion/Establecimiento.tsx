@@ -14,6 +14,7 @@ import { pedir } from '@/lib/api/cliente';
 import { useAccionGestion } from '@/lib/api/hooks-panel';
 import { fechaYHora } from '@/lib/formato';
 import { Cargando, mensajeDeError, PaginaGestion } from './PaginaGestion';
+import { Pantallas } from './Pantallas';
 
 // Nombres que el personal reconoce; el valor es el identificador IANA del contrato.
 const ZONAS: [string, string][] = [
@@ -32,8 +33,8 @@ export function colorDeToken(nombre: string, respaldo: string): string {
 }
 
 /**
- * El bar y su QR (RF-034, RF-035; PB-01, PB-02, PB-26): datos y límites del servicio, el QR
- * para imprimir o descargar, y regenerarlo (el anterior deja de funcionar).
+ * El bar y su QR (RF-034, RF-035, RF-058; PB-01, PB-02, PB-26): datos y límites del servicio, el
+ * QR para imprimir o descargar, regenerarlo (el anterior deja de funcionar) y las pantallas.
  */
 export function Establecimiento() {
   const bar = useQuery({ queryKey: claves.panel.establecimiento, queryFn: ({ signal }) => pedir('establecimiento', { signal }) });
@@ -44,11 +45,12 @@ export function Establecimiento() {
   // El nombre y la zona del bar salen también en la cabecera y en las fechas: `yo` se recarga.
   const guardar = useAccionGestion('editarEstablecimiento', [claves.panel.establecimiento, claves.panel.yo, ['bar']]);
   return (
-    <PaginaGestion titulo="Bar y QR" nota="Los datos del establecimiento, las reglas de los pedidos y el código QR de las mesas.">
+    <PaginaGestion titulo="Bar y QR" nota="Los datos del establecimiento, las reglas de los pedidos, el código QR de las mesas y las pantallas que ponen la música.">
       <div className="gestion-rejilla gestion-rejilla--dos">
         <Cargando consulta={bar}>{() => <FormularioBar key={JSON.stringify(bar.data)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
         <Cargando consulta={qr}>{() => <PlacaQrGestion url={qr.data!.url} generado={qr.data!.generado_en} />}</Cargando>
       </div>
+      <Pantallas />
     </PaginaGestion>
   );
 }

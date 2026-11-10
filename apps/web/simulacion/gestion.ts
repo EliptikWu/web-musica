@@ -1,7 +1,7 @@
 import type { CodigoError, CuerpoEvento, EventoBar, Franja, ListaCasaDetalle, TipoAccion } from '@rockola/contrato';
 import { validarFranjas } from '../lib/reglas/horario';
 import { bloqueoVigente, cancion, normalizar, type Personal, recientesPrimero, type Resultado, tocar } from './motor';
-import type { AccionSim, EstadoSim, ListaSim, UsuarioSim } from './tipos';
+import type { AccionSim, EstadoSim, ListaSim, PantallaSim, UsuarioSim } from './tipos';
 
 /**
  * La gestión del panel en la simulación (iteración 4): usuarios, establecimiento y QR, horario,
@@ -114,6 +114,71 @@ export function regenerarQr(estado: EstadoSim, origen: string, quien: Personal, 
   estado.qr = { token: `demo-qr-${estado.qr.anteriores.length + 1}`, generado_en: ahora, anteriores: estado.qr.anteriores };
   anotar(estado, ahora, quien, 'regenerar_qr', { tipo: 'establecimiento', nombre: estado.bar.nombre, detalle: null });
   return bien(qrAContrato(estado, origen));
+}
+
+// ── Pantallas del bar (RF-058, ADR-23) ───────────────────────────────────────
+
+/** Sin 0, O, 1 ni I: se confunden al leerlos de lejos. */
+const ALFABETO_CODIGO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export const VIGENCIA_CODIGO_MS = 10 * 60_000; // (propuesto)
+
+function codigoNuevo(estado: EstadoSim): string {
+  const usados = new Set(Object.values(estado.vinculos).map((v) => v.codigo));
+  for (;;) {
+    const azar = crypto.getRandomValues(new Uint8Array(6));
+    const codigo = Array.from(azar, (b) => ALFABETO_CODIGO[b % ALFABETO_CODIGO.length]).join('');
+    if (!usados.has(codigo)) return codigo;
+  }
+}
+
+function olvidarVencidos(estado: EstadoSim, ahora: number) {
+  for (const [token, v] of Object.entries(estado.vinculos)) if (v.expira <= ahora) delete estado.vinculos[token];
+}
+
+/** Cómo está la pantalla cuya cookie trae `token` (`VinculoPantalla`). */
+export function vinculoDe(estado: EstadoSim, token: string | null, ahora: number) {
+  if (!token) return { estado: 'sin_vincular' as const };
+  const vinculada = estado.pantallas.find((x) => x.token === token);
+  if (vinculada) return { estado: 'vinculada' as const, nombre: vinculada.nombre };
+  const pendiente = estado.vinculos[token];
+  if (pendiente && pendiente.expira > ahora) return { estado: 'esperando' as const, codigo: pendiente.codigo, expira_en: iso(pendiente.expira) };
+  return { estado: 'sin_vincular' as const };
+}
+
+/** La pantalla pide un código; el token nuevo va en su cookie. */
+export function pedirCodigo(estado: EstadoSim, token: string, ahora: number) {
+  olvidarVencidos(estado, ahora);
+  estado.vinculos[token] = { codigo: codigoNuevo(estado), expira: ahora + VIGENCIA_CODIGO_MS };
+  estado.version++;
+  return vinculoDe(estado, token, ahora);
+}
+
+export function pantallaAContrato(x: PantallaSim) {
+  return { id: x.id, nombre: x.nombre, vinculada_en: iso(x.vinculada_en), vinculada_por: x.vinculada_por, ultimo_reporte: x.ultimo_reporte === null ? null : iso(x.ultimo_reporte) };
+}
+
+export function listarPantallas(estado: EstadoSim) {
+  return bien({ pantallas: [...estado.pantallas].sort((a, b) => b.vinculada_en - a.vinculada_en).map(pantallaAContrato) });
+}
+
+export function vincularPantalla(estado: EstadoSim, codigo: string, nombre: string, quien: Personal, ahora: number) {
+  olvidarVencidos(estado, ahora);
+  const entrada = Object.entries(estado.vinculos).find(([, v]) => v.codigo === codigo);
+  if (!entrada) return mal(404, 'no_encontrado', 'Ese código no existe o ya venció');
+  const [token] = entrada;
+  delete estado.vinculos[token];
+  const pantalla: PantallaSim = { id: siguiente(estado, 'p'), nombre: nombre.trim(), slug: estado.bar.slug, token, vinculada_en: ahora, vinculada_por: quien, ultimo_reporte: null };
+  estado.pantallas.push(pantalla);
+  anotar(estado, ahora, quien, 'vincular_pantalla', { tipo: 'pantalla', nombre: pantalla.nombre, detalle: null });
+  return bien(pantallaAContrato(pantalla), 201);
+}
+
+export function desvincularPantalla(estado: EstadoSim, id: string, quien: Personal, ahora: number) {
+  const pantalla = estado.pantallas.find((x) => x.id === id);
+  if (!pantalla) return mal(404, 'no_encontrado', 'Esa pantalla ya no está vinculada');
+  estado.pantallas = estado.pantallas.filter((x) => x.id !== id);
+  anotar(estado, ahora, quien, 'desvincular_pantalla', { tipo: 'pantalla', nombre: pantalla.nombre, detalle: null });
+  return bien(null, 204);
 }
 
 // ── Horario (RF-036) ─────────────────────────────────────────────────────────

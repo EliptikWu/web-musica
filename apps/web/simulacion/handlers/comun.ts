@@ -5,6 +5,7 @@ import type { Personal, Resultado } from '../motor';
 import type { EstadoSim } from '../tipos';
 
 export const COOKIE_PANEL = 'rockola_panel';
+export const COOKIE_PANTALLA = 'rockola_pantalla';
 
 export type Peticion = {
   estado: EstadoSim;
@@ -14,6 +15,8 @@ export type Peticion = {
   cuerpo: unknown;
   dispositivo: string | null;
   personal: (Personal & { rol: Rol }) | null;
+  /** Valor de la cookie `rockola_pantalla` (RF-058). */
+  tokenPantalla: string | null;
 };
 
 /** `/bares/{slug}/ahora` → `/api/bares/:slug/ahora` */
@@ -53,14 +56,9 @@ export function manejar<N extends NombreEndpoint>(nombre: N, fn: (p: Peticion) =
     const clave = request.headers.get('Idempotency-Key');
     const dispositivo = request.headers.get('X-Rockola-Dispositivo');
     const token = cookies[COOKIE_PANEL];
+    const tokenPantalla = cookies[COOKIE_PANTALLA] ?? null;
 
     const resultado = await conEstado((estado, ahora) => {
-      if (clave && estado.idempotencia[clave]) {
-        const guardada = estado.idempotencia[clave]!;
-        return guardada.estado >= 400
-          ? ({ ok: false, estado: guardada.estado, ...(guardada.cuerpo as { codigo: never; mensaje: string }) } as Resultado<unknown>)
-          : ({ ok: true, estado: guardada.estado as 200, cuerpo: guardada.cuerpo } as Resultado<unknown>);
-      }
       if ('slug' in parametros && parametros.slug !== estado.bar.slug) {
         return { ok: false, estado: 404, codigo: 'no_encontrado', mensaje: 'Ese bar no existe' } as const;
       }
@@ -77,7 +75,22 @@ export function manejar<N extends NombreEndpoint>(nombre: N, fn: (p: Peticion) =
           return { ok: false, estado: 403, codigo: 'sin_permiso', mensaje: 'Tu rol no permite esta acción' } as const;
         }
       }
-      const r = fn({ estado, ahora, parametros, consulta: url.searchParams, cuerpo, dispositivo, personal });
+      // Solo una pantalla vinculada a este bar mueve la cola (RF-058).
+      const pantalla = 'pantalla' in e && e.pantalla && tokenPantalla ? estado.pantallas.find((x) => x.token === tokenPantalla && x.slug === parametros.slug) : undefined;
+      if ('pantalla' in e && e.pantalla && !pantalla) return { ok: false, estado: 401, codigo: 'no_autenticado', mensaje: 'Esta pantalla no está vinculada' } as const;
+      // La repetición de una petición se responde después de comprobar quién la hace: una clave
+      // conocida no sirve para saltarse la sesión ni la vinculación.
+      if (clave && estado.idempotencia[clave]) {
+        const guardada = estado.idempotencia[clave]!;
+        return guardada.estado >= 400
+          ? ({ ok: false, estado: guardada.estado, ...(guardada.cuerpo as { codigo: never; mensaje: string }) } as Resultado<unknown>)
+          : ({ ok: true, estado: guardada.estado as 200, cuerpo: guardada.cuerpo } as Resultado<unknown>);
+      }
+      const r = fn({ estado, ahora, parametros, consulta: url.searchParams, cuerpo, dispositivo, personal, tokenPantalla });
+      if (pantalla && r.ok) {
+        pantalla.ultimo_reporte = ahora;
+        estado.version++;
+      }
       if (clave && 'idempotente' in e && e.idempotente) {
         estado.idempotencia[clave] = { estado: r.estado, cuerpo: r.ok ? r.cuerpo : { codigo: r.codigo, mensaje: r.mensaje, detalle: r.detalle }, en: Date.now() };
         estado.version++;

@@ -211,6 +211,8 @@
 
   .formulario-fila { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .campo__entrada--hora { max-width: 9rem; }
+  /* AÑADIDO (RF-058): el código que muestra la TV, con el mismo ancho condensado de sus teclas. */
+  .campo__entrada--codigo { max-width: 12rem; font-stretch: 75%; font-weight: 800; font-size: 24px; letter-spacing: .18em; text-transform: uppercase; }
   select.campo__entrada { appearance: auto; }
 
   /* Editor del horario: un día por fila. */

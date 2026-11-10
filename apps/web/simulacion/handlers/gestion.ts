@@ -3,7 +3,8 @@ import type { z } from 'zod';
 import {
   activarLista, agregarALista, bitacora, buscarCatalogo, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEstablecimiento,
   editarEvento, editarUsuario, eliminarEvento, eliminarLista, establecimientoAContrato, guardarHorario, listaDetalle, listaResumen,
-  listarEventos, listarUsuarios, ordenarLista, qrAContrato, quitarDeLista, regenerarQr, renombrarLista, restablecerClave,
+  desvincularPantalla, listarEventos, listarPantallas, listarUsuarios, ordenarLista, qrAContrato, quitarDeLista, regenerarQr, renombrarLista,
+  restablecerClave, vincularPantalla,
 } from '../gestion';
 import { error, manejar, ok, type Peticion } from './comun';
 
@@ -52,6 +53,14 @@ export const manejadoresGestion = [
   manejar('editarEstablecimiento', (p) => editarEstablecimiento(p.estado, cuerpo<z.infer<typeof CambioEstablecimiento>>(p), quien(p), p.ahora)),
   manejar('qrEstablecimiento', ({ estado }) => ok(qrAContrato(estado, location.origin))),
   manejar('regenerarQr', (p) => regenerarQr(p.estado, location.origin, quien(p), p.ahora)),
+
+  // Pantallas del bar (RF-058)
+  manejar('pantallas', ({ estado }) => listarPantallas(estado)),
+  manejar('vincularPantalla', (p) => {
+    const { codigo, nombre } = cuerpo<{ codigo: string; nombre: string }>(p);
+    return vincularPantalla(p.estado, codigo, nombre, quien(p), p.ahora);
+  }),
+  manejar('desvincularPantalla', (p) => desvincularPantalla(p.estado, p.parametros.id ?? '', quien(p), p.ahora)),
 
   // Bitácora
   manejar('bitacora', ({ estado, consulta }) =>

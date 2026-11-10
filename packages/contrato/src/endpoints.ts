@@ -12,7 +12,7 @@ import {
   ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, type Rol, UsuarioCreado, UsuarioPanel,
   YoPanel, Bloqueo,
 } from './panel.ts';
-import { ReportePantalla } from './pantalla.ts';
+import { CuerpoVincularPantalla, ListaPantallas, PantallaVinculada, ReportePantalla, VinculoPantalla } from './pantalla.ts';
 import { CuerpoCambioVoto, CuerpoSolicitud, QrPublico, ResolucionQr, RespuestaSolicitud, RespuestaVoto } from './solicitudes.ts';
 
 export type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -38,6 +38,8 @@ export type Endpoint = {
   idempotente?: boolean;
   /** Rol mínimo en el panel. Sin él, la ruta es pública. */
   rol?: Rol;
+  /** Pide una pantalla vinculada (cookie `rockola_pantalla`, RF-058). */
+  pantalla?: true;
   errores: readonly CodigoError[];
 };
 
@@ -63,9 +65,11 @@ export const endpoints = {
 
   // ── Pantalla del bar ───────────────────────────────────────────────────────
   qrPublico: definir({ metodo: 'GET', ruta: '/bares/{slug}/qr-publico', resumen: 'URL que codifica el QR de la placa', superficie: 'pantalla', rf: ['RF-035'], respuesta: QrPublico, estado: 200, errores: ['no_encontrado'] }),
-  reportarInicio: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/inicio', resumen: 'El reproductor empezó la canción', superficie: 'pantalla', rf: ['RF-019'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, errores: ['no_encontrado'] }),
-  reportarFin: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/fin', resumen: 'El reproductor terminó la canción', superficie: 'pantalla', rf: ['RF-019', 'RF-020'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, errores: ['no_encontrado'] }),
-  reportarError: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/error', resumen: 'El reproductor no pudo reproducir la canción', superficie: 'pantalla', rf: ['RF-007'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, errores: ['no_encontrado'] }),
+  reportarInicio: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/inicio', resumen: 'El reproductor empezó la canción', superficie: 'pantalla', rf: ['RF-019', 'RF-058'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, pantalla: true, errores: ['no_autenticado', 'no_encontrado'] }),
+  reportarFin: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/fin', resumen: 'El reproductor terminó la canción', superficie: 'pantalla', rf: ['RF-019', 'RF-020', 'RF-058'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, pantalla: true, errores: ['no_autenticado', 'no_encontrado'] }),
+  reportarError: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/reproducciones/{id}/error', resumen: 'El reproductor no pudo reproducir la canción', superficie: 'pantalla', rf: ['RF-007', 'RF-058'], cuerpo: ReportePantalla, respuesta: SinContenido, estado: 204, idempotente: true, pantalla: true, errores: ['no_autenticado', 'no_encontrado'] }),
+  vinculoPantalla: definir({ metodo: 'GET', ruta: '/bares/{slug}/pantalla/vinculo', resumen: 'Cómo está esta pantalla según su cookie', superficie: 'pantalla', rf: ['RF-058'], respuesta: VinculoPantalla, estado: 200, errores: ['no_encontrado'] }),
+  pedirCodigoPantalla: definir({ metodo: 'POST', ruta: '/bares/{slug}/pantalla/vinculo', resumen: 'Pedir un código para vincular esta pantalla (pone la cookie rockola_pantalla)', superficie: 'pantalla', rf: ['RF-058'], respuesta: VinculoPantalla, estado: 201, errores: ['no_encontrado'] }),
 
   // ── Panel: sesión ──────────────────────────────────────────────────────────
   entrar: definir({ metodo: 'POST', ruta: '/panel/sesion', resumen: 'Entrar al panel', superficie: 'panel', rf: ['RF-021'], cuerpo: CuerpoEntrar, respuesta: YoPanel, estado: 200, errores: ['credenciales_invalidas', 'cuenta_bloqueada', 'datos_invalidos'] }),
@@ -113,6 +117,9 @@ export const endpoints = {
   editarEstablecimiento: definir({ metodo: 'PATCH', ruta: '/panel/establecimiento', resumen: 'Editar el establecimiento', superficie: 'panel', rf: ['RF-034'], cuerpo: CambioEstablecimiento, respuesta: Establecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   qrEstablecimiento: definir({ metodo: 'GET', ruta: '/panel/establecimiento/qr', resumen: 'QR vigente', superficie: 'panel', rf: ['RF-035'], respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   regenerarQr: definir({ metodo: 'POST', ruta: '/panel/establecimiento/qr/regeneracion', resumen: 'Regenerar el QR (el anterior deja de funcionar)', superficie: 'panel', rf: ['RF-035'], respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  pantallas: definir({ metodo: 'GET', ruta: '/panel/pantallas', resumen: 'Pantallas vinculadas', superficie: 'panel', rf: ['RF-058'], respuesta: ListaPantallas, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  vincularPantalla: definir({ metodo: 'POST', ruta: '/panel/pantallas', resumen: 'Vincular la pantalla que muestra el código', superficie: 'panel', rf: ['RF-058'], cuerpo: CuerpoVincularPantalla, respuesta: PantallaVinculada, estado: 201, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
+  desvincularPantalla: definir({ metodo: 'DELETE', ruta: '/panel/pantallas/{id}', resumen: 'Desvincular una pantalla (deja de poder reportar)', superficie: 'panel', rf: ['RF-058'], respuesta: SinContenido, estado: 204, rol: 'administrador', errores: [...PANEL_ERR, 'no_encontrado'] }),
   bitacora: definir({ metodo: 'GET', ruta: '/panel/bitacora', resumen: 'Bitácora de acciones', superficie: 'panel', rf: ['RF-044', 'RF-008'], consulta: z.object({ desde: z.string().optional(), hasta: z.string().optional(), usuario: z.string().optional(), tipo: z.string().optional(), cursor: z.string().optional() }), respuesta: PaginaBitacora, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   eventos: definir({ metodo: 'GET', ruta: '/panel/eventos', resumen: 'Calendario de eventos', superficie: 'panel', rf: ['RF-045'], respuesta: ListaEventos, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   crearEvento: definir({ metodo: 'POST', ruta: '/panel/eventos', resumen: 'Crear un evento', superficie: 'panel', rf: ['RF-045'], cuerpo: CuerpoEvento, respuesta: EventoBar, estado: 201, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'conflicto'] }),

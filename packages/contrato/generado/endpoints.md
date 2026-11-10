@@ -24,9 +24,11 @@
 | Operación | Método y ruta | Cuerpo → respuesta | Rol | Errores | RF |
 |---|---|---|---|---|---|
 | `qrPublico` | `GET /bares/{slug}/qr-publico` | `QrPublico` | público | `no_encontrado` | RF-035 |
-| `reportarInicio` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/inicio` | `ReportePantalla` → 204 | público | `no_encontrado` | RF-019 |
-| `reportarFin` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/fin` | `ReportePantalla` → 204 | público | `no_encontrado` | RF-019, RF-020 |
-| `reportarError` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/error` | `ReportePantalla` → 204 | público | `no_encontrado` | RF-007 |
+| `reportarInicio` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/inicio` | `ReportePantalla` → 204 | pantalla vinculada | `no_autenticado`, `no_encontrado` | RF-019, RF-058 |
+| `reportarFin` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/fin` | `ReportePantalla` → 204 | pantalla vinculada | `no_autenticado`, `no_encontrado` | RF-019, RF-020, RF-058 |
+| `reportarError` (idempotente) | `POST /bares/{slug}/pantalla/reproducciones/{id}/error` | `ReportePantalla` → 204 | pantalla vinculada | `no_autenticado`, `no_encontrado` | RF-007, RF-058 |
+| `vinculoPantalla` | `GET /bares/{slug}/pantalla/vinculo` | `VinculoPantalla` | público | `no_encontrado` | RF-058 |
+| `pedirCodigoPantalla` | `POST /bares/{slug}/pantalla/vinculo` | `VinculoPantalla` | público | `no_encontrado` | RF-058 |
 
 ## Panel
 
@@ -71,6 +73,9 @@
 | `editarEstablecimiento` | `PATCH /panel/establecimiento` | `CambioEstablecimiento` → `Establecimiento` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-034 |
 | `qrEstablecimiento` | `GET /panel/establecimiento/qr` | `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso` | RF-035 |
 | `regenerarQr` | `POST /panel/establecimiento/qr/regeneracion` | `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso` | RF-035 |
+| `pantallas` | `GET /panel/pantallas` | `ListaPantallas` | administrador | `no_autenticado`, `sin_permiso` | RF-058 |
+| `vincularPantalla` | `POST /panel/pantallas` | `CuerpoVincularPantalla` → `PantallaVinculada` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-058 |
+| `desvincularPantalla` | `DELETE /panel/pantallas/{id}` | 204 | administrador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-058 |
 | `bitacora` | `GET /panel/bitacora?desde&hasta&usuario&tipo&cursor` | `PaginaBitacora` | administrador | `no_autenticado`, `sin_permiso` | RF-044, RF-008 |
 | `eventos` | `GET /panel/eventos` | `ListaEventos` | administrador | `no_autenticado`, `sin_permiso` | RF-045 |
 | `crearEvento` | `POST /panel/eventos` | `CuerpoEvento` → `EventoBar` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `conflicto` | RF-045 |

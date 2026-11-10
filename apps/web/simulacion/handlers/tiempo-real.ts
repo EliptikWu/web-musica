@@ -29,6 +29,7 @@ function huellas(estado: EstadoSim, ahora: number): Record<RecursoPanel, string>
     usuarios: JSON.stringify(estado.usuarios),
     establecimiento: JSON.stringify([estado.bar, estado.qr.token]),
     eventos: JSON.stringify(estado.eventos),
+    pantallas: JSON.stringify(estado.pantallas),
   };
 }
 

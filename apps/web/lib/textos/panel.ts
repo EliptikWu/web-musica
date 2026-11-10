@@ -139,6 +139,41 @@ export const entrada = {
   volver: 'Volver a la operación',
 };
 
+// ── Pantallas del bar (RF-058) ───────────────────────────────────────────────
+
+export const pantallas = {
+  titulo: 'Pantallas del bar',
+  nota: 'Las TV que ponen la música y mueven la cola.',
+  vacio: {
+    titulo: 'Ninguna pantalla está vinculada',
+    detalle: 'Sin una, la música no avanza. Vincula la TV del bar con el formulario de al lado.',
+  },
+  vinculada: (fecha: string, quien: string) => `Vinculada el ${fecha} por ${quien}`,
+  ultimoReporte: (fecha: string) => `Puso música por última vez el ${fecha}`,
+  sinReporte: 'Todavía no ha puesto música',
+  desvincular: 'Desvincular',
+  dialogo: {
+    titulo: (nombre: string) => `¿Desvincular «${nombre}»?`,
+    texto: 'Esa pantalla deja de poner la música y vuelve a mostrar un código. Para usarla otra vez, tendrás que vincularla de nuevo.',
+    confirmar: 'Desvincular pantalla',
+  },
+  desvinculada: (nombre: string) => `«${nombre}» se desvinculó.`,
+  formulario: {
+    titulo: 'Vincular una pantalla',
+    abre: 'En el navegador de la TV, abre',
+    abreDespues: 'y aparece su código.',
+    codigo: 'Código que muestra la TV',
+    codigoAyuda: 'Escribe solo el código que ves en la TV del bar: la pantalla que lo muestre podrá poner la música.',
+    nombre: 'Nombre de la pantalla',
+    nombreAyuda: 'Para reconocerla aquí, como «TV de la barra».',
+    boton: 'Vincular pantalla',
+    errorCodigo: 'El código tiene 6 letras y números, sin 0, O, 1 ni I.',
+    errorNombre: 'Ponle un nombre a la pantalla.',
+    noExiste: 'Ese código no existe o ya venció. Revisa la TV: el código cambia cada 10 min.',
+    listo: (nombre: string) => `«${nombre}» quedó vinculada. En unos segundos la rockola aparece en esa pantalla.`,
+  },
+};
+
 // ── Bitácora: la frase de cada acción ────────────────────────────────────────
 
 const VERBO: Partial<Record<TipoAccion, [tu: string, otro: string]>> = {
@@ -164,6 +199,8 @@ const VERBO: Partial<Record<TipoAccion, [tu: string, otro: string]>> = {
   restablecer_clave: ['Restableciste la clave de', 'restableció la clave de'],
   editar_establecimiento: ['Editaste los datos del bar', 'editó los datos del bar'],
   regenerar_qr: ['Regeneraste el QR', 'regeneró el QR'],
+  vincular_pantalla: ['Vinculaste la pantalla', 'vinculó la pantalla'],
+  desvincular_pantalla: ['Desvinculaste la pantalla', 'desvinculó la pantalla'],
   editar_evento: ['Editaste el evento', 'editó el evento'],
   editar_umbrales: ['Cambiaste los umbrales del tablero', 'cambió los umbrales del tablero'],
   extender_bloqueo: ['Cambiaste el bloqueo de', 'cambió el bloqueo de'],
@@ -172,7 +209,7 @@ const VERBO: Partial<Record<TipoAccion, [tu: string, otro: string]>> = {
 function objetivoTexto(a: AccionAdmin): string {
   if (!a.objetivo) return '';
   if (a.objetivo.tipo === 'cancion') return ` «${a.objetivo.nombre}»${a.objetivo.detalle ? `, de ${a.objetivo.detalle}` : ''}`;
-  if (['usuario', 'lista', 'evento'].includes(a.objetivo.tipo)) return ` «${a.objetivo.nombre}»`;
+  if (['usuario', 'lista', 'evento', 'pantalla'].includes(a.objetivo.tipo)) return ` «${a.objetivo.nombre}»`;
   return '';
 }
 

@@ -54,6 +54,7 @@ export const TipoAccion = z
     'editar_horario', 'editar_lista', 'activar_lista',
     'crear_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'restablecer_clave',
     'editar_establecimiento', 'regenerar_qr', 'editar_evento', 'editar_umbrales',
+    'vincular_pantalla', 'desvincular_pantalla',
     'error_youtube', 'intento_no_permitido',
   ])
   .meta({ id: 'TipoAccion' });
@@ -67,7 +68,7 @@ export const AccionAdmin = z
     tipo: TipoAccion,
     objetivo: z
       .object({
-        tipo: z.enum(['cancion', 'usuario', 'lista', 'horario', 'servicio', 'sesion', 'establecimiento', 'evento']),
+        tipo: z.enum(['cancion', 'usuario', 'lista', 'horario', 'servicio', 'sesion', 'establecimiento', 'evento', 'pantalla']),
         nombre: z.string(),
         detalle: z.string().nullable().describe('Para una canción, el artista'),
       })

@@ -6,6 +6,7 @@ export const claves = {
   yo: (slug: string) => ['yo', slug] as const,
   busqueda: (slug: string, q: string) => ['busqueda', slug, q] as const,
   qrPublico: (slug: string) => ['qr-publico', slug] as const,
+  vinculoPantalla: (slug: string) => ['vinculo-pantalla', slug] as const,
   panel: {
     todo: ['panel'] as const,
     yo: ['panel', 'yo'] as const,
@@ -17,6 +18,7 @@ export const claves = {
     usuarios: ['panel', 'usuarios'] as const,
     establecimiento: ['panel', 'establecimiento'] as const,
     qr: ['panel', 'establecimiento', 'qr'] as const,
+    pantallas: ['panel', 'pantallas'] as const,
     bitacora: ['panel', 'bitacora'] as const,
     eventos: ['panel', 'eventos'] as const,
     busqueda: (q: string) => ['panel', 'busqueda', q] as const,

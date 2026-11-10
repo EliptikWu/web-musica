@@ -36,7 +36,7 @@ function leer(): EstadoSim | null {
     const texto = localStorage.getItem(CLAVE);
     if (!texto) return null;
     const estado = JSON.parse(texto) as EstadoSim;
-    return estado.esquema === 1 ? estado : null;
+    return estado.esquema === 2 ? estado : null;
   } catch (error) {
     console.error('[simulación] estado ilegible; se vuelve a sembrar', error);
     return null;

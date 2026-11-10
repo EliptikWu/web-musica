@@ -147,6 +147,10 @@ Cumple el contrato en el navegador para trabajar sin backend (D5).
 - Panel: el backend pone una cookie httpOnly; `proxy.ts` solo comprueba que exista para
   mandar a `/panel/entrar`; la verdad es `GET /panel/yo`. Los permisos se aplican en el
   servidor; la interfaz solo oculta.
+- Pantalla del bar: su propia cookie httpOnly (`rockola_pantalla`), que pone el backend al
+  pedir el código y que vale para reportar cuando el Administrador escribe ese código en el
+  panel (RF-058, ADR-23). La ruta `/b/{bar}/pantalla` sigue siendo pública: lo que se
+  protege son los reportes.
 - El QR codifica `/q/[token]`, no la ruta del bar, para que regenerarlo invalide el
   anterior (RF-035).
 
@@ -176,3 +180,4 @@ Cumple el contrato en el navegador para trabajar sin backend (D5).
 | ADR-20 | 2026-11-10 | La espera de cada canción la calcula el backend (`espera_seg` en `ItemCola`, en el instante `servidor_ahora`); el cliente solo le descuenta lo que avanza lo que suena | Con la app Android la regla viviría en dos clientes y en el backend, y los números no coincidirían (propuesta del backend) | Que cada cliente sume duraciones: hecho hasta la iteración 6, pero se duplica en Kotlin. `restante_seg` y `generado_en` sobran: ya existen `posicion_seg` y `servidor_ahora` |
 | ADR-21 | 2026-11-10 | El teléfono se identifica con un UUID propio en `X-Rockola-Dispositivo`; el servidor guarda solo su SHA-256 (RF-002, RNF-007) | Ya funciona en la web y en Android, sin registro ni SDK. Un UUID v4 es aleatorio: su hash no se revierte | UID anónimo de Firebase con token verificado: tampoco impide crear identidades nuevas y obliga a meter su SDK en las dos apps |
 | ADR-22 | 2026-11-10 | La pantalla del bar se empareja desde el panel: el Administrador pide un código de un solo uso, la TV lo introduce y el backend le da una sesión de pantalla (cookie httpOnly que pasa por el proxy, solo ese bar y solo los reportes de reproducción), revocable y anotada en la bitácora | Que un cliente no pueda reportar «fin» y saltar canciones, sin una clave global en el JavaScript (propuesta del backend, igual a la de doc 04). Los endpoints y las pantallas entran en una iteración propia, con su diseño | Una clave en el JavaScript: la ve cualquiera. Reportar desde el servidor de Next sin autenticación propia: cualquiera que abra la ruta reporta |
+| ADR-23 | 2026-11-10 | Reemplaza a ADR-22. La TV pide el código y lo muestra; el Administrador lo escribe en el panel con un nombre para la pantalla (como al vincular un televisor a Netflix o YouTube). El backend pone la cookie httpOnly `rockola_pantalla` al pedir el código y la activa cuando el código se confirma; la TV pregunta cada 2 s hasta que queda vinculada (RNF-009: 3 s o menos) | La TV del bar se maneja con un control remoto o un mouse: escribir ahí es incómodo, y en el panel el Administrador ya tiene teclado. Que el código salga de la TV obliga a estar frente a ella para leerlo (decisión del usuario) | ADR-22: el panel genera el código y se escribe en la TV. Quien escriba el código que le muestre otro equipo lo vincula: el panel lo advierte |

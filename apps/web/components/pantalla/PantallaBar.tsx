@@ -1,6 +1,6 @@
 'use client';
 
-import type { Ahora, Bar, ItemCola } from '@rockola/contrato';
+import type { Ahora, Bar, ItemCola, VinculoPantalla } from '@rockola/contrato';
 import { Arco, Avance, DiasSemana, Icono, LuzEstado, TarjetaTitulo, Tecla } from '@rockola/ui';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,6 +18,7 @@ import { useConexionCaida } from '@/lib/tiempo-real/estado';
 import { conexion, luzServicio, servicioCerrado } from '@/lib/textos/cliente';
 import { TV } from '@/lib/textos/pantalla';
 import { Reproductor } from './Reproductor';
+import { useVinculoPantalla } from './vinculo';
 
 const VISIBLES = 5;
 
@@ -27,6 +28,7 @@ const VISIBLES = 5;
  * Se ve desde lejos y se actualiza sola.
  */
 export function PantallaBar({ slug }: { slug: string }) {
+  const { vinculo, sinRed, desvinculada, alPerderVinculo } = useVinculoPantalla(slug);
   const bar = useBar(slug);
   const ahora = useAhora(slug);
   const qr = useQuery({ queryKey: claves.qrPublico(slug), queryFn: ({ signal }) => pedir('qrPublico', { parametros: { slug }, signal }), staleTime: Infinity });
@@ -37,7 +39,11 @@ export function PantallaBar({ slug }: { slug: string }) {
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
       // La clave es fija por reproducción y tipo: dos pantallas que reportan el mismo fin no saltan dos canciones.
       pedir(tipo, { parametros: { slug, id }, cuerpo: { posicion_seg: posicion, codigo_youtube: codigo }, idempotencia: `${id}-${tipo}` }),
-    onError: (error) => console.error('[pantalla] no se pudo reportar', error),
+    onError: (error) => {
+      // 401: la desvincularon desde el panel; vuelve a mostrar un código (RF-058).
+      if (codigoDe(error) === 'no_autenticado') alPerderVinculo();
+      else console.error('[pantalla] no se pudo reportar', error);
+    },
   });
 
   if (codigoDe(bar.error) === 'no_encontrado') {
@@ -48,6 +54,20 @@ export function PantallaBar({ slug }: { slug: string }) {
         </div>
       </LienzoTv>
     );
+  }
+  if (!vinculo.data) {
+    return (
+      <LienzoTv>
+        <div className="grid h-full place-items-center">
+          <p className="secundario text-[18px]" role="status">
+            {vinculo.error ? TV.noCargo : TV.cargando}
+          </p>
+        </div>
+      </LienzoTv>
+    );
+  }
+  if (vinculo.data.estado !== 'vinculada') {
+    return <SinVincular nombreBar={bar.data?.nombre ?? null} vinculo={vinculo.data} sinRed={sinRed} desvinculada={desvinculada} instante={instante} />;
   }
   if (!bar.data || !ahora.data) {
     return (
@@ -166,7 +186,7 @@ function LadoDerecho({ foto, bar, avance }: { foto: Ahora; bar: Bar; avance: num
   return (
     <>
       <ol className="filas viene">
-        {visibles.map((item, i) => (
+        {visibles.map((item) => (
           <FilaTv key={item.solicitud_id} item={item} espera={esperaDe(item, avance)} />
         ))}
       </ol>
@@ -227,6 +247,82 @@ function PlacaQr({ url }: { url: string | null }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * La TV sin vincular (RF-058): el código dentro del arco apagado, como teclas de selección
+ * que se leen desde la barra, y los pasos para escribirlo en el panel. No reproduce ni reporta.
+ */
+function SinVincular({
+  nombreBar,
+  vinculo,
+  sinRed,
+  desvinculada,
+  instante,
+}: {
+  nombreBar: string | null;
+  vinculo: Exclude<VinculoPantalla, { estado: 'vinculada' }>;
+  sinRed: boolean;
+  desvinculada: boolean;
+  instante: number;
+}) {
+  const t = TV.vincular;
+  const codigo = vinculo.estado === 'esperando' ? vinculo.codigo : null;
+  const minutos = vinculo.estado === 'esperando' && instante ? Math.floor((Date.parse(vinculo.expira_en) - instante) / 60_000) : null;
+  return (
+    <LienzoTv apagada>
+      {desvinculada ? <p className="tv-banner" role="status">{t.desvinculada}</p> : null}
+      <div className="tv tv--vincular">
+        <section className="tv__izq" aria-label={t.etiquetaCodigo}>
+          <Arco apagado>
+            {nombreBar ? <h1 className="placa placa-bar">{nombreBar}</h1> : null}
+            <div className="video">
+              <div className="video__centro">
+                {codigo ? (
+                  <div className="codigo-tv">
+                    <p className="codigo-tv__etiqueta">{t.etiquetaCodigo}</p>
+                    <p>
+                      {/* El lector lo deletrea; las teclas son solo para verlo de lejos. */}
+                      <span className="solo-lector">{codigo.split('').join(' ')}</span>
+                      <span className="codigo-tv__teclas" aria-hidden="true">
+                        {codigo.split('').map((letra, i) => (
+                          <span key={i} className="tecla">
+                            {letra}
+                          </span>
+                        ))}
+                      </span>
+                    </p>
+                  </div>
+                ) : (
+                  <p className="placa text-[24px]" role="status">
+                    {sinRed ? t.noPidio : t.pidiendo}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Arco>
+        </section>
+
+        <section className="tv__der" aria-labelledby="t-vincular">
+          <div className="tv__cabeza">
+            <h2 id="t-vincular" className="placa">
+              {t.titulo}
+            </h2>
+            <LuzEstado encendida={false}>{t.luz}</LuzEstado>
+          </div>
+          <div className="tv-aviso">
+            <p className="mt-0!">{t.porQue}</p>
+            <ol className="pasos-tv">
+              {t.pasos.map((paso) => (
+                <li key={paso}>{paso}</li>
+              ))}
+            </ol>
+          </div>
+          {minutos !== null ? <p className="vence-tv">{t.vence(Math.max(0, minutos))}</p> : null}
+        </section>
+      </div>
+    </LienzoTv>
   );
 }
 

@@ -22,6 +22,7 @@ el equipo de backend y, cuando ellos publiquen su OpenAPI, manda el suyo y se aj
 | Reintentos | `Idempotency-Key: <uuid>` en `POST` de solicitudes y votos: la misma clave devuelve la misma respuesta (RNF-008) |
 | Errores | `{ "codigo": "...", "mensaje": "...", "detalle": {...}? }` con los códigos de abajo; el cliente traduce `codigo` a su texto |
 | Sesión del panel | Cookie httpOnly que pone el backend; `401 no_autenticado` si falta o caducó |
+| Pantalla del bar | Cookie httpOnly `rockola_pantalla` que pone el backend al pedir el código (RF-058, ADR-23); los reportes responden `401 no_autenticado` si falta, no está vinculada o se desvinculó. *(Propuesto:* `Secure`, `SameSite=Strict`, `Path=/api/bares/{slug}/pantalla`, un año, renovable*)* |
 | Tiempo real | SSE en `GET /bares/{slug}/eventos` (ADR-07) |
 
 ## Entidades que ve el frontend
@@ -101,6 +102,7 @@ para ocultar lo que no se puede (`apps/web/lib/permisos.ts`).
 | Bloquear por horas o indefinidamente; desbloquear; extender | No | Sí |
 | Modo mantenimiento; abrir y cerrar la sesión a mano | No | Sí |
 | Horario, listas de la casa, usuarios, establecimiento y QR, eventos | No | Sí |
+| Vincular y desvincular pantallas del bar | No | Sí |
 | Bitácora completa y tablero analítico | No | Sí |
 | Manual de uso | Su parte | Completo |
 
@@ -132,13 +134,20 @@ origen. El detalle de cuerpos y respuestas está en `generado/endpoints.md`.
 |---|---|---|
 | `GET /bares/{slug}/ahora` | La misma foto | 015–018 |
 | `GET /bares/{slug}/qr-publico` | URL que codifica el QR de la placa | 035 |
-| `POST /bares/{slug}/pantalla/reproducciones/{id}/inicio` · `/fin` · `/error` | Reportar el reproductor (`posicion_seg`, `codigo_youtube`) | 007, 019, 020 |
+| `POST /bares/{slug}/pantalla/reproducciones/{id}/inicio` · `/fin` · `/error` | Reportar el reproductor (`posicion_seg`, `codigo_youtube`). **Piden una pantalla vinculada** | 007, 019, 020, 058 |
+| `GET /bares/{slug}/pantalla/vinculo` | Cómo está esta pantalla según su cookie: `sin_vincular`, `esperando` (con `codigo` y `expira_en`) o `vinculada` (con su `nombre`). La TV pregunta cada 2 s mientras espera y cada 10 s ya vinculada, por si la desvinculan | 058 |
+| `POST /bares/{slug}/pantalla/vinculo` | Pedir un código nuevo: pone la cookie `rockola_pantalla` y responde `esperando`. Un código nuevo reemplaza al anterior de esa pantalla | 058 |
 
-Autenticación de la pantalla: emparejada desde el panel con un código de un solo uso, que
-el backend cambia por una sesión de pantalla en cookie httpOnly, solo para ese bar y para
-estos reportes, revocable y anotada en la bitácora (ADR-22). `TBD`: los endpoints, que se
-agregan al contrato en la iteración que lo construya. Un reporte con un `id` que ya no es
-el vigente no hace nada, así que dos pestañas o un reintento no saltan dos canciones.
+Vinculación (RF-058, ADR-23): la TV pide un código de 6 caracteres sin los que se
+confunden (`0`, `O`, `1`, `I`), que vence a los 10 min *(propuesto)*; el Administrador lo
+escribe en el panel y la cookie de esa TV queda vinculada al bar, solo para estos
+reportes. Varias pantallas pueden estar vinculadas a la vez: un reporte con un `id` que ya
+no es el vigente no hace nada, así que dos pantallas o un reintento no saltan dos
+canciones. Para el backend: un reporte cuyo `{slug}` no es el bar de esa pantalla responde
+`401`, y un código solo se confirma desde el panel de su mismo bar; la sesión de la pantalla
+se comprueba antes de responder desde la caché de `Idempotency-Key`, y esa caché se separa
+por operación (la TV usa claves previsibles, `{id}-{tipo}`). *(Propuesto:* limitar cuántos
+códigos pide una misma IP por minuto*)*.
 
 ### Panel (cookie de sesión)
 
@@ -157,6 +166,7 @@ el vigente no hace nada, así que dos pestañas o un reintento no saltan dos can
 | `GET /panel/busqueda?q=` | Buscar para armar listas | 031 |
 | `GET/POST /panel/usuarios` · `PATCH /panel/usuarios/{id}` · `POST …/clave-temporal` · `…/desactivacion` · `…/reactivacion` | Personal | 023–026 |
 | `GET/PATCH /panel/establecimiento` · `GET …/qr` · `POST …/qr/regeneracion` | Establecimiento y QR | 034, 035 |
+| `GET/POST /panel/pantallas` · `DELETE /panel/pantallas/{id}` | Pantallas vinculadas; vincular con `{ codigo, nombre }` (`404 no_encontrado` si el código no existe o venció); desvincular. Quedan en la bitácora (`vincular_pantalla`, `desvincular_pantalla`) | 058 |
 | `GET /panel/bitacora?desde&hasta&usuario&tipo&cursor` | Bitácora (incluye errores de YouTube) | 044, 008 |
 | `GET/POST /panel/eventos` · `PATCH/DELETE /panel/eventos/{id}` | Calendario de eventos | 045 |
 | `GET /panel/analitica/noches` | Noches cerradas que tiene el tablero, con su evento del calendario | 049, 053 |
@@ -180,7 +190,7 @@ sumar noches juntaría a los habituales y daría una alerta falsa. Umbrales por 
 | `tipo` | Contenido | Cuándo |
 |---|---|---|
 | `ahora` | La foto `Ahora` completa (con `version`) | Cualquier cambio en la cola, los votos, lo que suena o el servicio |
-| `panel` | `{ recursos: [...] }` (`noche`, `yo`, `bitacora`, `bloqueos`, `listas`, `horario`, `usuarios`, `establecimiento`, `eventos`) | Cambió algo del panel; el panel vuelve a pedir **solo** esos recursos. Nombra únicamente los que cambiaron: un voto no hace recargar el personal, y un 403 (que deja rastro en la bitácora) no hace volver a pedir lo rechazado. `yo` cambia con el nombre o la zona del bar y con los datos o el rol de quien mira. Sin datos privados |
+| `panel` | `{ recursos: [...] }` (`noche`, `yo`, `bitacora`, `bloqueos`, `listas`, `horario`, `usuarios`, `establecimiento`, `eventos`, `pantallas`) | Cambió algo del panel; el panel vuelve a pedir **solo** esos recursos. Nombra únicamente los que cambiaron: un voto no hace recargar el personal, y un 403 (que deja rastro en la bitácora) no hace volver a pedir lo rechazado. `yo` cambia con el nombre o la zona del bar y con los datos o el rol de quien mira. Sin datos privados |
 | `ping` | `{ servidor_ahora }` | Cada 15 s, para detectar la desconexión |
 
 Al abrir la conexión, el servidor manda **primero una foto `ahora`**: el cliente solo se
@@ -192,7 +202,7 @@ resincroniza al reconectar.
 | Código | HTTP | Cuándo |
 |---|---|---|
 | `datos_invalidos` | 400 | El cuerpo o los parámetros no cumplen el esquema |
-| `no_autenticado` | 401 | Panel sin sesión o sesión caducada |
+| `no_autenticado` | 401 | Panel sin sesión o sesión caducada; pantalla sin vincular o desvinculada |
 | `credenciales_invalidas` | 401 | Correo o clave incorrectos (mensaje genérico, RF-021) |
 | `sin_permiso` | 403 | El rol no permite la acción (queda en la bitácora) |
 | `debe_cambiar_clave` | 403 | Primer ingreso o clave restablecida |
@@ -217,7 +227,7 @@ resincroniza al reconectar.
 3. Cómo se deriva `artista` y de dónde sale el género (la categoría de YouTube casi
    siempre es «Música»), para RF-051 y los filtros de RF-055; y si la popularidad de los
    filtros son las veces pedida en el bar (lo propuesto) u otra medida.
-4. Autenticación de la pantalla del bar: decidido el emparejamiento (ADR-22); faltan los endpoints.
+4. ~~Autenticación de la pantalla del bar~~ Resuelto el 2026-11-10: vinculación con código (RF-058, ADR-23).
 5. Matriz del Operador (D9) y estado `retirada`.
 6. Valores de bloqueo de cuenta e inactividad del panel.
 7. Si la lista de la casa suena fuera de horario sin sesión abierta.

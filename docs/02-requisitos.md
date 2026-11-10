@@ -50,6 +50,22 @@ Columna «Quién»: **F** = este repositorio, **B** = equipo de backend, **F+B**
 | RF-018 | Tiempo estimado de espera (lo calcula el backend: `espera_seg`, ADR-20) | Must | PB-19 | 1, 2 | F+B |
 | RF-019 | Reproducción automática de la cola | Must | PB-20 | 2 | F+B |
 | RF-020 | Transición automática entre solicitudes y lista por defecto | Must | PB-38 | 2, 3 | F+B |
+| RF-058 | Vinculación de la pantalla del bar (nuevo, 2026-11-10; criterio abajo) | Must | — | 7 | F+B |
+
+**RF-058 (nuevo, no está en las fuentes del equipo).** Solo una pantalla que el
+Administrador vinculó puede mover la cola; si no, cualquiera que abra
+`/b/{bar}/pantalla` podría reportar «fin» y saltar canciones (RF-019). Criterios:
+- Una pantalla sin vincular no reproduce ni reporta: muestra un código de 6 caracteres,
+  grande para leerlo de lejos, que vence a los 10 min *(propuesto)* y se renueva solo.
+- El Administrador escribe ese código en el panel («Bar y QR», «Pantallas») con un nombre
+  («TV de la barra»). En 3 s o menos la TV pasa a mostrar la rockola sin que nadie toque
+  la TV, salvo «Encender» (RNF-009).
+- Los reportes de reproducción sin una pantalla vinculada responden `401 no_autenticado`.
+- El panel lista las pantallas vinculadas y puede desvincular cualquiera; vincular y
+  desvincular quedan en la bitácora (RNF-014). Una pantalla desvinculada deja de poner
+  música y vuelve a mostrar un código, con un aviso, en 10 s o menos *(propuesto)*.
+- La credencial de la pantalla va en una cookie httpOnly: el JavaScript nunca la ve
+  (ADR-23).
 
 ### Módulo 5. Autenticación y gestión de usuarios
 
