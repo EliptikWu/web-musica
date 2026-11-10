@@ -86,9 +86,10 @@ class ContratoParticipacionService(
       insertarVoto(idSolicitud, identidad.dispositivoId)
       tipo = "votada"
     } else {
-      val pendientes = contarPendientes(idSesion, identidad.dispositivoId)
-      if (pendientes >= config.maximo)
-        error(HttpStatus.CONFLICT, "limite_pedidos", "Se alcanzó el cupo de solicitudes pendientes")
+      // RN-01: las canciones propias que están sonando también ocupan cupo.
+      val ocupados = ContratoColaCalculos.cuposOcupados(jdbc, idSesion, identidad.dispositivoId)
+      if (ocupados >= config.maximo)
+        error(HttpStatus.CONFLICT, "limite_pedidos", "Se alcanzó el cupo de solicitudes pendientes o sonando")
       idSolicitud = jdbc.queryForObject(
         """INSERT INTO public.solicitud
                    (id_sesion,id_cancion,id_dispositivo_solicitante,fecha_solicitud,estado)
@@ -100,7 +101,9 @@ class ContratoParticipacionService(
     }
     val puestoYEspera = cola.obtener(idSesion).canciones.firstOrNull { it.solicitudId == idSolicitud }
       ?: throw IllegalStateException("La solicitud no figura en la cola recién actualizada")
-    val restantes = (config.maximo.toLong() - contarPendientes(idSesion, identidad.dispositivoId)).coerceAtLeast(0).toInt()
+    val restantes = ContratoColaCalculos.cuposRestantes(
+      config.maximo, ContratoColaCalculos.cuposOcupados(jdbc, idSesion, identidad.dispositivoId),
+    )
     val resultado = respuesta(201, mapOf(
       "resultado" to tipo,
       "solicitud_id" to idSolicitud.toString(), // OpenAPI Id: string, NO bigint en JSON.
@@ -357,11 +360,6 @@ class ContratoParticipacionService(
                VALUES (?,?,CURRENT_TIMESTAMP,TRUE)""",idSolicitud,idDispositivo,
     )
   }
-  private fun contarPendientes(idSesion: Long, idDispositivo: Long): Long = jdbc.queryForObject(
-    """SELECT COUNT(*) FROM public.solicitud
-           WHERE id_sesion=? AND id_dispositivo_solicitante=? AND estado='pendiente'""",
-    Long::class.javaObjectType,idSesion,idDispositivo,
-  ) ?: 0L
   private fun totalVotos(idSolicitud: Long): Long = jdbc.queryForObject(
     "SELECT COUNT(*) FROM public.voto WHERE id_solicitud=? AND activo=TRUE",
     Long::class.javaObjectType,idSolicitud,

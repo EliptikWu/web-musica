@@ -215,17 +215,11 @@ class ContratoDispositivoService(private val jdbc: JdbcTemplate) {
       { rs, _ -> rs.getLong("id_solicitud").toString() },
       sesion.id, disp.id,
     )
-    // RN-01: para el cupo contractual se cuentan solo solicitudes pendientes.
-    // La política de contar también las que suenan sigue TBD con el frontend.
-    val pendientesPropios = jdbc.queryForObject(
-      """SELECT COUNT(*) FROM public.solicitud
-               WHERE id_sesion = ? AND id_dispositivo_solicitante = ? AND estado = 'pendiente'""",
-      Long::class.javaObjectType,
-      sesion.id, disp.id,
-    ) ?: 0L
+    // RN-01 acordada con el frontend: PENDIENTES + REPRODUCIENDO ocupan cupo.
+    val ocupados = ContratoColaCalculos.cuposOcupados(jdbc, sesion.id, disp.id)
     return mapOf(
       "pedidos_maximos" to bar.maximo,
-      "pedidos_restantes" to (bar.maximo.toLong() - pendientesPropios).coerceAtLeast(0L).toInt(),
+      "pedidos_restantes" to ContratoColaCalculos.cuposRestantes(bar.maximo, ocupados),
       "solicitudes" to solicitudes,
       "votos" to votos,
       "aviso_visto_en" to disp.aviso,
