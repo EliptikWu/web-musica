@@ -8,5 +8,5 @@ class RokolaBackendApplication
 
 fun main(args: Array<String>) {
 	runApplication<RokolaBackendApplication>(*args)
-  println("hola")
+  println("bip bip")
 }
