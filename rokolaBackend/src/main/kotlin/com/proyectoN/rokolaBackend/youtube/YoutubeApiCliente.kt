@@ -16,8 +16,8 @@ import java.time.Duration
 /** Consulta exclusivamente datos públicos: no necesita OAuth, sí una API key. */
 @Component
 class   YoutubeApiCliente(
-    private val json: JsonMapper,
-    @Value("\${youtube.api.key:}") private val claveApi: String,
+  private val json: JsonMapper,
+  @Value("\${youtube.api.key:}") private val claveApi: String,
 ) {
     private val http = RestClient.builder()
         .baseUrl("https://www.googleapis.com/youtube/v3")
@@ -47,9 +47,14 @@ class   YoutubeApiCliente(
             }.retrieve().body(String::class.java)
         }
 
-        val ids = json.readTree(resultadosBusqueda).path("items")
-            .mapNotNull { it.path("id").path("videoId").asText().takeIf(String::isNotBlank) }
-            .distinct()
+      val ids = json.readTree(resultadosBusqueda)
+        .path("items")
+        .toList()
+        .mapNotNull { nodo ->
+          nodo.path("id").path("videoId").asText()
+            .takeIf { it.isNotBlank() }
+        }
+        .distinct()
         if (ids.isEmpty()) return emptyList()
 
         val detalles = solicitar {
@@ -66,6 +71,24 @@ class   YoutubeApiCliente(
             .mapNotNull { convertir(it) }
             .associateBy { it.youtubeVideoId }
         return ids.mapNotNull(videos::get) // Respeta el orden de relevancia de YouTube
+    }
+
+    /** Verifica un video exacto en YouTube antes de aceptar una solicitud musical. */
+    fun obtenerVideoPorId(videoId: String): YoutubeVideoResponse? {
+        if (claveApi.isBlank()) {
+            throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "YOUTUBE_API_KEY no está configurada")
+        }
+        val detalles = solicitar {
+            http.get().uri { url ->
+                url.path("/videos")
+                    .queryParam("part", "snippet,contentDetails,status")
+                    .queryParam("id", videoId)
+                    .queryParam("key", claveApi)
+                    .build()
+            }.retrieve().body(String::class.java)
+        }
+        return json.readTree(detalles).path("items").toList()
+            .firstNotNullOfOrNull { convertir(it) }
     }
 
     private fun convertir(nodo: JsonNode): YoutubeVideoResponse? {
@@ -87,8 +110,8 @@ class   YoutubeApiCliente(
             .firstNotNullOfOrNull { tamaño -> miniaturas.path(tamaño).path("url").asText().takeIf(String::isNotBlank) }
 
         // Heurística explícita, no metadato oficial: "Artista - Canción".
-        val artista = Regex("^(.{2,80}?)\\s+[-–—]\\s+.+$")
-            .find(titulo)?.groupValues?.getOrNull(1)?.trim()
+      val artista = Regex("^(.{2,80}?)\\s+[-–—]\\s+.+$")
+        .find(titulo)?.groupValues?.getOrNull(1)?.trim()
 
         return YoutubeVideoResponse(
             youtubeVideoId = id,
