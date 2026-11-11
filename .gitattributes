@@ -5,3 +5,7 @@
 *.xlsx binary
 *.woff2 binary
 *.pyc binary
+# Android (frontend/movil): el script de Gradle para Windows necesita CRLF.
+*.bat text eol=crlf
+*.jar binary
+*.webp binary

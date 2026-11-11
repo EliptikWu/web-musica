@@ -6,10 +6,12 @@ ordena por votos, la pantalla del bar las reproduce y el personal administra el 
 desde un panel. Es el proyecto nuclear de Ingeniería de Software (Universidad Alexander
 von Humboldt, 2026).
 
-**Este repositorio es solo el frontend.** El backend (base de datos, reglas del servidor,
-YouTube Data API, tiempo real, analítica con Spark) lo hace otro equipo. Aquí no se
-construye backend: mientras no exista, la app corre contra una **simulación en el
-navegador** que cumple el contrato propuesto (doc 04). Integrar es apuntar a la API real.
+**Este equipo hace los frontends:** la web (`frontend/web`, Next.js) y la app Android
+(`frontend/movil`, Kotlin + Compose, con su propio `CLAUDE.md`). El backend (base de datos,
+reglas del servidor, YouTube Data API, tiempo real, analítica con Spark) lo hace otro equipo
+en `rokolaBackend/`, en este mismo repositorio: aquí no se toca. Mientras la API no esté,
+la web corre contra una **simulación en el navegador** y la app contra la suya, las dos
+con el contrato propuesto (doc 04). Integrar es apuntar a la API real.
 
 ## Estado actual
 
@@ -30,6 +32,7 @@ Comandos (desde la raíz):
 | Regenerar el contrato para el backend | `npm run generar` (el chequeo falla si `packages/contrato/generado/` no está al día) |
 | Imágenes del manual de uso | `npm run capturas -w @rockola/web` → `frontend/web/public/manual/` (rehacerlas si cambia una pantalla que el manual muestra) |
 | Texto de los documentos fuente | `python -I scripts/extraer-fuentes.py` |
+| App Android: pruebas y lint | desde `frontend/movil`: `./gradlew testDebugUnitTest lintDebug` (no está en `npm run check`: pide el SDK de Android) |
 
 - Las pruebas de extremo a extremo usan el Edge instalado y la app ya compilada
   (`npm run build -w @rockola/web`).

@@ -56,7 +56,7 @@ interfaz.
 
 ## La app nativa (Android)
 
-Además de la web hay una app Android para el cliente (ADR-19), en su propio repositorio. Usa
+Además de la web hay una app Android para el cliente (ADR-19), en `frontend/movil` (ADR-24). Usa
 las mismas operaciones de la superficie «Cliente» de `endpoints.md` y valida cada respuesta
 con los mismos esquemas, así que para el backend no cambia nada, salvo esto:
 

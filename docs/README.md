@@ -36,6 +36,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D9 | 2026-10-26 | Matriz del Operador *(propuesto, hasta que el equipo la confirme)*: saltar, pausar/reanudar la reproducción, pausar/reanudar solicitudes, retirar de la cola y bloquear hasta el fin de la sesión. Lo demás, solo el Administrador | Claude, por contradicción entre RF-022 y RF-039/042 |
 | D10 | 2026-11-10 | Respuesta al backend: el teléfono sigue con UUID propio (ADR-21), la espera la calcula el backend (ADR-20) y la canción que suena cuenta para el cupo (RN-01) | Usuario |
 | D11 | 2026-11-10 | La TV muestra el código y el Administrador lo escribe en el panel (ADR-23, reemplaza a ADR-22) | Usuario |
+| D12 | 2026-11-10 | La app Android entra al repositorio en `frontend/movil`, y la web pasa a `frontend/web` (ADR-24) | Usuario |
 
 ## Decisiones abiertas
 

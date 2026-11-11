@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Fondo de nogal desde el arranque: sin destello blanco antes de que pinte Compose. -->
+    <style name="Theme.Rokola" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/nogal</item>
+    </style>
+</resources>

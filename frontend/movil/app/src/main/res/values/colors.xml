@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Solo para la ventana antes de Compose. El resto de colores vive en ui/theme/Color.kt. -->
+    <color name="nogal">#FF2A1711</color>
+</resources>

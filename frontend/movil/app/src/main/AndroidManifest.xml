@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:networkSecurityConfig="@xml/red"
+        android:theme="@style/Theme.Rokola">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Rokola"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!--
+              El QR del bar (RF-001, RF-035): https://<dominio>/q/<token>, y el enlace de un bar,
+              /b/<slug>. Con la app instalada se abre aquí; sin ella, la web. Para que Android lo
+              abra sin preguntar, la web publica /.well-known/assetlinks.json con la huella de
+              la firma. El dominio sale de `rockola.dominio` (TBD: el dominio real).
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="${dominioRockola}" />
+                <data android:pathPrefix="/q/" />
+                <data android:pathPrefix="/b/" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
