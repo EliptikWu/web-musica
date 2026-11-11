@@ -28,7 +28,7 @@ Comandos (desde la raíz):
 | Todo lo que correría el CI | `npm run check` (o `npm run check -- --sin-e2e`) |
 | Una parte | `npm run lint\|typecheck\|test\|build\|e2e -w @rockola/web` |
 | Regenerar el contrato para el backend | `npm run generar` (el chequeo falla si `packages/contrato/generado/` no está al día) |
-| Imágenes del manual de uso | `npm run capturas -w @rockola/web` → `apps/web/public/manual/` (rehacerlas si cambia una pantalla que el manual muestra) |
+| Imágenes del manual de uso | `npm run capturas -w @rockola/web` → `frontend/web/public/manual/` (rehacerlas si cambia una pantalla que el manual muestra) |
 | Texto de los documentos fuente | `python -I scripts/extraer-fuentes.py` |
 
 - Las pruebas de extremo a extremo usan el Edge instalado y la app ya compilada
@@ -36,7 +36,7 @@ Comandos (desde la raíz):
 - En la simulación: `?escenario=<nombre>&reloj=fijo|rapido&reiniciar` en cualquier URL;
   panel con `admin@rockola.demo` u `operador@rockola.demo` y clave `rockola-demo`.
 - Los tokens de diseño viven solo en `packages/ui/src/tokens.css`.
-- `prototipos/` es referencia: nada de `apps/` lo importa.
+- `prototipos/` es referencia: nada de `frontend/` lo importa.
 
 ## La documentación manda
 
@@ -88,8 +88,8 @@ Reglas:
 - La llave de YouTube **nunca** llega al navegador: las búsquedas pasan por la API.
 - El panel solo confía en la sesión que da el backend (cookie httpOnly). La interfaz
   oculta lo que el rol no permite, pero **quien decide es el servidor**; la matriz
-  rol × acción está en `apps/web/lib/permisos.ts` y en el doc 04.
-- La CSP con nonce de `apps/web/proxy.ts` no se relaja para "que funcione": nada de
+  rol × acción está en `frontend/web/lib/permisos.ts` y en el doc 04.
+- La CSP con nonce de `frontend/web/proxy.ts` no se relaja para "que funcione": nada de
   `style=""` en el HTML del servidor ni scripts en línea sin nonce.
 - El identificador del teléfono es seudónimo (Ley 1581 de 2012, RF-002, RNF-007): no se
   registra ni se muestra completo.

@@ -21,7 +21,7 @@ interfaz.
 ## Cómo habla el frontend con la API
 
 - **Mismo origen.** El navegador solo llama a `/api/*` de la propia app. La ruta
-  `apps/web/app/api/[...path]/route.ts` reenvía a `ROCKOLA_API_URL` (por ejemplo,
+  `frontend/web/app/api/[...path]/route.ts` reenvía a `ROCKOLA_API_URL` (por ejemplo,
   `/api/bares/demo/ahora` → `${ROCKOLA_API_URL}/bares/demo/ahora`), con el método, el cuerpo,
   la consulta y las cabeceras. La CSP solo permite `connect-src 'self'`.
 - **Cabeceras propias.** `X-Rockola-Dispositivo` (UUID anónimo del teléfono) en todo lo del

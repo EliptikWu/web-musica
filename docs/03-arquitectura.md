@@ -5,7 +5,7 @@
 ```
  Teléfono (cliente)      TV del bar (pantalla)      Computador / teléfono (panel)
         │                        │                              │
-        └────────────── apps/web (Next.js 16) ──────────────────┘
+        └────────────── frontend/web (Next.js 16) ──────────────────┘
                  │ páginas: /b/[bar]  /b/[bar]/pantalla  /panel
                  │ lib/api/cliente.ts  ──►  /api/*  (mismo origen)
                  │
@@ -47,16 +47,16 @@ Todas las versiones van fijas (sin `^`). Se suben a propósito, con su fila en e
 ```
 CLAUDE.md  README.md  package.json (workspaces)  .env.example
 docs/            esta documentación + fuente/ (originales y texto extraído)
-prototipos/      prototipos Rockola (referencia; nada de apps/ los importa)
+prototipos/      prototipos Rockola (referencia; nada de frontend/ los importa)
 scripts/         check.mjs (lo que correría el CI), extraer-fuentes.py
 packages/
   ui/            @rockola/ui: tokens.css, theme.css, componentes Rockola, iconos
   contrato/      @rockola/contrato: esquemas zod, endpoints.ts, generado/ (OpenAPI, JSON Schema)
-apps/
-  web/           @rockola/web: la app (Next.js)
+frontend/
+  web/           @rockola/web: la app web (Next.js)
 ```
 
-### `apps/web`
+### `frontend/web`
 
 | Carpeta | Qué va | Regla |
 |---|---|---|

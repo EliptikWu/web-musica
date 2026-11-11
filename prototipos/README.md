@@ -2,7 +2,7 @@
 
 Prototipos estáticos (HTML + un CSS, sin JavaScript) de la dirección visual **Rockola**,
 el Tema #2 de `docs/fuente/Prototipos, Arquitectura y Modelado de datos .docx`. Son la
-referencia visual de la app: `apps/` no los importa y aquí no se programa nada nuevo.
+referencia visual de la app: `frontend/` no los importa y aquí no se programa nada nuevo.
 
 Las otras dos direcciones (Vidrio y Afiche) se descartaron y no se copiaron. Siguen en
 la carpeta original del equipo (`Documents\Rockola`).

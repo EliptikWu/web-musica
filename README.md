@@ -9,7 +9,7 @@ haya API, la app corre contra una simulación en el navegador.
 
 | Carpeta | Qué es |
 |---|---|
-| `apps/web` | La app (Next.js): cliente, pantalla del bar y panel |
+| `frontend/web` | La app (Next.js): cliente, pantalla del bar y panel |
 | `packages/ui` | Sistema de diseño Rockola: tokens y componentes |
 | `packages/contrato` | Contrato propuesto con el backend (esquemas zod → OpenAPI) |
 | `docs/` | Documentación (empieza por `docs/README.md`) |

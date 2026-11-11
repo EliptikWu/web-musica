@@ -73,7 +73,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `retirada` | pendiente | El personal la retiró con un motivo | «Retirada por el bar» |
 | `expirada` | pendiente | Mantenimiento o cierre de la sesión | «La noche cerró antes de que sonara» |
 
-Los textos definitivos salen de `design:ux-copy` y viven en `apps/web/lib/textos`.
+Los textos definitivos salen de `design:ux-copy` y viven en `frontend/web/lib/textos`.
 
 ## Estado del servicio
 
@@ -90,7 +90,7 @@ Los textos definitivos salen de `design:ux-copy` y viven en `apps/web/lib/textos
 ## Permisos
 
 Propuesta D9, pendiente de confirmar. El servidor aplica la matriz; la interfaz la usa
-para ocultar lo que no se puede (`apps/web/lib/permisos.ts`).
+para ocultar lo que no se puede (`frontend/web/lib/permisos.ts`).
 
 | Acción | Operador | Administrador |
 |---|---|---|

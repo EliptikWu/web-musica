@@ -4,13 +4,13 @@
 
 | Nivel | Herramienta | Qué cubre | Dónde |
 |---|---|---|---|
-| Unidad | Vitest (entorno node) | Reglas puras: orden de la cola, esperas, horario, cupo, motivos, formato; motor de simulación; cliente de API; esquemas del contrato | `apps/web/lib/**/*.test.ts`, `apps/web/simulacion/**/*.test.ts`, `packages/contrato/**/*.test.ts` |
+| Unidad | Vitest (entorno node) | Reglas puras: orden de la cola, esperas, horario, cupo, motivos, formato; motor de simulación; cliente de API; esquemas del contrato | `frontend/web/lib/**/*.test.ts`, `frontend/web/simulacion/**/*.test.ts`, `packages/contrato/**/*.test.ts` |
 | Contrato | Vitest + generador | Los datos de ejemplo cumplen los esquemas; `generado/` está al día | `packages/contrato` |
-| Extremo a extremo | Playwright (modo simulado, `next start`) | Flujos críticos por superficie y la sincronía entre ellas | `apps/web/e2e/*.spec.ts` |
+| Extremo a extremo | Playwright (modo simulado, `next start`) | Flujos críticos por superficie y la sincronía entre ellas | `frontend/web/e2e/*.spec.ts` |
 | Accesibilidad | axe-core dentro de cada e2e | wcag2a, wcag2aa, wcag21aa en **cada estado** visitado | `e2e/support.ts` |
 | Objetivos táctiles | Prueba propia | Todo control de la superficie del cliente mide ≥ 44 × 44 px | `e2e/cliente.spec.ts` |
 | Visual | Capturas de Playwright | Cada pantalla × estado a 360/768/1440 (TV a 1280 × 720 y 1920 × 1080), revisadas a ojo contra `prototipos/capturas/` en cada cierre; no se versionan | Script de revisión → `capturas/` |
-| Manual de uso | Capturas de Playwright | Las imágenes del manual (RNF-016), con la simulación quieta | `e2e/capturas.spec.ts` (`npm run capturas -w @rockola/web`) → `apps/web/public/manual/` |
+| Manual de uso | Capturas de Playwright | Las imágenes del manual (RNF-016), con la simulación quieta | `e2e/capturas.spec.ts` (`npm run capturas -w @rockola/web`) → `frontend/web/public/manual/` |
 | Aceptación | Manual | Criterios de las historias de la iteración | Doc 08 |
 
 Lo visual no se prueba en Vitest: lo cubren e2e y capturas.
@@ -30,7 +30,7 @@ Lo visual no se prueba en Vitest: lo cubren e2e y capturas.
 ## Matriz de permisos
 
 La matriz del doc 04 se prueba entera: cada acción × rol (Operador, Administrador, sin
-sesión). La prueba se genera desde `apps/web/lib/permisos.ts` para que no se desfase.
+sesión). La prueba se genera desde `frontend/web/lib/permisos.ts` para que no se desfase.
 
 ## Puertas de calidad
 

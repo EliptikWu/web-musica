@@ -209,7 +209,7 @@ Método de la skill `dataviz`, con los tokens Rockola:
   «unos 13 min» (redondeo hacia abajo), «en menos de 1 min».
 - Comillas latinas «» para títulos de canción en frases.
 - Los mensajes de error dicen qué pasó y qué hacer, sin códigos ni trazas.
-- Todos los textos de la interfaz viven en `apps/web/lib/textos/` para revisarlos juntos.
+- Todos los textos de la interfaz viven en `frontend/web/lib/textos/` para revisarlos juntos.
 
 ## Proceso de diseño
 

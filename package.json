@@ -3,7 +3,7 @@
   "private": true,
   "description": "Frontend de Rockola: cliente, pantalla del bar y panel (doc 01).",
   "workspaces": [
-    "apps/web",
+    "frontend/web",
     "packages/*"
   ],
   "engines": {
