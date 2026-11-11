@@ -28,6 +28,7 @@ class SecurityConfig {
           "/api/bares/*/solicitudes",
           "/api/bares/*/solicitudes/*/votos",
           "/api/bares/*/dispositivo/voto",
+          "/api/bares/*/pantalla/vinculo",
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",
           "/api/bares/*/pantalla/reproducciones/*/error",
@@ -47,7 +48,8 @@ class SecurityConfig {
           "/api/bares/*/dispositivo", "/api/bares/*/dispositivo/aviso").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/bares/*/solicitudes", "/api/bares/*/solicitudes/*/votos").permitAll()
         it.requestMatchers(HttpMethod.PUT, "/api/bares/*/dispositivo/voto").permitAll()
-        // El propio servicio exige la credencial de pantalla antes de cualquier escritura.
+        it.requestMatchers(HttpMethod.POST, "/api/bares/*/pantalla/vinculo").permitAll()
+        // Los reportes exigen la cookie de una pantalla vinculada del mismo bar.
         it.requestMatchers(HttpMethod.POST,
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",

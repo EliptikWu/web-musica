@@ -86,7 +86,7 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
 
     private val recursosPermitidos = setOf(
         "noche", "yo", "bitacora", "bloqueos", "listas", "horario",
-        "usuarios", "establecimiento", "eventos",
+        "usuarios", "establecimiento", "eventos", "pantallas",
     )
 
     /** Preparado para las operaciones del panel; ninguna acción pública lo emite. */

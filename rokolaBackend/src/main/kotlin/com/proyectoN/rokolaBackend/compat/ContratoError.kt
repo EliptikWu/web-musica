@@ -32,6 +32,8 @@ class ContratoApiException(
   ContratoCambioVotoController::class,
   ContratoEstadoController::class,
   ContratoPantallaController::class,
+  ContratoVinculoPantallaController::class,
+  ContratoPantallasPanelController::class,
   ContratoEventosController::class,
   ContratoPanelController::class,
 ])
