@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -22,33 +23,33 @@ class ContratoPantallaController(private val servicio: ContratoPantallaService) 
         @PathVariable slug: String,
         @PathVariable id: String,
         @RequestHeader("Idempotency-Key", required = false) clave: String?,
-        @RequestHeader("Authorization", required = false) autorizacion: String?,
+        @CookieValue(ContratoPantallasService.COOKIE, required = false) token: String?,
         @RequestBody cuerpo: Map<String, Any?>,
-    ): ResponseEntity<Void> = reportar(slug, id, "inicio", clave, autorizacion, cuerpo)
+    ): ResponseEntity<Void> = reportar(slug, id, "inicio", clave, token, cuerpo)
 
     @PostMapping("/pantalla/reproducciones/{id}/fin")
     fun fin(
         @PathVariable slug: String,
         @PathVariable id: String,
         @RequestHeader("Idempotency-Key", required = false) clave: String?,
-        @RequestHeader("Authorization", required = false) autorizacion: String?,
+        @CookieValue(ContratoPantallasService.COOKIE, required = false) token: String?,
         @RequestBody cuerpo: Map<String, Any?>,
-    ): ResponseEntity<Void> = reportar(slug, id, "fin", clave, autorizacion, cuerpo)
+    ): ResponseEntity<Void> = reportar(slug, id, "fin", clave, token, cuerpo)
 
     @PostMapping("/pantalla/reproducciones/{id}/error")
     fun error(
         @PathVariable slug: String,
         @PathVariable id: String,
         @RequestHeader("Idempotency-Key", required = false) clave: String?,
-        @RequestHeader("Authorization", required = false) autorizacion: String?,
+        @CookieValue(ContratoPantallasService.COOKIE, required = false) token: String?,
         @RequestBody cuerpo: Map<String, Any?>,
-    ): ResponseEntity<Void> = reportar(slug, id, "error", clave, autorizacion, cuerpo)
+    ): ResponseEntity<Void> = reportar(slug, id, "error", clave, token, cuerpo)
 
     private fun reportar(
-        slug: String, id: String, accion: String, clave: String?, autorizacion: String?,
+        slug: String, id: String, accion: String, clave: String?, token: String?,
         cuerpo: Map<String, Any?>,
     ): ResponseEntity<Void> {
-        servicio.reportar(slug, id, accion, clave, autorizacion, cuerpo)
+        servicio.reportar(slug, id, accion, clave, token, cuerpo)
         return ResponseEntity.noContent().build()
     }
 }
