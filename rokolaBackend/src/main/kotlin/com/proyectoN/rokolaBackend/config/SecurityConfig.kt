@@ -31,6 +31,9 @@ class SecurityConfig {
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",
           "/api/bares/*/pantalla/reproducciones/*/error",
+          // Panel del contrato: cookie propia SameSite=Lax (un sitio ajeno no la manda en un
+          // POST) y el navegador solo llega por el proxy del mismo origen.
+          "/api/panel/**",
         )
       }
       .authorizeHttpRequests {
@@ -49,6 +52,9 @@ class SecurityConfig {
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",
           "/api/bares/*/pantalla/reproducciones/*/error").permitAll()
+        // El panel del contrato se autentica con su cookie en ContratoPanelAcceso, no con
+        // Basic: así un 401 es ErrorApi y el navegador no abre su ventana de usuario y clave.
+        it.requestMatchers("/api/panel/**").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/acceso/qr/*/dispositivos").permitAll()
         it.requestMatchers(HttpMethod.GET, "/api/youtube/buscar", "/api/youtube/sugerencias").permitAll()
         it.requestMatchers(HttpMethod.GET, "/api/sesiones/*/cola").permitAll()

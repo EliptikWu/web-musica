@@ -1,6 +1,5 @@
 package com.proyectoN.rokolaBackend.compat
 
-import com.proyectoN.rokolaBackend.cola.ColaService
 import com.proyectoN.rokolaBackend.youtube.YoutubeService
 import com.proyectoN.rokolaBackend.youtube.YoutubeVideoResponse
 import org.springframework.http.HttpStatus
@@ -18,7 +17,7 @@ class ContratoBusquedaService(
   private val jdbc: JdbcTemplate,
   private val youtube: YoutubeService,
   private val json: JsonMapper,
-  private val cola: ColaService,
+  private val estados: ContratoEstadoService,
   private val dispositivos: ContratoDispositivoService,
 ) {
   private data class Bar(val id: Long, val maxSeg: Int, val noRepeticionMin: Int)
@@ -71,25 +70,14 @@ class ContratoBusquedaService(
       }
     }
 
-    val colaActual = if (sesionId != null) cola.obtener(sesionId).canciones else emptyList()
-    val enCola = colaActual.filter {
-      it.titulo.contains(consulta, ignoreCase = true) ||
-        (it.artista?.contains(consulta, ignoreCase = true) == true)
-    }.map { item ->
-      mapOf(
-        "solicitud_id" to item.solicitudId.toString(),
-        "cancion" to mapOf(
-          "video_id" to item.youtubeVideoId,
-          "titulo" to item.titulo,
-          "artista" to (item.artista ?: ""),
-          "duracion_seg" to item.duracionSeg,
-          "miniatura_url" to item.miniaturaUrl?.takeIf(String::isNotBlank),
-        ),
-        "votos_total" to item.votos,
-        "fecha_solicitud" to item.fechaSolicitud,
-        "puesto" to item.posicion,
-        "puesto_anterior" to null,
-      )
+    // Los ItemCola salen de la misma foto que `ahora`: así traen espera_seg y puesto_anterior
+    // calculados igual que en la cola (antes faltaba espera_seg y la interfaz rechazaba la búsqueda).
+    @Suppress("UNCHECKED_CAST")
+    val colaActual = if (sesionId != null) estados.ahora(slug)["cola"] as List<Map<String, Any?>> else emptyList()
+    val enCola = colaActual.filter { item ->
+      val cancion = item["cancion"] as Map<String, Any?>
+      (cancion["titulo"] as String).contains(consulta, ignoreCase = true) ||
+        (cancion["artista"] as String).contains(consulta, ignoreCase = true)
     }
 
     val resultados = videos.map { video ->

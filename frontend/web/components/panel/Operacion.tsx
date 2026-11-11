@@ -8,6 +8,7 @@ import { Aviso } from '@/components/comun/Aviso';
 import { codigoDe } from '@/lib/api/errores';
 import { nuevaClave } from '@/lib/api/hooks-cliente';
 import { useAccionPanel, useNoche } from '@/lib/api/hooks-panel';
+import { claveDe } from '@/lib/idempotencia';
 import { DIAS, formatoDuracion, formatoHace, formatoHora, formatoMinutos, formatoResumenCola, minutosEnteros, resumenHorario } from '@/lib/formato';
 import { MODO } from '@/lib/modo';
 import { puede } from '@/lib/permisos';
@@ -144,7 +145,7 @@ export function Operacion() {
                 </div>
                 <div className="actual__acciones">
                   {puede(rol, 'saltar') ? (
-                    <Tecla ocupada={saltar.isPending} onClick={() => saltar.mutate({ parametros: { id: n.reproduccion!.id }, idempotencia: `${n.reproduccion!.id}-salto` }, alTerminar)}>
+                    <Tecla ocupada={saltar.isPending} onClick={() => saltar.mutate({ parametros: { id: n.reproduccion!.id }, idempotencia: claveDe(`${n.reproduccion!.id}-salto`) }, alTerminar)}>
                       {P.saltar}
                     </Tecla>
                   ) : null}

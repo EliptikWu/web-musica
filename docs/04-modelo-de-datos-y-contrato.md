@@ -240,3 +240,40 @@ resincroniza al reconectar.
     cambiar una vez impreso, así que tiene que ser estable y con HTTPS. Lo publica el equipo
     de frontend junto con `/.well-known/assetlinks.json` (paquete y huella SHA-256 de la firma
     de la app), que sirve Next, no el backend (ADR-19).
+12. Migración de `api_idempotencia`. El código del backend (pedir, votar, mover el voto y los
+    reportes de la pantalla) usa esta tabla, pero no estaba en la base ni en ninguna migración,
+    y esas operaciones respondían 500. El 2026-11-10 el equipo de frontend la creó a mano en la
+    base de Railway con la forma que pide el código, para poder integrar. Falta que el backend
+    la adopte como migración de Flyway (el repositorio todavía no tiene ninguna):
+
+    ```sql
+    CREATE TABLE IF NOT EXISTS public.api_idempotencia (
+        id_establecimiento BIGINT       NOT NULL REFERENCES public.establecimiento (id_establecimiento) ON DELETE CASCADE,
+        device_hash        VARCHAR(64)  NOT NULL,
+        clave              UUID         NOT NULL,
+        operacion          VARCHAR(40)  NOT NULL,
+        huella_peticion    VARCHAR(64)  NOT NULL,
+        respuesta_http     INTEGER      NOT NULL,
+        respuesta_json     TEXT         NOT NULL,
+        fecha_creacion     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id_establecimiento, device_hash, clave)
+    );
+    CREATE INDEX IF NOT EXISTS idx_api_idempotencia_fecha ON public.api_idempotencia (fecha_creacion);
+    ```
+
+    `fecha_creacion` y su índice sirven para borrar las claves viejas; cuánto tiempo se
+    guardan es `TBD`.
+13. Panel mínimo hecho por el equipo de frontend en `rokolaBackend/compat/` (2026-11-10), para
+    poder probar RF-040: `POST/DELETE /panel/sesion`, `GET /panel/yo`, `GET /panel/noche` y
+    `POST /panel/reproduccion/{id}/salto`. Las demás rutas de `/panel` responden
+    `404 no_encontrado` (o `401` sin sesión). Lo que el backend tiene que revisar o decidir:
+    - La sesión vive en memoria (reiniciar el backend cierra todas). Duración 12 h, 4 h sin uso,
+      bloqueo de 15 min tras 5 intentos *(propuestos, punto 6)*.
+    - Las contraseñas de los 5 usuarios de la base no son bcrypt válido (64 caracteres; bcrypt
+      tiene 60): nadie puede entrar hasta que se regeneren.
+    - Falta `PUT /panel/yo/clave`: un usuario con `cambiar_password` puede entrar pero no
+      pasa de ahí. Quien lo haga debe cerrar las demás sesiones de ese usuario.
+    - `noche.sesion.origen` sale siempre `manual` y los bloqueos «hasta el fin de la noche»
+      salen como horas o indefinido: el modelo de datos no guarda esa diferencia.
+    - De paso se corrigió `GET /bares/{slug}/busqueda`: `en_cola` no traía `espera_seg` y la
+      interfaz rechazaba la respuesta cuando la búsqueda coincidía con algo de la cola.

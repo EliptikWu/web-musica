@@ -14,6 +14,7 @@ import { puestosSubidos } from '@/lib/reglas/cola';
 import { avanceDesdeFoto, esperaDe, posicionActual } from '@/lib/reglas/espera';
 import { diasQueAbren, momentoLocal } from '@/lib/reglas/horario';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
+import { claveDe } from '@/lib/idempotencia';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
 import { conexion, luzServicio, servicioCerrado } from '@/lib/textos/cliente';
 import { TV } from '@/lib/textos/pantalla';
@@ -38,7 +39,7 @@ export function PantallaBar({ slug }: { slug: string }) {
   const reporte = useMutation({
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
       // La clave es fija por reproducción y tipo: dos pantallas que reportan el mismo fin no saltan dos canciones.
-      pedir(tipo, { parametros: { slug, id }, cuerpo: { posicion_seg: posicion, codigo_youtube: codigo }, idempotencia: `${id}-${tipo}` }),
+      pedir(tipo, { parametros: { slug, id }, cuerpo: { posicion_seg: posicion, codigo_youtube: codigo }, idempotencia: claveDe(`${id}-${tipo}`) }),
     onError: (error) => {
       // 401: la desvincularon desde el panel; vuelve a mostrar un código (RF-058).
       if (codigoDe(error) === 'no_autenticado') alPerderVinculo();

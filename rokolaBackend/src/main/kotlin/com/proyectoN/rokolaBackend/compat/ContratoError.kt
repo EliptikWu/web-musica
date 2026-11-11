@@ -15,6 +15,8 @@ class ContratoApiException(
   val status: HttpStatus,
   val codigo: String,
   override val message: String,
+  /** Datos para la interfaz (p. ej. `reintentar_en` en `cuenta_bloqueada`); nunca datos internos. */
+  val detalle: Map<String, Any?>? = null,
 ) : RuntimeException(message)
 
 /**
@@ -31,13 +33,17 @@ class ContratoApiException(
   ContratoEstadoController::class,
   ContratoPantallaController::class,
   ContratoEventosController::class,
+  ContratoPanelController::class,
 ])
 class ContratoErrorAdvice {
   private val logger = LoggerFactory.getLogger(ContratoErrorAdvice::class.java)
 
   @ExceptionHandler(ContratoApiException::class)
-  fun errorContrato(error: ContratoApiException): ResponseEntity<Map<String, String>> =
-    respuesta(error.status, error.codigo, error.message)
+  fun errorContrato(error: ContratoApiException): ResponseEntity<Map<String, Any>> {
+    val cuerpo = mutableMapOf<String, Any>("codigo" to error.codigo, "mensaje" to error.message)
+    error.detalle?.let { cuerpo["detalle"] = it }
+    return ResponseEntity.status(error.status).body(cuerpo)
+  }
 
   @ExceptionHandler(HttpMessageNotReadableException::class)
   fun jsonInvalido(error: HttpMessageNotReadableException): ResponseEntity<Map<String, String>> =
