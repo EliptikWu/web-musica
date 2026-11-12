@@ -28,10 +28,10 @@ export function MarcoCliente({ slug, pie = false, children }: { slug: string; pi
 function BannerConexion() {
   const { caida, estado } = useConexionCaida();
   return (
-    <p role="status" className={caida ? 'sticky top-0 z-10 flex items-center gap-2 bg-cereza px-4 py-2 text-[14px] font-medium text-crema' : 'solo-lector'}>
+    <p role="status" className={caida ? 'banner-conexion sticky top-0 z-10 flex items-center gap-2 px-4 py-2 text-[14px] font-medium' : 'solo-lector'}>
       {caida ? (
         <>
-          <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-crema/70" />
+          <span aria-hidden="true" className="banner-conexion__punto h-2 w-2 shrink-0 rounded-full" />
           {estado === 'desconectado' ? conexion.desconectado : conexion.reconectando}
         </>
       ) : null}

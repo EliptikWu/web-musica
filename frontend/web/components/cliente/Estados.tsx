@@ -23,7 +23,7 @@ export function EstadoCerrado({ slug, bar, ahora }: { slug: string; bar: Bar; ah
   const lineas = resumenHorario(bar.horario);
   return (
     <>
-      <header className="text-center">
+      <header className="cabecera-bar cabecera-bar--apagada text-center">
         <h1 className="placa text-[25px]">{bar.nombre}</h1>
         <LuzEstado encendida={false} className="mt-2">
           {textos.luz}
@@ -40,7 +40,7 @@ export function EstadoCerrado({ slug, bar, ahora }: { slug: string; bar: Bar; ah
       </Arco>
 
       {lineas.length > 0 ? (
-        <section className="mt-9" aria-labelledby="t-horario">
+        <section className="horario-bar mt-9" aria-labelledby="t-horario">
           <h2 id="t-horario" className="titulo-seccion text-center">
             Horario de pedidos
           </h2>

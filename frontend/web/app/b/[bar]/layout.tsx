@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { VivoBar } from '@/components/cliente/VivoBar';
+// Los diseños del teléfono y la TV (RF-059): solo los bajan las páginas del bar, no el panel.
+import '@rockola/ui/temas/afiche.css';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 

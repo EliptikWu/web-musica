@@ -278,6 +278,9 @@
   /* AÑADIDO: aviso de error (cereza) y de información (madera), sin la luz. */
   .aviso--error { background: var(--cereza); color: var(--crema); box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .6); }
   .aviso--info { background: var(--madera-clara); color: var(--crema); box-shadow: inset 0 0 0 1px var(--borde); }
+  /* AÑADIDO (RF-059): la conexión caída arriba del teléfono; con clase propia para que cada tema le dé su color. */
+  .banner-conexion { background: var(--cereza); color: var(--crema); }
+  .banner-conexion__punto { background: var(--crema); opacity: .7; }
 
   /* ── Días del horario ──────────────────────────────────────────────────────── */
   .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 0; padding: 0; }

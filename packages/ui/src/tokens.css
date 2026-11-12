@@ -78,3 +78,71 @@
 
   color-scheme: dark;
 }
+
+/*
+ * Diseño Afiche (RF-059, ADR-25; prototipos/afiche/estilos.css). El teléfono y la TV de un bar
+ * que lo eligió llevan `data-tema="afiche"` en <html>. Aquí los nombres de Rockola funcionan
+ * como papeles, no como materiales: --nogal es el fondo (papel), --crema el texto principal
+ * (tinta), --cereza la acción principal (bloque de tinta) y --ambar lo tuyo (resaltador). Las
+ * formas propias del cartel están en temas/afiche.css y solo usan estos tokens.
+ */
+:root[data-tema="afiche"] {
+  /* Del prototipo */
+  --afiche-papel: #ECE9E1;
+  --afiche-papel-hondo: #E2DED4;
+  --afiche-papel-claro: #F7F5F0; /* el buscador */
+  --afiche-tinta: #17120F;
+  --afiche-tinta-2: #4E4741;
+  --afiche-punteado: rgba(23, 18, 15, .35);
+  --afiche-amarillo: #FFE600;
+  --afiche-rosa: #FF2E93;
+  --afiche-sello: #B0105D;
+  --afiche-papel-sobre-tinta: rgba(236, 233, 225, .78);
+  --afiche-papel-velo: rgba(236, 233, 225, .94); /* «Encender la pantalla» */
+  --afiche-tinta-5: rgba(23, 18, 15, .05);
+  --afiche-tinta-11: rgba(23, 18, 15, .11);
+  --afiche-tinta-12: rgba(23, 18, 15, .12);
+  --afiche-tinta-18: rgba(23, 18, 15, .18);
+  --afiche-tinta-22: rgba(23, 18, 15, .22);
+  --afiche-velo: rgba(23, 18, 15, .55); /* detrás de un diálogo */
+  --afiche-radio-fino: 2px; /* boletas, días y marcas */
+  --afiche-partida: linear-gradient(100deg, #FFE600 0%, #FFB02E 30%, #FF7A2F 52%, #FF2E93 100%);
+  --afiche-rodillo: repeating-linear-gradient(0deg, rgba(255, 255, 255, .07) 0 2px, rgba(255, 255, 255, 0) 2px 6px);
+  --afiche-sombra-rosa: 3px 2px 0 rgba(255, 46, 147, .55);
+  --afiche-resaltador: linear-gradient(176deg, rgba(255, 230, 0, 0) 6%, #FFE600 7%, #FFE600 92%, rgba(255, 230, 0, 0) 93%);
+  --afiche-resaltador-fila: linear-gradient(176deg, rgba(255, 230, 0, 0) 4%, rgba(255, 230, 0, .32) 5%, rgba(255, 230, 0, .32) 95%, rgba(255, 230, 0, 0) 96%);
+  --afiche-grano: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 .07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --fuente-cartel-afiche: var(--fuente-cartel, 'League Gothic'), 'Arial Narrow', sans-serif;
+
+  /* Los papeles de Rockola, con valores de Afiche */
+  --nogal: var(--afiche-papel);
+  --nogal-hondo: var(--afiche-papel-hondo);
+  --madera: var(--afiche-papel-hondo);
+  --madera-clara: var(--afiche-papel-hondo);
+  --borde: var(--afiche-punteado);
+  --hueco: rgba(23, 18, 15, .07);
+  --crema: var(--afiche-tinta);
+  --crema-2: var(--afiche-tinta-2);
+  --papel: var(--afiche-papel);
+  --papel-apagado: var(--afiche-papel-hondo);
+  --tinta: var(--afiche-tinta);
+  --tinta-2: var(--afiche-tinta-2);
+  --gris-apagado: var(--afiche-tinta-2);
+  --cereza: var(--afiche-tinta);
+  --cereza-hondo: var(--afiche-tinta);
+  --ambar: var(--afiche-amarillo);
+  --ambar-claro: var(--afiche-amarillo);
+  --luz: var(--afiche-rodillo), var(--afiche-partida);
+  --luz-horizontal: var(--afiche-partida);
+  --video-fondo: #2A2420;
+  --fuente: var(--fuente-franklin, 'Libre Franklin'), system-ui, sans-serif;
+  --radio-insignia: 3px;
+  --radio-tarjeta: 0;
+  --radio-dia: 4px;
+  --radio-tecla: 4px;
+  --radio-aviso: 0;
+  --radio-caja: 0;
+  --radio-marco: 0;
+
+  color-scheme: light;
+}

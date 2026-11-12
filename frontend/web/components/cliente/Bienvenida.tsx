@@ -53,7 +53,7 @@ export function Bienvenida({ slug }: { slug: string }) {
 
   return (
     <MarcoCliente slug={slug}>
-      <header className="text-center">
+      <header className="cabecera-bar text-center">
         <h1 className="placa text-[25px]">{bar.data.nombre}</h1>
         <LuzEstado encendida={!caida} className="mt-2">
           {caida ? conexion.luz : T.enVivo}

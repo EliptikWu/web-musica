@@ -1,0 +1,296 @@
+/*
+ * temas/afiche.css — las formas del diseño Afiche (RF-059, ADR-25), de
+ * prototipos/afiche/estilos.css y los estilos de cada pantalla. El marcado es el de Rockola:
+ * aquí cada pieza se vuelve su gesto de imprenta (doc 05; decisiones-de-diseno.md, «Afiche»):
+ *   arco → bloque de tinta partida a sangre      tarjeta → renglón con línea de corte
+ *   tecla → casilla («+1»), sello («Votaste»), resaltador («Tuya»), bloque negro (acción)
+ *   ficha → boleta                               luz → punto de tinta
+ * Solo usa tokens (tokens.css, bloque `data-tema="afiche"`). No va en una capa a propósito:
+ * tiene que ganarle a las utilidades de Tailwind del marcado (tamaños de Rockola), y todo
+ * está acotado a `[data-tema="afiche"]`, que solo ponen el teléfono y la TV.
+ */
+
+/* ── Suelo de papel ───────────────────────────────────────────────────────── */
+[data-tema="afiche"] {
+  & body { color: var(--afiche-tinta); }
+  & .madera, & .madera--apagada { background: var(--afiche-grano), var(--afiche-papel); }
+  & .madera::before { content: none; }
+  /* El rosa del prototipo no llega a 3:1 sobre el papel: el foco va en tinta. */
+  & :focus-visible { outline-color: var(--afiche-tinta); outline-offset: 2px; }
+  & ::selection { background: var(--afiche-amarillo); color: var(--afiche-tinta); }
+
+  /* Sobre la tinta partida, el texto secundario también es tinta (el gris no llega a 4,5:1). */
+  & :is(.arco__luz, .marco__luz, .cabecera-bar, .aviso:not(.aviso--error, .aviso--info), .ahora-tv) {
+    --tinta-2: var(--afiche-tinta);
+    --crema-2: var(--afiche-tinta);
+  }
+
+  /* ── Tipografía: cartel para lo grande, Franklin para leer de cerca ──────── */
+  & :is(.placa, .cifra, .titulo-seccion) {
+    font-family: var(--fuente-cartel-afiche);
+    font-weight: 400;
+    font-stretch: normal;
+    text-transform: uppercase;
+    letter-spacing: .005em;
+    line-height: .92;
+  }
+  & .condensada { font-stretch: normal; }
+  & h1.placa { font-size: 52px; }
+  & .titulo-seccion { font-size: 26px; line-height: 1; letter-spacing: .01em; text-align: left; }
+  & .secundario { color: var(--afiche-tinta-2); }
+
+  /* ── Punto en vivo ──────────────────────────────────────────────────────── */
+  & .luz-estado { font-weight: 700; color: var(--afiche-tinta); }
+  & .luz-estado::before { background: var(--afiche-tinta); box-shadow: 0 0 0 3px var(--afiche-tinta-18); }
+  & .luz-estado--apagada::before { width: 8px; height: 8px; background: transparent; border: 2px solid var(--afiche-tinta); box-shadow: none; }
+
+  /* ── Cabecera del bar y arco: un solo bloque de tinta partida, a sangre ──── */
+  & .cabecera-bar {
+    margin: -22px -16px 0; padding: 22px 16px 16px;
+    background: var(--luz); color: var(--afiche-tinta);
+    border-bottom: 3px solid var(--afiche-tinta);
+  }
+  & .cabecera-bar h1 { font-size: 54px; }
+  & .cabecera-bar .luz-estado { margin-top: 10px; }
+  & .cabecera-bar + .arco { margin-top: 0; }
+
+  & .arco { margin-inline: -16px; padding: 0; border-radius: 0; background: none; box-shadow: none; }
+  & .arco__luz { border-radius: 0; background: var(--luz); box-shadow: none; }
+  & .arco--apagado .arco__luz { background: var(--afiche-papel-hondo); }
+  & .arco__luz > div { min-height: 0; padding: 14px 16px 20px; }
+  & .arco .ventana { background: none; box-shadow: none; padding: 0; color: var(--afiche-tinta); }
+  & .arco .ventana__etiqueta { font-family: var(--fuente-cartel-afiche); font-size: 28px; font-weight: 400; line-height: 1; text-transform: uppercase; }
+  & .arco .ventana h2 {
+    font-family: var(--fuente-cartel-afiche); font-weight: 400; text-transform: uppercase;
+    font-size: min(118px, 30vw); line-height: .86; margin-top: 4px;
+    text-shadow: var(--afiche-sombra-rosa);
+  }
+  & .arco .ventana h2 + p { margin-top: 8px; font-size: 18px; font-weight: 700; }
+  & .arco .insignia { padding: 0; background: none; color: var(--afiche-tinta); font-size: 18px; font-weight: 700; }
+
+  /* ── Avance: una regla gruesa ───────────────────────────────────────────── */
+  & .avance { font-weight: 600; color: var(--afiche-tinta); }
+  & .surco { height: 6px; border-radius: 0; background: var(--afiche-tinta-22); }
+  & .surco > span { background: var(--afiche-tinta); }
+
+  /* ── Insignia («Subió 2 puestos») ───────────────────────────────────────── */
+  & .insignia { background: var(--afiche-tinta); color: var(--afiche-amarillo); font-weight: 800; }
+
+  /* ── Renglones: la tarjeta pierde el papel y gana la línea de corte ──────── */
+  & .filas { gap: 0; border-top: 3px solid var(--afiche-tinta); }
+  & .filas > li + li { border-top: 1.5px dashed var(--afiche-punteado); }
+  & .fila { gap: 12px; }
+  & .tarjeta {
+    grid-template-columns: 30px 1fr 44px;
+    min-height: 60px;
+    background: none; color: var(--afiche-tinta);
+    border-radius: 0; box-shadow: none;
+  }
+  & .tarjeta--resultado { grid-template-columns: 1fr 62px; }
+  & .tarjeta--sola { grid-template-columns: 1fr; }
+  & .tarjeta--miniatura { grid-template-columns: 54px 1fr 44px; }
+  & .tarjeta--miniatura.tarjeta--resultado { grid-template-columns: 54px 1fr 62px; }
+  & .tarjeta--miniatura.tarjeta--sola { grid-template-columns: 54px 1fr; }
+  & :is(.tarjeta__num, .tarjeta__votos, .tarjeta__dura, .tarjeta__miniatura) { border: 0; }
+  & .tarjeta__num { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 32px; color: var(--afiche-tinta); }
+  & .tarjeta__centro { padding: 8px 0; text-align: left; }
+  & .tarjeta__titulo { padding: 0; font-family: var(--fuente); font-size: 16px; font-weight: 700; line-height: 1.2; }
+  & .tarjeta__artista { padding: 0; background: none; color: var(--afiche-tinta-2); font-size: 13px; font-weight: 400; line-height: 1.35; }
+  & .tarjeta__votos { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 30px; line-height: 1.12; }
+  & .tarjeta__votos small { font-family: var(--fuente); font-weight: 600; color: var(--afiche-tinta-2); }
+  & .tarjeta__miniatura img { border-radius: 0; filter: none; }
+  & .tarjeta__etiqueta { border-radius: 0; background: var(--afiche-tinta); color: var(--afiche-papel); font-family: var(--fuente-cartel-afiche); font-weight: 400; box-shadow: none; }
+  /* Tuya: el renglón entero pasado por el resaltador. */
+  & .tarjeta--tuya, & .fila:has(.tarjeta--tuya) { background: var(--afiche-resaltador-fila); }
+  & .fila .tarjeta--tuya { background: none; }
+  & .tarjeta--tuya .tarjeta__artista { background: none; color: var(--afiche-tinta); }
+  & .tarjeta--apagada { background: none; color: var(--afiche-tinta-2); }
+  & .tarjeta--apagada .tarjeta__artista { background: none; }
+  & .motivo { color: var(--afiche-tinta); font-weight: 700; }
+
+  /* ── Teclas: gestos de imprenta ─────────────────────────────────────────── */
+  & .tecla {
+    width: 78px; height: 44px;
+    border: 2.5px solid var(--afiche-tinta); border-radius: var(--radio-tecla);
+    background: none; color: var(--afiche-tinta);
+    box-shadow: none; transform: none;
+    font-family: var(--fuente-cartel-afiche); font-weight: 400; font-stretch: normal; font-size: 26px; line-height: 1; letter-spacing: .02em;
+  }
+  & .tecla:is(button, a):active { transform: none; box-shadow: none; background: var(--hueco); }
+  & .tecla:disabled { box-shadow: none; }
+  /* «Votaste»: un sello de goma, torcido. */
+  & .tecla--hundida {
+    height: 44px;
+    border: 2px solid var(--afiche-sello);
+    background: none; color: var(--afiche-sello);
+    box-shadow: inset 0 0 0 2px var(--afiche-papel), inset 0 0 0 3px var(--afiche-sello);
+    transform: rotate(-4deg);
+    font-size: 21px; letter-spacing: .04em;
+  }
+  & .tecla--hundida:is(button, a):active { transform: rotate(-4deg) translateY(1px); box-shadow: inset 0 0 0 2px var(--afiche-papel), inset 0 0 0 3px var(--afiche-sello); }
+  /* «Tuya»: pasada por el resaltador. */
+  & .tecla--tuya { height: 44px; border: 0; background: var(--afiche-resaltador); box-shadow: none; font-size: 24px; }
+  /* La acción principal: bloque de tinta con letra amarilla. */
+  & .tecla--cereza { border: 0; background: var(--afiche-tinta); color: var(--afiche-amarillo); box-shadow: none; font-size: 24px; }
+  & .tecla--cereza:is(button, a):active { background: var(--afiche-tinta); box-shadow: none; opacity: .9; }
+  & .tecla--grande { width: 100%; height: 60px; font-size: 32px; }
+  & .tecla--chica { width: auto; height: 44px; padding: 0 14px; font-size: 20px; }
+  & .tecla--ancha { width: auto; padding: 0 18px; }
+  & .tecla svg { stroke-width: 2.4; }
+
+  /* ── Boletas: los pedidos que quedan ────────────────────────────────────── */
+  & .fichas { gap: 4px; }
+  & .ficha { width: 22px; height: 13px; border-radius: var(--afiche-radio-fino); border: 2px solid var(--afiche-tinta); }
+  & .ficha--libre { border: 2px solid var(--afiche-tinta); background: var(--afiche-tinta); box-shadow: none; }
+
+  /* ── Pie: franja de tinta con lo que suena y pestañas sobre el papel ────── */
+  & .pie { padding: 0 12px calc(14px + env(safe-area-inset-bottom)); background: var(--afiche-papel); border-top: 3px solid var(--afiche-tinta); box-shadow: none; }
+  & .mini { margin: 0 -12px; padding: 10px 16px; background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .mini__luz { display: none; }
+  & .mini__etiqueta { color: var(--afiche-amarillo); font-weight: 600; }
+  & .mini__titulo { font-family: var(--fuente); font-size: 15px; font-weight: 700; line-height: 1.2; }
+  & .mini__titulo span { color: var(--afiche-papel-sobre-tinta); }
+  & .mini__votos { color: var(--afiche-papel-sobre-tinta); font-weight: 600; }
+  & .mini__votos b { color: var(--afiche-papel); font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 30px; line-height: 1.12; }
+  & .mini-avance { margin: 0 -12px 8px; height: 4px; border-radius: 0; background: var(--afiche-tinta-12); }
+  & .mini-avance > span { background: var(--afiche-partida); }
+  & .pestana { background: none; box-shadow: none; color: var(--afiche-tinta-2); font-weight: 700; }
+  & .pestana[aria-current="page"] { background: var(--afiche-tinta); color: var(--afiche-amarillo); box-shadow: none; transform: none; }
+  & .pestana__punto { background: var(--afiche-rosa); box-shadow: none; }
+  & .icono { stroke-width: 2.1; stroke-linecap: square; stroke-linejoin: miter; }
+
+  /* ── Buscador ───────────────────────────────────────────────────────────── */
+  & .buscador { border: 3px solid var(--afiche-tinta); background: var(--afiche-papel-claro); box-shadow: none; }
+  & .buscador:focus-within { outline-color: var(--afiche-tinta); outline-offset: 2px; }
+  & .buscador > svg { color: var(--afiche-tinta); }
+  & .buscador input { font-family: var(--fuente); font-weight: 700; }
+  & .buscador button { color: var(--afiche-tinta); }
+
+  /* ── Avisos: tinta partida; el error, en negro ─────────────────────────── */
+  & .aviso { background: var(--luz); color: var(--afiche-tinta); box-shadow: none; }
+  & .aviso__titulo { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 28px; line-height: .95; text-transform: uppercase; }
+  & .aviso__meta { font-weight: 700; }
+  & .aviso--error { background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .aviso--error .aviso__titulo { color: var(--afiche-amarillo); }
+  & .aviso--info { background: var(--afiche-papel-hondo); color: var(--afiche-tinta); box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
+  & .banner-conexion { background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .banner-conexion__punto { background: var(--afiche-amarillo); opacity: 1; }
+
+  /* ── «Tu canción»: bloque de tinta partida, a sangre ────────────────────── */
+  & .marco { margin-inline: -16px; padding: 0; border-radius: 0; background: none; box-shadow: none; }
+  & .marco__luz { padding: 0; border-radius: 0; background: var(--luz); }
+  & .marco .ventana { background: none; box-shadow: none; border-radius: 0; padding: 12px 16px 14px; }
+  & .marco .ventana > p:first-child, & .marco .ventana > div:first-child > p:first-child {
+    font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 26px; line-height: 1; text-transform: uppercase;
+  }
+  & .marco .cifra { font-size: 104px; line-height: .82; letter-spacing: 0; text-shadow: var(--afiche-sombra-rosa); }
+  & .marco .condensada { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 50px; line-height: .9; text-transform: uppercase; }
+  & .marco .ventana > p:last-child { margin-top: 8px; padding-top: 8px; border-top: 2px solid var(--afiche-tinta); font-weight: 700; }
+
+  /* ── Días del horario: casillas; los que abren, en tinta ────────────────── */
+  & .dia { border: 2px solid var(--afiche-tinta); border-radius: var(--afiche-radio-fino); background: none; box-shadow: none; color: var(--afiche-tinta); }
+  & .dia--abre { background: var(--afiche-tinta); color: var(--afiche-papel); transform: none; box-shadow: none; }
+  & .dia small { color: var(--afiche-amarillo); }
+  & .dia:not(.dia--abre) small { color: var(--afiche-sello); }
+
+  /* ── Esperar ────────────────────────────────────────────────────────────── */
+  & .esqueleto { border-radius: 0; background: linear-gradient(90deg, var(--afiche-tinta-5), var(--afiche-tinta-11), var(--afiche-tinta-5)); background-size: 200% 100%; }
+  & .vacio { border-radius: 0; border: 2px dashed var(--afiche-punteado); color: var(--afiche-tinta-2); }
+
+  /* ── Diálogo (mover el voto) ────────────────────────────────────────────── */
+  & .dialogo { background: var(--afiche-papel); color: var(--afiche-tinta); border: 3px solid var(--afiche-tinta); box-shadow: none; }
+  & .dialogo::backdrop { background: var(--afiche-velo); }
+}
+
+/* ── Cerrado: el cartel pierde la tinta fluorescente (decisiones-de-diseno.md) ─ */
+[data-tema="afiche"] {
+  & .cabecera-bar--apagada {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+    margin: 0; padding: 0 0 10px;
+    background: none; border-bottom: 3px solid var(--afiche-tinta);
+    text-align: left;
+  }
+  & .cabecera-bar--apagada h1 { font-size: 30px; }
+  & .cabecera-bar--apagada .luz-estado { margin-top: 0; }
+  & .arco--apagado { margin-inline: 0; }
+  & .arco--apagado .arco__luz { background: none; }
+  & .arco--apagado .arco__luz > div { padding: 0; }
+  & .arco--apagado .ventana { text-align: left; }
+  & .arco--apagado .ventana h2 { font-size: min(72px, 19vw); line-height: .9; text-shadow: none; }
+  & .arco--apagado .ventana h2 + p { margin-top: 14px; font-size: 18px; font-weight: 400; line-height: 1.45; }
+  & .horario-bar { padding: 14px 16px 16px; border: 3px solid var(--afiche-tinta); }
+  & .horario-bar > p { text-align: left; }
+}
+
+/* ── Pantalla del bar (prototipos/afiche/pantalla-bar.html) ───────────────── */
+[data-tema="afiche"] {
+  & .tv-marco { background: var(--afiche-papel-hondo); }
+  & .tv { grid-template-columns: 700px 1fr; column-gap: 40px; }
+  & .tv .arco, & .tv .arco__luz { width: auto; margin: 0; padding: 0; border-radius: 0; background: none; }
+  & .placa-bar {
+    width: auto; margin: 0 0 14px; padding: 0 0 6px;
+    background: none; box-shadow: none; border-radius: 0; border-bottom: 3px solid var(--afiche-tinta);
+    font-size: 44px; text-align: left;
+  }
+  & .video { border-radius: var(--afiche-radio-fino); box-shadow: inset 0 0 0 3px var(--afiche-tinta); }
+  & .video__marca { border-radius: var(--afiche-radio-fino); background: var(--afiche-papel); color: var(--afiche-tinta); font-weight: 600; }
+  & .video__centro { color: var(--afiche-papel); }
+
+  & .ahora-tv {
+    margin-top: 18px; padding: 10px 16px 12px;
+    grid-template-columns: 1fr 120px;
+    background: var(--luz);
+  }
+  & .ahora-tv .tarjeta__centro { padding: 0; }
+  & .ahora-tv__etiqueta { font-family: var(--fuente-cartel-afiche); font-size: 26px; line-height: 1; text-transform: uppercase; }
+  & .ahora-tv__titulo { padding: 0; font-family: var(--fuente-cartel-afiche); font-weight: 400; text-transform: uppercase; font-size: 84px; line-height: .9; text-shadow: var(--afiche-sombra-rosa); }
+  & .ahora-tv .tarjeta__artista { padding: 0; font-size: 22px; font-weight: 700; color: var(--afiche-tinta); }
+  & .ahora-tv .tarjeta__votos { font-size: 52px; align-self: start; }
+  & .ahora-tv .tarjeta__votos small { font-size: 17px; color: var(--afiche-tinta); }
+  & .ahora-tv .avance { padding: 6px 0 0; font-size: 15px; color: var(--afiche-tinta); }
+  & .ahora-tv__casa { font-family: var(--fuente); color: var(--afiche-tinta); }
+
+  & .tv__cabeza { height: auto; padding-bottom: 6px; border-bottom: 3px solid var(--afiche-tinta); }
+  & .tv__cabeza h2 { font-size: 64px; }
+  & .tv__cabeza .luz-estado { font-size: 18px; }
+  & .viene { margin-top: 0; border-top: 0; }
+  & .viene .tarjeta, & .viene .tarjeta--miniatura { min-height: 72px; }
+  & .viene .tarjeta { grid-template-columns: 44px 1fr 56px 60px; }
+  & .viene .tarjeta--miniatura { grid-template-columns: 64px 1fr 56px 60px; }
+  & .viene .tarjeta__num { font-size: 46px; }
+  & .viene .tarjeta__titulo { font-size: 24px; font-weight: 800; }
+  & .viene .tarjeta__artista { font-size: 17px; }
+  & .viene .tarjeta__votos { font-size: 44px; }
+  & .sube { border: 0; color: var(--afiche-sello); font-family: var(--fuente); font-stretch: normal; font-size: 22px; }
+  & .viene__mas { color: var(--afiche-tinta); font-weight: 600; }
+
+  & .qr-tv { padding: 0; border-radius: 0; background: none; }
+  & .qr-tv__placa { border-radius: 0; background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .qr-tv__codigo { border-radius: 0; }
+  & .qr-tv h2 { font-size: 58px; color: var(--afiche-amarillo); }
+  & .qr-tv p { color: var(--afiche-papel); font-weight: 600; }
+  & .qr-tv .qr-tv__enlace { color: var(--afiche-papel-sobre-tinta); font-weight: 400; }
+
+  & .tv-aviso { border-radius: 0; background: none; border: 3px solid var(--afiche-tinta); box-shadow: none; }
+  & .tv-aviso h3 { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 44px; text-transform: uppercase; }
+  & .tv-aviso .dia:not(.dia--abre) { background: none; box-shadow: none; color: var(--afiche-tinta); }
+  & .tv-banner { background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .tv-encender { background: var(--afiche-papel-velo); }
+  & .pasos-tv li::before { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-size: 34px; color: var(--afiche-tinta); }
+  & .vence-tv { color: var(--afiche-tinta-2); }
+  /* Sin vincular: el código en casillas de papel sobre el negro, para leerlo desde la barra. */
+  & .codigo-tv__etiqueta { color: var(--afiche-papel); }
+  & .codigo-tv .tecla { width: 78px; height: 104px; border-color: var(--afiche-papel); background: var(--afiche-papel); color: var(--afiche-tinta); font-size: 76px; }
+}
+
+/* Las mayúsculas acentuadas del cartel (Ó, É) sobresalen de un interlineado de .9: donde el
+   título se corta con puntos suspensivos (overflow), se le da aire arriba para no comerse la tilde. */
+[data-tema="afiche"] {
+  & .placa-bar { padding-top: .14em; margin-top: -.14em; }
+  & .ahora-tv__titulo { padding-top: .1em; }
+  & .cabecera-bar--apagada + .arco { margin-top: 28px; }
+}
+[data-tema="afiche"] {
+  & .tv--vincular .tv__cabeza h2 { font-size: 44px; }
+  & .tv__cabeza .luz-estado { white-space: nowrap; }
+}
