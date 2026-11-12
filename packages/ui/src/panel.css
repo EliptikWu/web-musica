@@ -54,6 +54,12 @@
   .actual .avance { padding: 6px 14px 8px; color: var(--tinta-2); }
   .actual .surco { color: var(--tinta); }
   .actual__acciones { display: flex; flex-direction: column; gap: 12px; }
+  /* AÑADIDO (RF-062): volumen de la pantalla. La barra va en crema, no en ámbar: el acento se reserva. */
+  .volumen { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--borde); }
+  .volumen__etiqueta { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+  .volumen__mandos { display: flex; align-items: center; gap: 10px; }
+  .volumen__mandos input[type="range"] { flex: 1; min-width: 0; height: 44px; accent-color: var(--crema); cursor: pointer; }
+  .volumen__valor { flex: none; width: 4.5em; text-align: right; font-size: 18px; }
   .actual__acciones .tecla { width: 132px; }
   @container (max-width: 560px) {
     .actual { flex-direction: column; align-items: stretch; }

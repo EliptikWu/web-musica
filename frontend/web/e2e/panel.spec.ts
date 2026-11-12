@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { abrir, objetivosDe44, sinViolaciones, vigilarConsola } from './support';
+import { abrir, objetivosDe44, sinViolaciones, vigilarConsola, vincularTv } from './support';
 
 // Iteración 3: el panel operativo (PB-10, 11, 12, 25, 27, 29, 31–34, 38, 40).
 
@@ -222,4 +222,34 @@ test.describe('en el teléfono del personal (360 px)', () => {
     await sinViolaciones(page, 'panel a 360 px');
     await objetivosDe44(page, 'main button, main a, header button, header a');
   });
+});
+
+test('volumen: el Operador lo sube desde el panel y la TV lo recibe (RF-062)', async ({ page }) => {
+  await entrarComo(page, 'operador@rockola.demo');
+  await franja(page).waitFor();
+  const control = page.getByRole('slider', { name: 'Volumen de la pantalla' });
+  await expect(control).toHaveValue('80');
+  await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
+  await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
+  await expect(control).toHaveValue('100');
+  // En 100, «Subir» no hace nada pero sigue ahí con el foco (no se apaga: no se pierde el foco).
+  await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
+  await expect(control).toHaveValue('100');
+  await expect(page.getByRole('button', { name: 'Subir el volumen 10 %' })).toBeFocused();
+  await expect(registro(page).getByText(/cambió el volumen|Cambiaste el volumen/)).toBeVisible();
+  await sinViolaciones(page, 'volumen');
+  await objetivosDe44(page, '.volumen button');
+  // La TV del mismo navegador (la simulación se comparte entre pestañas) recibe el valor.
+  const tv = await page.context().newPage();
+  await tv.setViewportSize({ width: 1280, height: 720 });
+  await tv.goto('/b/demo/pantalla');
+  await vincularTv(tv);
+  await tv.getByRole('button', { name: 'Encender' }).click();
+  await expect(tv.locator('[data-volumen]')).toHaveAttribute('data-volumen', '100');
+  // Con el teclado, en la barra: Inicio va a 0 (silencio) y la flecha sube de 1 en 1.
+  await control.focus();
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowRight');
+  await expect(control).toHaveValue('1');
+  await expect(tv.locator('[data-volumen]')).toHaveAttribute('data-volumen', '1', { timeout: 5000 });
 });

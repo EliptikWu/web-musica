@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,6 +29,7 @@ class ContratoPanelController(
   private val saltos: ContratoSaltoService,
   private val establecimientos: ContratoEstablecimientoService,
   private val pausas: ContratoPausaService,
+  private val volumenes: ContratoVolumenService,
 ) {
   @PostMapping("/sesion")
   fun entrar(@RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Map<String, Any?>> {
@@ -80,6 +82,16 @@ class ContratoPanelController(
     @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
   ): ResponseEntity<Void> {
     pausas.reanudar(acceso.exigir(token), id)
+    return ResponseEntity.noContent().build()
+  }
+
+  /** RF-062: el Operador también puede, como pausar la música (D9). */
+  @PutMapping("/volumen")
+  fun cambiarVolumen(
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ): ResponseEntity<Void> {
+    volumenes.cambiar(acceso.exigir(token), cuerpo)
     return ResponseEntity.noContent().build()
   }
 

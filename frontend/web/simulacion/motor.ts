@@ -311,7 +311,21 @@ export function construirAhora(estado: EstadoSim, ahora: number): Ahora {
       : null,
     cola: colaConEspera(estado, ahora),
     lista_casa: lista ? { nombre: lista.nombre, total_canciones: lista.elementos.length } : null,
+    volumen: estado.volumen ?? VOLUMEN_INICIAL,
   };
+}
+
+/** RF-062: sin dato (o un estado guardado antes de la iteración 13), el volumen es 80. */
+export const VOLUMEN_INICIAL = 80;
+
+/** RF-062: el volumen de la pantalla del bar, desde el panel. Va a la bitácora con su valor. */
+export function cambiarVolumen(estado: EstadoSim, volumen: number, quien: Personal, ahora: number): Resultado<null> {
+  if (!Number.isInteger(volumen) || volumen < 0 || volumen > 100) return mal(400, 'datos_invalidos', 'El volumen va de 0 a 100');
+  if ((estado.volumen ?? VOLUMEN_INICIAL) === volumen) return bien(null, 204);
+  estado.volumen = volumen;
+  accion(estado, ahora, quien, 'cambiar_volumen', null, `${volumen} %`);
+  tocar(estado);
+  return bien(null, 204);
 }
 
 export function construirDestacadas(estado: EstadoSim): { destacadas: Destacada[] } {
@@ -735,6 +749,7 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
       .slice(0, 20)
       .map((a) => ({ ...a, fecha: iso(a.fecha) })),
     horario: estado.horario,
+    volumen: ahoraFoto.volumen,
     lista_casa: lista ? { id: lista.id, nombre: lista.nombre, total_canciones: lista.elementos.length, modo_rotacion: lista.modo_rotacion } : null,
     bloqueos: estado.bloqueos
       .filter((b) => bloqueoVigente(estado, b.video_id, ahora)?.id === b.id)

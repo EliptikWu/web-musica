@@ -25,6 +25,8 @@ class ContratoEstadoService(
     val id: Long,
     val zona: String,
     val modoActual: String?,
+    /** RF-062 (migración V4); sin configuración, 80 como el contrato. */
+    val volumen: Int,
   )
   private data class Franja(
     val dia: Int,
@@ -84,6 +86,8 @@ class ContratoEstadoService(
       "reproduccion" to reproduccionActual?.let { reproduccion(it) },
       "cola" to items,
       "lista_casa" to listaCasa(bar.id),
+      // RF-062 (migración V4): lo fija el panel; la TV lo aplica al reproductor.
+      "volumen" to bar.volumen,
     )
   }
 
@@ -149,7 +153,7 @@ class ContratoEstadoService(
 
   private fun bar(slug: String): Bar = jdbc.query(
     """
-        SELECT e.id_establecimiento, e.zona_horaria, c.estado_manual
+        SELECT e.id_establecimiento, e.zona_horaria, c.estado_manual, COALESCE(c.volumen, 80) AS volumen
         FROM public.establecimiento e
         LEFT JOIN public.configuracion_servicio c ON c.id_establecimiento = e.id_establecimiento
         WHERE e.slug = ? AND e.activo = TRUE
@@ -158,6 +162,7 @@ class ContratoEstadoService(
       rs.getLong("id_establecimiento"),
       rs.getString("zona_horaria"),
       rs.getString("estado_manual"),
+      rs.getInt("volumen"),
     ) }, slug,
   ).firstOrNull()?.also {
     if (it.modoActual == null) throw ContratoApiException(

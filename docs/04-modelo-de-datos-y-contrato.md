@@ -37,7 +37,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `Servicio` | `estado`, `modo_qr`, `desde`, `hasta`, `proxima_apertura` | Ver «Estado del servicio» |
 | `Reproduccion` | `id`, `cancion`, `origen` (`solicitud` \| `lista_casa`), `solicitud_id`, `votos`, `inicio`, `posicion_seg`, `estado` (`sonando` \| `pausada`) | El avance se calcula con `posicion_seg` y el reloj del servidor |
 | `ItemCola` | `solicitud_id`, `cancion`, `votos_total`, `fecha_solicitud`, `puesto`, `puesto_anterior`, `espera_seg` | Ya ordenada (RN-05). `puesto_anterior` alimenta «Subió 2 puestos» igual en todas las pantallas. `espera_seg`: espera estimada en `servidor_ahora`, lo que le falta a lo que suena más lo que duran las de delante; el cliente le descuenta lo que avanza lo que suena (RF-018, ADR-20) |
-| `Ahora` | `version`, `servidor_ahora`, `servicio`, `reproduccion`, `cola[]`, `lista_casa` | La foto que se envía por tiempo real |
+| `Ahora` | `version`, `servidor_ahora`, `servicio`, `reproduccion`, `cola[]`, `lista_casa`, `volumen` | La foto que se envía por tiempo real. `volumen` (0–100, RF-062) lo aplica la TV |
 | `MiSolicitud` | `solicitud_id`, `cancion`, `estado`, `fecha_solicitud`, `votos_total`, `puesto`, `motivo` | Para «Tus pedidos» (RF-013). `retirada` sin `motivo` = la retiró ese teléfono (RF-061); el bar siempre da motivo (RF-041) |
 | `Yo` (teléfono) | `pedidos_maximos`, `pedidos_restantes`, `solicitudes[]`, `votos[]` (ids), `aviso_visto_en` | |
 | `UsuarioPanel` | `id`, `nombre`, `correo`, `rol`, `estado`, `debe_cambiar_clave`, `ultimo_acceso` | Nunca contraseñas ni hashes |
@@ -95,7 +95,7 @@ para ocultar lo que no se puede (`frontend/web/lib/permisos.ts`).
 | Acción | Operador | Administrador |
 |---|---|---|
 | Ver la operación de la noche (cola, lo que suena, registro, métricas) | Sí | Sí |
-| Saltar, pausar y reanudar la reproducción | Sí | Sí |
+| Saltar, pausar y reanudar la reproducción; volumen de la pantalla (RF-062) | Sí | Sí |
 | Pausar y reanudar las solicitudes | Sí | Sí |
 | Retirar una solicitud | Sí | Sí |
 | Bloquear hasta el fin de la sesión | Sí | Sí |
@@ -161,6 +161,7 @@ códigos pide una misma IP por minuto*)*.
 | `POST /panel/sesiones` · `POST /panel/sesiones/actual/cierre` | Abrir y cerrar la noche a mano | 037 |
 | `PUT /panel/servicio` (`{ modo_qr }`) · `POST /panel/servicio/mantenimiento` | Pausar/reanudar solicitudes; mantenimiento | 036, 038, 039 |
 | `POST /panel/reproduccion/{id}/salto` · `/pausa` · `/reanudacion` | Control de la reproducción | 040 |
+| `PUT /panel/volumen` | Volumen de la pantalla (`{ volumen }`, 0 a 100). Va a la bitácora como `cambiar_volumen` con el valor; sale en `Ahora.volumen` y `Noche.volumen` (80 sin dato) | 062 |
 | `POST /panel/solicitudes/{id}/retiro` (`{ motivo, detalle }`) | Retirar de la cola | 041 |
 | `GET /panel/bloqueos` · `POST` · `PATCH /{id}` · `DELETE /{id}` | Bloquear, extender, desbloquear | 042, 043 |
 | `GET /panel/horario` · `PUT /panel/horario` | Horario semanal | 036 |
@@ -297,3 +298,7 @@ resincroniza al reconectar.
     `POST /panel/reproduccion/{id}/pausa` y `/reanudacion` (`ContratoPausaService`). Cuando la
     TV reporta su posición, la pausa acumulada vuelve a cero. También: `destacadas` devuelve
     tres, y `DELETE` de voto y de solicitud (RF-060, RF-061).
+16. Volumen de la pantalla (RF-062), **hecho por el equipo de frontend el 2026-11-12** (D14):
+    migración `V4__volumen_pantalla.sql` (`configuracion_servicio.volumen`, 80 por defecto,
+    CHECK 0–100), `volumen` en `ahora` y `noche`, y `PUT /panel/volumen`
+    (`ContratoVolumenService`). Se avisa a la TV por el canal en vivo de la noche abierta.

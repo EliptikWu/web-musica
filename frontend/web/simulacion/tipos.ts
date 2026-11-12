@@ -128,6 +128,8 @@ export type EstadoSim = {
   };
   modo_qr: ModoQr;
   mantenimiento: boolean;
+  /** RF-062. Opcional: un estado guardado antes de la iteración 13 no lo tiene (vale 80). */
+  volumen?: number;
   horario: Franja[];
   sesion: SesionNocheSim | null;
   /** Si el personal cerró la noche a mano dentro del horario, no se reabre sola hasta esta hora. */

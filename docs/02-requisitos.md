@@ -120,6 +120,7 @@ Administrador vinculó puede mover la cola; si no, cualquiera que abra
 | RF-044 | Bitácora de acciones administrativas | Must | PB-40 | 3, 4 | F+B |
 | RF-045 | Gestión del calendario de eventos del establecimiento | Should | PB-41 | 4 | F+B |
 | RF-059 | Diseño de la rockola del establecimiento (nuevo, 2026-11-11; criterio abajo) | Should | — | 8–10 | F+B |
+| RF-062 | Volumen de la música desde el panel (nuevo, 2026-11-12; criterio abajo) | Should | — | 13 | F+B |
 
 **RF-059 (nuevo, no está en las fuentes del equipo).** El Administrador elige con qué
 dirección visual ven los clientes la rockola de su bar, entre las tres del documento de
@@ -135,6 +136,12 @@ prototipos del equipo: **Rockola** (Tema #2, la de siempre), **Vidrio** (Tema #1
 - Todos los diseños cumplen lo mismo: contraste AA, objetivos de 44 px, estados vacío,
   cargando y error, y «Votaste» y «Tuya» distinguibles sin color.
 - Un bar nuevo empieza en Rockola. Sin dato del backend, también Rockola.
+
+**RF-062 (nuevo, corrección del equipo del 2026-11-12).** El Operador y el Administrador
+suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
+- De 0 a 100 %, en pasos de 10 con las teclas o directo con la barra. 0 es silencio.
+- La TV lo aplica en 3 s o menos (RNF-009) y lo recuerda: al recargar vuelve al último.
+- Queda en la bitácora con el valor. El teléfono no lo muestra: la música la controla el bar.
 
 ### Módulo 8. Datos y analítica
 

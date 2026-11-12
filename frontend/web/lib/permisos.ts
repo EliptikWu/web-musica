@@ -9,6 +9,7 @@ export const ACCIONES = {
   verOperacion: ['operador', 'administrador'],
   saltar: ['operador', 'administrador'],
   pausarMusica: ['operador', 'administrador'],
+  volumen: ['operador', 'administrador'], // RF-062, como pausar la música (D9)
   pausarSolicitudes: ['operador', 'administrador'],
   retirar: ['operador', 'administrador'],
   bloquearNoche: ['operador', 'administrador'],

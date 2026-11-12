@@ -23,7 +23,7 @@ class ContratoNocheService(
   private val tiposAccion = setOf(
     "saltar", "bloquear", "desbloquear", "extender_bloqueo", "retirar",
     "pausar_solicitudes", "reanudar_solicitudes", "forzar_apertura",
-    "pausar_reproduccion", "reanudar_reproduccion",
+    "pausar_reproduccion", "reanudar_reproduccion", "cambiar_volumen",
     "mantenimiento", "abrir_sesion", "cerrar_sesion",
     "editar_horario", "editar_lista", "activar_lista",
     "crear_usuario", "editar_usuario", "desactivar_usuario", "reactivar_usuario", "restablecer_clave",
@@ -71,6 +71,7 @@ class ContratoNocheService(
       "servicio" to servicio,
       "reproduccion" to reproduccion,
       "cola" to cola,
+      "volumen" to ahora["volumen"],
       "metricas" to metricas(sesion),
       "registro" to registro(p.barId, sesion?.apertura),
       "horario" to horario(p.barId),

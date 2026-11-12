@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { crearEstado } from './datos/semilla';
 import { recortar } from './almacen';
 import {
-  abrirSesionManual, activarMantenimiento, ahoraSim, avanzar, bloquear, buscar, cambiarModoQr, cerrarSesionManual, construirAhora,
+  abrirSesionManual, activarMantenimiento, ahoraSim, avanzar, bloquear, buscar, cambiarModoQr, cambiarVolumen, cerrarSesionManual, construirAhora,
   construirDestacadas, construirNoche, construirYo, desbloquear, pedirCancion, quitarVoto, reportarPantalla, retirar, retirarPedido, saltar, votar,
 } from './motor';
 
@@ -320,5 +320,22 @@ describe('quitar mi voto y retirar mi pedido (RF-060, RF-061)', () => {
     expect(retirarPedido(estado, OTRO, monaco, ahora)).toMatchObject({ ok: false, codigo: 'sin_permiso' });
     retirar(estado, monaco, 'Pedida por error', ADMIN, ahora);
     expect(retirarPedido(estado, PERSONA, monaco, ahora)).toMatchObject({ ok: false, codigo: 'no_pendiente' });
+  });
+});
+
+describe('volumen de la pantalla (RF-062)', () => {
+  it('empieza en 80, cambia desde el panel, va a la bitácora y llega al teléfono y la TV', () => {
+    const { estado, ahora } = escena();
+    expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(80);
+    expect(cambiarVolumen(estado, 35, ADMIN, ahora)).toMatchObject({ ok: true });
+    expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(35);
+    expect(Noche.parse(construirNoche(estado, ahora)).volumen).toBe(35);
+    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'cambiar_volumen', detalle: '35 %' });
+    // El mismo valor no deja otra línea; fuera de rango se rechaza.
+    const lineas = estado.acciones.length;
+    cambiarVolumen(estado, 35, ADMIN, ahora);
+    expect(estado.acciones.length).toBe(lineas);
+    expect(cambiarVolumen(estado, 101, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(cambiarVolumen(estado, 2.5, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
   });
 });

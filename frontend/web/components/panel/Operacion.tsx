@@ -17,6 +17,7 @@ import { posicionActual } from '@/lib/reglas/espera';
 import { diasQueAbren, momentoLocal } from '@/lib/reglas/horario';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
 import { acciones, dialogos, errores, franjaEstado, lineasRegistro, P } from '@/lib/textos/panel';
+import { ControlVolumen } from './ControlVolumen';
 import { DialogoBloquear, DialogoConfirmar, DialogoRetirar } from './Dialogos';
 import { useYoDelPanel } from './MarcoPanel';
 
@@ -43,6 +44,7 @@ export function Operacion() {
   const saltar = useAccionPanel('saltar');
   const pausar = useAccionPanel('pausarReproduccion');
   const reanudar = useAccionPanel('reanudarReproduccion');
+  const volumen = useAccionPanel('cambiarVolumen');
   const retirar = useAccionPanel('retirar');
   const bloquear = useAccionPanel('bloquear');
   const desbloquear = useAccionPanel('desbloquear');
@@ -166,6 +168,7 @@ export function Operacion() {
             ) : (
               <p className="secundario">{P.nadaSuena}</p>
             )}
+            {puede(rol, 'volumen') ? <ControlVolumen volumen={n.volumen} onCambiar={(v, alFallar) => volumen.mutate({ cuerpo: { volumen: v } }, { ...alTerminar, onError: (e) => { alFallar(); alTerminar.onError(e); } })} /> : null}
           </Caja>
 
           <Caja titulo={P.cola} nota={n.cola.length > 0 ? `${formatoResumenCola(n.cola.length, duracionCola(n.cola))}. Ordenada por votos; en empate, por hora de pedido.` : undefined}>

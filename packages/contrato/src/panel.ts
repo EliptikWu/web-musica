@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Franja, Servicio, Tema } from './bar.ts';
 import { Cancion } from './cancion.ts';
-import { ItemCola, Reproduccion } from './cola.ts';
+import { ItemCola, Reproduccion, Volumen } from './cola.ts';
 import { Fecha, Id, Segundos, Slug } from './comunes.ts';
 
 // ── Sesión y usuarios (RF-021 a RF-026) ──────────────────────────────────────
@@ -49,7 +49,7 @@ export const TipoAccion = z
   .enum([
     'saltar', 'bloquear', 'desbloquear', 'extender_bloqueo', 'retirar',
     'pausar_solicitudes', 'reanudar_solicitudes', 'forzar_apertura',
-    'pausar_reproduccion', 'reanudar_reproduccion',
+    'pausar_reproduccion', 'reanudar_reproduccion', 'cambiar_volumen',
     'mantenimiento', 'abrir_sesion', 'cerrar_sesion',
     'editar_horario', 'editar_lista', 'activar_lista',
     'crear_usuario', 'editar_usuario', 'desactivar_usuario', 'reactivar_usuario', 'restablecer_clave',
@@ -146,6 +146,7 @@ export const Noche = z
       pedida_en: Fecha.nullable().describe('Cuándo se pidió («pedida hace 31 min»)'),
     }).nullable(),
     cola: z.array(ItemCola.extend({ pedida_por: z.string(), duracion_seg: Segundos })),
+    volumen: Volumen,
     metricas: z.object({
       desde: Fecha.nullable(),
       solicitudes: z.int().nonnegative(),
@@ -163,6 +164,8 @@ export const Noche = z
 export type Noche = z.infer<typeof Noche>;
 
 export const CuerpoServicio = z.object({ modo_qr: z.enum(['automatico', 'forzado_activo', 'pausado']) }).meta({ id: 'CuerpoServicio' });
+/** RF-062. Sin `.default()`: el cuerpo tiene que traer el volumen. */
+export const CuerpoVolumen = z.object({ volumen: z.int().min(0).max(100) }).meta({ id: 'CuerpoVolumen' });
 export const CuerpoSesion = z.object({ tipo_evento: z.string().trim().min(1) }).meta({ id: 'CuerpoSesion' });
 
 // ── Horario (RF-036) ──────────────────────────────────────────────────────────

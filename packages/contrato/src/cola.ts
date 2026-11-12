@@ -42,6 +42,9 @@ export const ListaCasaResumen = z
   })
   .meta({ id: 'ListaCasaResumen' });
 
+/** RF-062: volumen de la pantalla del bar, de 0 (silencio) a 100. Sin dato, 80. */
+export const Volumen = z.int().min(0).max(100).default(80).meta({ id: 'Volumen' });
+
 /** La foto de la noche: lo que todas las pantallas muestran y lo que viaja por tiempo real. */
 export const Ahora = z
   .object({
@@ -51,6 +54,7 @@ export const Ahora = z
     reproduccion: Reproduccion.nullable(),
     cola: z.array(ItemCola),
     lista_casa: ListaCasaResumen.nullable().describe('Lista activa, la que suena si la cola se vacía (RN-08)'),
+    volumen: Volumen.describe('RF-062: volumen de la pantalla del bar, lo fija el panel'),
   })
   .meta({ id: 'Ahora' });
 export type Ahora = z.infer<typeof Ahora>;

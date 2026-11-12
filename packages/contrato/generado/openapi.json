@@ -139,6 +139,10 @@
                 "$ref": "#/components/schemas/ListaCasaResumen"
               }
             ]
+          },
+          "volumen": {
+            "description": "RF-062: volumen de la pantalla del bar, lo fija el panel",
+            "$ref": "#/components/schemas/Volumen"
           }
         },
         "required": [
@@ -147,7 +151,8 @@
           "servicio",
           "reproduccion",
           "cola",
-          "lista_casa"
+          "lista_casa",
+          "volumen"
         ]
       },
       "Alerta": {
@@ -889,6 +894,19 @@
         "required": [
           "codigo",
           "nombre"
+        ]
+      },
+      "CuerpoVolumen": {
+        "type": "object",
+        "properties": {
+          "volumen": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "volumen"
         ]
       },
       "Destacada": {
@@ -1859,6 +1877,9 @@
               ]
             }
           },
+          "volumen": {
+            "$ref": "#/components/schemas/Volumen"
+          },
           "metricas": {
             "type": "object",
             "properties": {
@@ -1941,6 +1962,7 @@
           "servicio",
           "reproduccion",
           "cola",
+          "volumen",
           "metricas",
           "registro",
           "horario",
@@ -2704,6 +2726,7 @@
           "forzar_apertura",
           "pausar_reproduccion",
           "reanudar_reproduccion",
+          "cambiar_volumen",
           "mantenimiento",
           "abrir_sesion",
           "cerrar_sesion",
@@ -2893,6 +2916,12 @@
             ]
           }
         ]
+      },
+      "Volumen": {
+        "default": 80,
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100
       },
       "Yo": {
         "type": "object",
@@ -4824,6 +4853,67 @@
           },
           "404": {
             "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/volumen": {
+      "put": {
+        "operationId": "cambiarVolumen",
+        "summary": "Volumen de la pantalla del bar (0 a 100)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-062. Rol mínimo: operador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoVolumen"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
             "content": {
               "application/json": {
                 "schema": {

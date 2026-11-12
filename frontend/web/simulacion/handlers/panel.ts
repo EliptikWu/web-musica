@@ -3,7 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { conEstado } from '../almacen';
 import {
   abrirSesionManual, activarMantenimiento, bloquear, bloqueoAContrato, cambiarModoQr, cerrarSesionManual, construirNoche, desbloquear,
-  extenderBloqueo, pausarReproduccion, retirar, saltar,
+  cambiarVolumen, extenderBloqueo, pausarReproduccion, retirar, saltar,
 } from '../motor';
 import type { EstadoSim, UsuarioSim } from '../tipos';
 import { COOKIE_PANEL, error, manejar, ok, type Peticion } from './comun';
@@ -113,6 +113,7 @@ export const manejadoresPanel = [
   manejar('saltar', (p) => saltar(p.estado, p.parametros.id ?? '', quien(p), p.ahora)),
   manejar('pausarReproduccion', (p) => pausarReproduccion(p.estado, p.parametros.id ?? '', true, quien(p), p.ahora)),
   manejar('reanudarReproduccion', (p) => pausarReproduccion(p.estado, p.parametros.id ?? '', false, quien(p), p.ahora)),
+  manejar('cambiarVolumen', (p) => cambiarVolumen(p.estado, (p.cuerpo as { volumen: number }).volumen, quien(p), p.ahora)),
   manejar('retirar', (p) => {
     const { motivo, detalle } = p.cuerpo as { motivo: string; detalle: string | null };
     const textos: Record<string, string> = { inapropiada: 'Inapropiada', duplicada: 'Duplicada', otro: 'Otro motivo' };

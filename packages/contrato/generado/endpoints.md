@@ -48,6 +48,7 @@
 | `saltar` (idempotente) | `POST /panel/reproduccion/{id}/salto` | 204 | operador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-040 |
 | `pausarReproduccion` | `POST /panel/reproduccion/{id}/pausa` | 204 | operador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-040 |
 | `reanudarReproduccion` | `POST /panel/reproduccion/{id}/reanudacion` | 204 | operador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-040 |
+| `cambiarVolumen` | `PUT /panel/volumen` | `CuerpoVolumen` → 204 | operador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-062 |
 | `retirar` (idempotente) | `POST /panel/solicitudes/{id}/retiro` | `CuerpoRetiro` → 204 | operador | `no_autenticado`, `sin_permiso`, `no_pendiente` | RF-041 |
 | `bloqueos` | `GET /panel/bloqueos?vigencia` | `ListaBloqueos` | operador | `no_autenticado`, `sin_permiso` | RF-043 |
 | `bloquear` (idempotente) | `POST /panel/bloqueos` | `CuerpoBloqueo` → `Bloqueo` | operador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-042 |

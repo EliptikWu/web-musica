@@ -53,7 +53,10 @@ class ReproduccionAutomaticaService(
 
     @Order(200)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun despuesDeCambio(evento: CambioColaEvent) = programar(evento.sesionId)
+    fun despuesDeCambio(evento: CambioColaEvent) {
+        // Un cambio de volumen (RF-062) solo refresca la foto: no decide qué suena.
+        if (evento.tipo != "volumen") programar(evento.sesionId)
+    }
 
     @Scheduled(initialDelay = 3_000L, fixedDelay = 5_000L)
     fun recuperarSesiones() {

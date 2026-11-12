@@ -8,7 +8,7 @@ import { CuerpoDispositivo, Yo } from './dispositivo.ts';
 import {
   BusquedaPanel, CambioBloqueo, CambioEstablecimiento, CambioUsuario, ClaveTemporal, CuerpoActivacion, CuerpoBloqueo,
   CuerpoCambioClave, CuerpoCancionLista, CuerpoEntrar, CuerpoEvento, CuerpoHorario, CuerpoLista, CuerpoOrden, CuerpoRetiro,
-  CuerpoServicio, CuerpoSesion, CuerpoUsuario, Establecimiento, EventoBar, Horario, ListaBloqueos, ListaCasaDetalle,
+  CuerpoServicio, CuerpoSesion, CuerpoVolumen, CuerpoUsuario, Establecimiento, EventoBar, Horario, ListaBloqueos, ListaCasaDetalle,
   ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, type Rol, UsuarioCreado, UsuarioPanel,
   YoPanel, Bloqueo,
 } from './panel.ts';
@@ -90,6 +90,7 @@ export const endpoints = {
   saltar: definir({ metodo: 'POST', ruta: '/panel/reproduccion/{id}/salto', resumen: 'Saltar la canción que suena', superficie: 'panel', rf: ['RF-040'], respuesta: SinContenido, estado: 204, rol: 'operador', idempotente: true, errores: [...PANEL_ERR, 'no_encontrado'] }),
   pausarReproduccion: definir({ metodo: 'POST', ruta: '/panel/reproduccion/{id}/pausa', resumen: 'Pausar la reproducción', superficie: 'panel', rf: ['RF-040'], respuesta: SinContenido, estado: 204, rol: 'operador', errores: [...PANEL_ERR, 'no_encontrado'] }),
   reanudarReproduccion: definir({ metodo: 'POST', ruta: '/panel/reproduccion/{id}/reanudacion', resumen: 'Reanudar la reproducción', superficie: 'panel', rf: ['RF-040'], respuesta: SinContenido, estado: 204, rol: 'operador', errores: [...PANEL_ERR, 'no_encontrado'] }),
+  cambiarVolumen: definir({ metodo: 'PUT', ruta: '/panel/volumen', resumen: 'Volumen de la pantalla del bar (0 a 100)', superficie: 'panel', rf: ['RF-062'], cuerpo: CuerpoVolumen, respuesta: SinContenido, estado: 204, rol: 'operador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   retirar: definir({ metodo: 'POST', ruta: '/panel/solicitudes/{id}/retiro', resumen: 'Retirar una solicitud con motivo', superficie: 'panel', rf: ['RF-041'], cuerpo: CuerpoRetiro, respuesta: SinContenido, estado: 204, rol: 'operador', idempotente: true, errores: [...PANEL_ERR, 'no_pendiente'] }),
 
   // ── Panel: bloqueos ────────────────────────────────────────────────────────

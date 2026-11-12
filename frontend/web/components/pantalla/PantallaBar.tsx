@@ -102,6 +102,7 @@ export function PantallaBar({ slug }: { slug: string }) {
                 reproduccion={rep}
                 posicionSeg={posicion}
                 encendida={encendida}
+                volumen={foto.volumen}
                 onInicio={(id, p) => reporte.mutate({ tipo: 'reportarInicio', id, posicion: p, codigo: null })}
                 onFin={(id, p) => reporte.mutate({ tipo: 'reportarFin', id, posicion: p, codigo: null })}
                 onError={(id, p, codigo) => reporte.mutate({ tipo: 'reportarError', id, posicion: p, codigo })}

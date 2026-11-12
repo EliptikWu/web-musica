@@ -19,6 +19,8 @@ export type PropsReproductor = {
   onInicio: (reproduccionId: string, posicionSeg: number) => void;
   onFin: (reproduccionId: string, posicionSeg: number) => void;
   onError: (reproduccionId: string, posicionSeg: number, codigoYoutube: number) => void;
+  /** RF-062: lo fija el panel; la TV lo aplica en cuanto llega. */
+  volumen: number;
 };
 
 export const esIdSimulado = (videoId: string) => videoId.startsWith('sim-');
@@ -27,9 +29,10 @@ export function Reproductor(props: PropsReproductor) {
   return esIdSimulado(props.reproduccion.cancion.video_id) ? <ReproductorSimulado {...props} /> : <ReproductorYouTube {...props} />;
 }
 
-function ReproductorSimulado({ reproduccion }: PropsReproductor) {
+function ReproductorSimulado({ reproduccion, volumen }: PropsReproductor) {
+  // Sin sonido de verdad: el volumen queda en el atributo para comprobar que llegó (RF-062).
   return (
-    <div className="video" role="img" aria-label={`Video simulado de ${reproduccion.cancion.titulo}`}>
+    <div className="video" role="img" aria-label={`Video simulado de ${reproduccion.cancion.titulo}`} data-volumen={volumen}>
       <div className="video__centro">
         <div className={reproduccion.estado === 'sonando' ? 'video__disco video__disco--gira' : 'video__disco'} />
       </div>
@@ -51,8 +54,21 @@ type ReproductorYT = {
   seekTo(segundos: number, permitirBuscar: boolean): void;
   getCurrentTime(): number;
   getPlayerState(): number;
+  setVolume(volumen: number): void;
+  mute(): void;
+  unMute(): void;
   destroy(): void;
 };
+
+/** RF-062: 0 es silencio (mute); lo demás, el volumen del reproductor de YouTube (0 a 100). */
+function aplicarVolumen(r: ReproductorYT, volumen: number) {
+  if (volumen <= 0) {
+    r.mute();
+    return;
+  }
+  r.unMute();
+  r.setVolume(volumen);
+}
 type ApiYT = {
   Player: new (
     elemento: HTMLElement,
@@ -105,16 +121,16 @@ const REVISAR_DESFASE_MS = 5000;
  * - La pausa del panel manda también al encender; nunca se le dice «play» a un video terminado.
  * - El desfase se revisa cada 5 s, no en cada render.
  */
-function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError }: PropsReproductor) {
+function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError, volumen }: PropsReproductor) {
   const contenedor = useRef<HTMLDivElement>(null);
   const reproductor = useRef<ReproductorYT | null>(null);
   const listo = useRef(false);
   const idCargado = useRef<string | null>(null);
   const iniciosReportados = useRef(new Set<string>());
-  const deseado = useRef({ reproduccion, posicionSeg });
+  const deseado = useRef({ reproduccion, posicionSeg, volumen });
   const llamadas = useRef({ onInicio, onFin, onError });
   useEffect(() => {
-    deseado.current = { reproduccion, posicionSeg };
+    deseado.current = { reproduccion, posicionSeg, volumen };
     llamadas.current = { onInicio, onFin, onError };
   });
 
@@ -141,6 +157,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
               listo.current = true;
               const r = reproductor.current!;
               const { reproduccion: rep, posicionSeg: pos } = deseado.current;
+              aplicarVolumen(r, deseado.current.volumen);
               // Si mientras cargaba el servidor cambió de canción, se carga la vigente.
               if (rep.id !== idCargado.current) {
                 idCargado.current = rep.id;
@@ -197,6 +214,12 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
     if (estado === 'pausada') r.pauseVideo();
     else if (r.getPlayerState() !== TERMINADO) r.playVideo();
   }, [estado]);
+
+  // Volumen desde el panel (RF-062).
+  useEffect(() => {
+    const r = reproductor.current;
+    if (r && listo.current) aplicarVolumen(r, volumen);
+  }, [volumen]);
 
   // Si se desfasó del servidor (se colgó la red, se unió tarde), se corrige cada 5 s.
   useEffect(() => {
