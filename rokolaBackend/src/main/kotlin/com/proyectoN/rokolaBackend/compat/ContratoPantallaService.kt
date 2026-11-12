@@ -7,7 +7,6 @@ import com.proyectoN.rokolaBackend.sesion.Sesion
 import com.proyectoN.rokolaBackend.tiemporeal.CambioColaPublisher
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
-import org.springframework.core.env.Environment
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.core.RowCallbackHandler
@@ -30,7 +29,6 @@ class ContratoPantallaService(
     private val gestion: ReproduccionGestionService,
     private val cambios: CambioColaPublisher,
     private val tokens: TokenSeguro,
-    private val env: Environment,
     private val pantallas: ContratoPantallasService,
 ) {
     private data class ReproduccionFila(
@@ -40,32 +38,30 @@ class ContratoPantallaService(
         val duracionSeg: Int,
     )
 
+    /** El QR público es por establecimiento, no por TV. Las TVs vinculadas consultan el mismo QR activo. */
     @Transactional(readOnly = true)
     fun qrPublico(slug: String): Map<String, String> {
         val bar = idBar(slug)
-        // La BD almacena solamente SHA-256 del token del QR, no el URL original.
-        // Sin URL conocida no se construye una URL falsa con un token inventado.
-        val claveSlug = "ROKOLA_QR_PUBLIC_URL_" + slug.uppercase().replace(Regex("[^A-Z0-9]"), "_")
-        val url = (env.getProperty(claveSlug) ?: env.getProperty("ROKOLA_QR_PUBLIC_URL") ?: "").trim()
+        val activo = jdbc.query(
+            """SELECT url_publica, token_hash FROM public.codigo_qr
+         WHERE id_establecimiento = ? AND activo = TRUE AND fecha_revocacion IS NULL
+         ORDER BY fecha_creacion DESC, id_qr DESC LIMIT 1""".trimIndent(),
+            { rs, _ -> (rs.getString("url_publica") ?: "") to rs.getString("token_hash") },
+            bar,
+        ).firstOrNull() ?: throw fallo(
+            HttpStatus.NOT_FOUND, "no_encontrado", "El establecimiento todavía no tiene un QR vigente",
+        )
+        val url = activo.first
+        // Mantener la validación anterior: no devolver URLs alteradas ni tokens que no coincidan.
         val uri = try { URI(url) } catch (_: Exception) { null }
-        val token = uri?.path?.substringAfterLast("/q/", "")?.takeIf { it.isNotEmpty() }
+        val token = uri?.path?.takeIf { it.startsWith("/q/") }?.removePrefix("/q/")
         if (uri?.scheme !in listOf("http", "https") || uri?.host.isNullOrBlank()
-            || uri?.rawFragment != null || uri?.rawQuery != null
-            || token == null || !tokens.esValido(token)
+            || uri?.rawQuery != null || uri?.rawFragment != null
+            || token == null || !tokens.esValido(token) || tokens.huellaQr(token) != activo.second
         ) {
             throw fallo(HttpStatus.NOT_FOUND, "no_encontrado",
-                "La URL original del QR no está configurada; recupera la URL de generación del QR vigente")
+                "La URL del QR vigente no está disponible. Registra la URL original o regenera el QR desde el panel")
         }
-        val valido = jdbc.queryForObject(
-            """SELECT EXISTS (
-                 SELECT 1 FROM public.codigo_qr q
-                 WHERE q.id_establecimiento = ? AND q.activo = TRUE AND q.fecha_revocacion IS NULL
-                   AND q.token_hash = ?
-               )""".trimIndent(),
-            Boolean::class.javaObjectType, bar, tokens.huellaQr(token),
-        ) ?: false
-        if (!valido) throw fallo(HttpStatus.NOT_FOUND, "no_encontrado",
-            "La URL configurada no corresponde al QR vigente de este establecimiento")
         return mapOf("url" to url)
     }
 
