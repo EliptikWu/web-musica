@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Archivo, League_Gothic, Libre_Franklin } from 'next/font/google';
+import { Archivo, League_Gothic, Libre_Franklin, Outfit } from 'next/font/google';
 import { headers } from 'next/headers';
 import { connection } from 'next/server';
 import type { ReactNode } from 'react';
@@ -12,6 +12,8 @@ const archivo = Archivo({ subsets: ['latin', 'latin-ext'], axes: ['wdth'], varia
 // Fuentes del diseño Afiche (RF-059, ADR-25): sin precarga, solo las baja el bar que lo usa.
 const leagueGothic = League_Gothic({ subsets: ['latin', 'latin-ext'], variable: '--fuente-cartel', display: 'swap', preload: false });
 const libreFranklin = Libre_Franklin({ subsets: ['latin', 'latin-ext'], variable: '--fuente-franklin', display: 'swap', preload: false });
+// Fuente del diseño Vidrio, igual: sin precarga.
+const outfit = Outfit({ subsets: ['latin', 'latin-ext'], variable: '--fuente-outfit', display: 'swap', preload: false });
 
 export const metadata: Metadata = {
   title: { default: 'Rockola', template: '%s · Rockola' },
@@ -35,7 +37,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     // suppressHydrationWarning: el script previo (ADR-26) pone `data-tema` en <html> antes de hidratar.
-    <html lang="es-CO" className={`${archivo.variable} ${leagueGothic.variable} ${libreFranklin.variable}`} suppressHydrationWarning>
+    <html lang="es-CO" className={`${archivo.variable} ${leagueGothic.variable} ${libreFranklin.variable} ${outfit.variable}`} suppressHydrationWarning>
       <head>
         {/* ADR-26: el diseño del bar antes de pintar. Con el nonce de la CSP; no lee más que la URL y un tema guardado. */}
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_PREVIO }} />

@@ -246,7 +246,7 @@ function PlacaQrGestion({ url, generado }: { url: string; generado: string }) {
       </div>
       <div className="qr-grande">
         <div className="qr-grande__codigo" ref={svg}>
-          <QRCodeSVG value={url} size={172} level="M" marginSize={0} fgColor={colorDeToken('--tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
+          <QRCodeSVG value={url} size={172} level="M" marginSize={0} fgColor={colorDeToken('--qr-tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="secundario text-[14px]">Lleva a</p>
@@ -312,7 +312,7 @@ export function QrParaImprimir() {
           <h1 className="placa text-[34px]">Escanea y vota</h1>
           <p className="text-[18px] text-tinta-2">Pide la música de {bar.data.nombre} desde tu teléfono. Sin descargas ni registro.</p>
           <div className="qr-grande__codigo h-[300px]! w-[300px]!">
-            <QRCodeSVG value={qr.data.url} size={276} level="M" marginSize={0} fgColor={colorDeToken('--tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
+            <QRCodeSVG value={qr.data.url} size={276} level="M" marginSize={0} fgColor={colorDeToken('--qr-tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
           </div>
           <p className="text-[15px] font-semibold">{qr.data.url.replace(/^https?:\/\//, '')}</p>
         </div>

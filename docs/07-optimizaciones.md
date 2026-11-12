@@ -22,6 +22,14 @@ hasta medirlas.
 - Las imágenes llevan ancho y alto para no mover la maqueta al cargar.
 - Las animaciones usan `transform` y `opacity`.
 - Los gráficos de la analítica son SVG propios, sin biblioteca de gráficas.
+- Diseños del bar (RF-059): `temas/afiche.css` y `temas/vidrio.css` se importan en el layout
+  de `/b/[bar]` (el panel no los baja), los dos a la vez. Bajar solo el del bar haría esperar
+  a `/bar` y volvería el destello de Rockola (ADR-26). Sus fuentes se declaran en el layout
+  raíz sin precarga: solo se descargan si el tema las usa, pero sus variables tienen que estar
+  en `<html>` para que `--fuente` las resuelva.
+- Vidrio desenfoca el fondo (`backdrop-filter`) en las piezas del prototipo, sobre un fondo
+  que se desplaza con la página (sin `background-attachment: fixed`, que obliga a desenfocar
+  de nuevo en cada fotograma). Su costo en teléfonos de gama baja está **sin medir**.
 
 ## Mediciones
 

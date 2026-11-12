@@ -227,19 +227,14 @@ function FilaTv({ item, espera }: { item: ItemCola; espera: number }) {
   );
 }
 
-/** Lee un color de tokens.css (los atributos de un SVG no resuelven `var()`). */
-function colorDeToken(nombre: string, respaldo: string): string {
-  if (typeof window === 'undefined') return respaldo;
-  return getComputedStyle(document.documentElement).getPropertyValue(nombre).trim() || respaldo;
-}
-
 function PlacaQr({ url }: { url: string | null }) {
   return (
     <div className="qr-tv">
       <div className="qr-tv__placa">
         <div className="qr-tv__codigo">
-          {/* QRCodeSVG ya es role=img: su nombre va en el título del SVG. */}
-          {url ? <QRCodeSVG value={url} size={102} level="M" fgColor={colorDeToken('--tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} marginSize={0} title={TV.qrEtiqueta} /> : null}
+          {/* QRCodeSVG ya es role=img: su nombre va en el título del SVG. Sus colores los pone el CSS
+              (`color: var(--qr-tinta)` sobre `--qr-fondo`): siguen al tema aunque cambie en vivo. */}
+          {url ? <QRCodeSVG value={url} size={102} level="M" fgColor="currentColor" bgColor="transparent" marginSize={0} title={TV.qrEtiqueta} /> : null}
         </div>
         <div>
           <h2 className="placa">{TV.escaneaYVota}</h2>

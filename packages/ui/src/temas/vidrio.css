@@ -1,0 +1,305 @@
+/*
+ * temas/vidrio.css — las formas del diseño Vidrio (RF-059, ADR-25), de
+ * prototipos/vidrio/estilos.css y los estilos de cada pantalla. Mismo marcado que Rockola:
+ *   arco → tarjeta de vidrio grande             filas → un solo grupo de vidrio con separadores
+ *   tecla → píldora («+1» vidrio, «Votaste» lavanda, «Tuya» punteada, acción con el degradado)
+ *   ficha → rayita                               luz → punto durazno en una píldora
+ * Fiel al prototipo (D13): aquí sí hay vidrio esmerilado, degradado pastel y píldoras. El
+ * degradado solo va en la acción principal, «Tu canción» y el aviso de pedido hecho.
+ * Solo usa tokens (tokens.css, bloque `data-tema="vidrio"`). Sin capa, como afiche.css: tiene
+ * que ganarle a las utilidades de Tailwind del marcado.
+ */
+
+[data-tema="vidrio"] {
+  & .madera { background: var(--vidrio-manchas), var(--vidrio-carbon); }
+  /* Cerrado o en pausa, las manchas se apagan: la luz es el estado (doc 05). */
+  & .madera--apagada { background: var(--vidrio-manchas-apagadas), var(--vidrio-carbon); }
+  & .madera::before { content: none; }
+  & :focus-visible { outline: 2px solid var(--vidrio-texto); outline-offset: 3px; }
+  /* Sobre el degradado, el blanco no llega a 3:1: ahí el anillo va en tinta. */
+  & :is(.marco__luz, .aviso:not(.aviso--error, .aviso--info)) :focus-visible { outline-color: var(--vidrio-tinta); }
+  & ::selection { background: var(--vidrio-lavanda); color: var(--vidrio-texto); }
+
+  /* Sobre el degradado, el texto vuelve a ser tinta oscura. */
+  & :is(.marco__luz, .aviso:not(.aviso--error, .aviso--info), .tecla--cereza) {
+    --tinta: var(--vidrio-tinta);
+    --tinta-2: var(--vidrio-tinta-2);
+    --crema: var(--vidrio-tinta);
+    --crema-2: var(--vidrio-tinta-2);
+  }
+
+  /* ── Tipografía: Outfit, sin anchos ni mayúsculas ────────────────────────── */
+  & :is(.placa, .condensada, .titulo-seccion, .cifra) { font-stretch: normal; text-transform: none; }
+  & .placa { font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  & h1.placa { font-size: 28px; }
+  & .condensada { font-weight: 600; letter-spacing: -.02em; }
+  & .titulo-seccion { font-size: 17px; font-weight: 600; letter-spacing: -.005em; text-align: left; }
+  & .cifra { font-weight: 700; }
+
+  /* ── «En vivo»: una píldora de vidrio con el punto durazno ──────────────── */
+  & .luz-estado {
+    height: 32px; padding: 0 13px 0 11px;
+    border-radius: 999px; border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie);
+    font-size: 13px; font-weight: 500; color: var(--vidrio-texto); white-space: nowrap;
+  }
+  & .luz-estado::before { width: 8px; height: 8px; background: var(--vidrio-durazno-claro); box-shadow: 0 0 0 4px var(--vidrio-halo); }
+  & .luz-estado--apagada::before { background: var(--vidrio-apagado); box-shadow: none; }
+
+  /* ── Cabecera del bar: el nombre a la izquierda, la luz a la derecha ─────── */
+  & .cabecera-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-align: left; }
+  & .cabecera-bar h1 { font-size: 30px; }
+  & .cabecera-bar .luz-estado { margin-top: 0; flex: none; }
+  & .cabecera-bar--apagada h1 { font-size: 20px; letter-spacing: -.01em; }
+
+  /* ── Cajas de contenido: grupo de vidrio. --radio-tecla es de píldora y solo va en teclas. ── */
+  & :is(.ventana, .filtros-busqueda) {
+    border-radius: var(--radio-tarjeta); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie); color: var(--vidrio-texto); box-shadow: none;
+  }
+
+  /* ── Lo que suena: una tarjeta de vidrio grande ─────────────────────────── */
+  & .arco {
+    padding: 0; border-radius: var(--radio-marco);
+    background: var(--vidrio-superficie); border: 1px solid var(--vidrio-borde);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+    box-shadow: none;
+  }
+  & .arco__luz { border-radius: var(--radio-marco); background: none; box-shadow: none; }
+  & .arco__luz > div { min-height: 0; padding: 20px 18px 18px; }
+  & .arco .ventana { border: 0; background: none; box-shadow: none; padding: 0; text-align: left; color: var(--vidrio-texto); }
+  & .arco .ventana__etiqueta { font-size: 13px; font-weight: 500; color: var(--vidrio-texto-2); }
+  & .arco .ventana h2 { margin-top: 6px; font-size: 34px; line-height: 1.1; letter-spacing: -.02em; }
+  & .arco .ventana h2 + p { margin-top: 4px; font-size: 16px; color: var(--vidrio-texto-2); }
+  & .arco .insignia { margin-top: 12px; padding: 0; background: none; color: var(--vidrio-texto); font-size: 17px; font-weight: 700; }
+  & .arco .avance { margin-top: 18px; }
+  /* Cerrado: sin tarjeta, solo el mensaje grande (prototipo 4). */
+  & .arco--apagado { border: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  & .arco--apagado .arco__luz > div { padding: 64px 0 0; }
+  & .arco--apagado .ventana h2 { font-size: 36px; line-height: 1.08; letter-spacing: -.025em; }
+  & .arco--apagado .ventana h2 + p { margin-top: 14px; font-size: 17px; line-height: 1.45; }
+
+  /* ── Avance ─────────────────────────────────────────────────────────────── */
+  & .avance { color: var(--vidrio-texto-2); }
+  & .surco { height: 4px; border-radius: 2px; background: var(--vidrio-pista); }
+  & .surco > span { background: var(--vidrio-texto); }
+
+  /* ── Insignia («Subió 2 puestos») ───────────────────────────────────────── */
+  & .insignia { background: var(--vidrio-subio); color: var(--vidrio-tinta); font-weight: 600; }
+
+  /* ── Filas: un solo grupo de vidrio con separadores, no una tarjeta por fila ─ */
+  & .filas {
+    gap: 0; overflow: hidden;
+    border-radius: var(--radio-tarjeta); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .filas > li + li { border-top: 1px solid var(--vidrio-separador); }
+  & .fila { gap: 10px; padding-right: 8px; }
+  & .fila .tarjeta { flex: 1; }
+  & .tarjeta {
+    grid-template-columns: 40px 1fr 52px;
+    min-height: 64px;
+    background: none; color: var(--vidrio-texto);
+    border-radius: 0; box-shadow: none;
+  }
+  & .tarjeta--resultado { grid-template-columns: 1fr 66px; padding-left: 14px; }
+  & .tarjeta--sola { grid-template-columns: 1fr; padding-left: 14px; }
+  & .tarjeta--miniatura { grid-template-columns: 62px 1fr 52px; }
+  & .tarjeta--miniatura.tarjeta--resultado { grid-template-columns: 62px 1fr 66px; padding-left: 0; }
+  & .tarjeta--miniatura.tarjeta--sola { grid-template-columns: 62px 1fr; padding-left: 0; }
+  & :is(.tarjeta__num, .tarjeta__votos, .tarjeta__dura, .tarjeta__miniatura) { border: 0; }
+  & .tarjeta__num { font-size: 15px; font-weight: 600; color: var(--vidrio-texto-2); }
+  & .tarjeta__centro { padding: 10px 0; text-align: left; }
+  & .tarjeta__titulo { padding: 0; font-size: 16px; font-weight: 600; line-height: 1.25; letter-spacing: 0; }
+  & .tarjeta__artista { padding: 0; margin-top: 1px; background: none; color: var(--vidrio-texto-2); font-size: 13px; line-height: 1.35; }
+  & .tarjeta__votos { font-size: 17px; font-weight: 700; line-height: 1.1; }
+  & .tarjeta__votos small { font-size: 13px; font-weight: 400; color: var(--vidrio-texto-2); }
+  & .tarjeta__dura { color: var(--vidrio-texto-2); font-weight: 400; }
+  & .tarjeta__miniatura img { inset: 10px 8px 10px 14px; width: calc(100% - 22px); height: calc(100% - 20px); border-radius: 11px; filter: none; }
+  & .tarjeta__etiqueta { border-radius: 999px; background: var(--vidrio-velo); color: var(--vidrio-texto); box-shadow: none; }
+  & .tarjeta--tuya, & .fila:has(.tarjeta--tuya) { background: var(--hueco); }
+  & .fila .tarjeta--tuya { background: none; }
+  & .tarjeta--tuya .tarjeta__artista { background: none; color: var(--vidrio-texto-2); }
+  & .tarjeta--apagada { background: none; color: var(--vidrio-texto-2); }
+  & .tarjeta--apagada .tarjeta__artista { background: none; }
+  & .motivo { color: var(--vidrio-texto-2); }
+
+  /* ── Teclas: píldoras ───────────────────────────────────────────────────── */
+  & .tecla {
+    width: 84px; height: 44px;
+    border-radius: 999px; border: 1px solid var(--vidrio-tecla-borde);
+    background: var(--vidrio-tecla); color: var(--vidrio-texto);
+    box-shadow: none; transform: none;
+    font-stretch: normal; font-size: 15px; font-weight: 600; text-transform: none; letter-spacing: 0;
+  }
+  & .tecla:is(button, a):active { transform: scale(.97); box-shadow: none; }
+  & .tecla:disabled { box-shadow: none; }
+  & .tecla--hundida { background: var(--vidrio-votado); border-color: var(--vidrio-votado-borde); font-size: 15px; font-weight: 500; box-shadow: none; transform: none; }
+  & .tecla--hundida:is(button, a):active { transform: scale(.97); box-shadow: none; }
+  & .tecla--tuya { background: none; border: 1px dashed var(--vidrio-tuya-borde); font-size: 15px; font-weight: 500; box-shadow: none; }
+  & .tecla--cereza { border: 0; background: var(--vidrio-acento); color: var(--vidrio-tinta); box-shadow: var(--vidrio-sombra-acento); }
+  & .tecla--cereza:is(button, a):active { box-shadow: var(--vidrio-sombra-acento); }
+  & .tecla--grande { width: 100%; height: 56px; font-size: 17px; letter-spacing: 0; }
+  & .tecla--chica { width: auto; height: 44px; padding: 0 16px; font-size: 15px; }
+  & .tecla--ancha { width: auto; padding: 0 20px; }
+
+  /* ── Pedidos que quedan: rayitas ────────────────────────────────────────── */
+  & .fichas { gap: 4px; }
+  & .ficha { width: 18px; height: 6px; border: 0; border-radius: 3px; background: var(--vidrio-pista); }
+  & .ficha--libre { background: var(--vidrio-acento); box-shadow: none; }
+
+  /* ── Pie: mini reproductor y pestañas, dos piezas de vidrio ─────────────── */
+  & .pie { padding: 0 12px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--vidrio-velo) 46%); border: 0; box-shadow: none; }
+  & .mini {
+    position: relative; height: 64px; padding: 0 16px; overflow: hidden;
+    border-radius: 22px; border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .mini__luz { display: none; }
+  & .mini__etiqueta { font-size: 13px; color: var(--vidrio-texto-2); }
+  & .mini__titulo { font-size: 15px; font-weight: 600; line-height: 1.25; letter-spacing: 0; }
+  & .mini__titulo span { font-size: 13px; color: var(--vidrio-texto-2); }
+  & .mini__votos { color: var(--vidrio-texto-2); }
+  & .mini__votos b { color: var(--vidrio-texto); font-size: 15px; font-weight: 700; }
+  & .mini-avance { height: 3px; margin: -3px 28px 10px; position: relative; border-radius: 2px 2px 0 0; background: var(--vidrio-pista); }
+  & .mini-avance > span { background: var(--vidrio-texto); }
+  & .pestanas {
+    padding: 6px; gap: 0;
+    border-radius: 26px; border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .pestana { height: 52px; border-radius: 20px; background: none; box-shadow: none; color: var(--vidrio-texto-2); font-weight: 500; }
+  & .pestana[aria-current="page"] { background: var(--vidrio-superficie-alta); color: var(--vidrio-texto); font-weight: 600; box-shadow: none; transform: none; }
+  & .pestana__punto { background: var(--vidrio-durazno-claro); box-shadow: none; }
+  & .icono { stroke-width: 1.8; }
+
+  /* ── Buscador ───────────────────────────────────────────────────────────── */
+  & .buscador {
+    border-radius: 26px; border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie); color: var(--vidrio-texto);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+    box-shadow: none;
+  }
+  & .buscador:focus-within { outline: 2px solid var(--vidrio-texto); outline-offset: 3px; }
+  & .buscador > svg, & .buscador button { color: var(--vidrio-texto-2); }
+  & .buscador input { font-weight: 500; color: var(--vidrio-texto); }
+  & .buscador input:focus-visible { outline: none; } /* el foco lo dibuja la píldora entera */
+  & .buscador input::placeholder { color: var(--vidrio-texto-2); }
+
+  /* ── Avisos ─────────────────────────────────────────────────────────────── */
+  & .aviso { border-radius: var(--radio-aviso); background: var(--vidrio-acento); color: var(--vidrio-tinta); box-shadow: var(--vidrio-sombra-tuya); }
+  & .aviso__titulo { font-weight: 600; }
+  & .aviso--error, & .aviso--info {
+    border: 1px solid var(--vidrio-borde); background: var(--vidrio-superficie-alta); color: var(--vidrio-texto); box-shadow: none;
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .aviso--error { border-color: var(--vidrio-rosa); }
+  & .banner-conexion { background: var(--vidrio-velo); color: var(--vidrio-texto); border-bottom: 1px solid var(--vidrio-rosa); }
+  & .banner-conexion__punto { background: var(--vidrio-rosa); opacity: 1; }
+
+  /* ── «Tu canción»: la tarjeta con el degradado ──────────────────────────── */
+  & .marco { padding: 0; border-radius: var(--radio-marco); background: none; box-shadow: var(--vidrio-sombra-tuya); }
+  & .marco__luz { padding: 0; border-radius: var(--radio-marco); background: var(--vidrio-acento); }
+  & .marco .ventana { border: 0; background: none; box-shadow: none; border-radius: 0; padding: 14px 16px 16px; color: var(--vidrio-tinta); }
+  & .marco .cifra { font-size: 52px; letter-spacing: -.03em; }
+  & .marco .condensada { font-size: 19px; line-height: 1.15; letter-spacing: 0; }
+  & .marco .insignia { background: var(--vidrio-subio); }
+
+  /* ── Días del horario ───────────────────────────────────────────────────── */
+  & .horario-bar {
+    padding: 18px 16px 20px;
+    border-radius: var(--radio-marco); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .horario-bar > p { text-align: left; }
+  & .dia { height: 58px; border: 1px solid transparent; background: none; box-shadow: none; color: var(--vidrio-texto-2); font-weight: 500; }
+  & .dia--abre { background: var(--vidrio-superficie-alta); border-color: var(--vidrio-tecla-borde); color: var(--vidrio-texto); font-weight: 600; transform: none; box-shadow: none; }
+  & .dia:has(small) { border-color: var(--vidrio-hoy); }
+  & .dia small, & .dia:not(.dia--abre) small { color: inherit; font-weight: 500; }
+
+  /* ── Esperar y vacío ────────────────────────────────────────────────────── */
+  & .esqueleto { border-radius: var(--radio-tarjeta); }
+  & .vacio { border-radius: var(--radio-tarjeta); border: 1px dashed var(--vidrio-borde); color: var(--vidrio-texto-2); }
+
+  /* ── Diálogo (mover el voto) ────────────────────────────────────────────── */
+  & .dialogo {
+    border-radius: var(--radio-marco); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-carbon); color: var(--vidrio-texto); box-shadow: none;
+  }
+  & .dialogo::backdrop { background: var(--vidrio-velo-marca); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+}
+
+/* ── Pantalla del bar (prototipos/vidrio/pantalla-bar.html) ───────────────── */
+[data-tema="vidrio"] {
+  & .tv-marco { background: var(--vidrio-carbon); }
+  & .tv-lienzo.madera { background: var(--vidrio-manchas-tv), var(--vidrio-carbon); }
+  & .tv-lienzo.madera--apagada { background: var(--vidrio-manchas-apagadas), var(--vidrio-carbon); }
+  & .tv { grid-template-columns: 712px 1fr; column-gap: 32px; padding: 28px 40px 32px; }
+  & .tv .arco { width: auto; border: 0; border-radius: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  & .tv .arco__luz { padding: 0; border-radius: 0; }
+  & .placa-bar {
+    width: auto; max-width: 100%; margin: 0 0 16px; padding: 0;
+    background: none; box-shadow: none; border-radius: 0;
+    font-size: 26px; text-align: left;
+  }
+  & .video { border-radius: var(--radio-marco); border: 1px solid var(--vidrio-borde); background: var(--vidrio-video); box-shadow: none; }
+  & .video__marca { height: 36px; border-radius: 999px; background: var(--vidrio-velo-marca); color: var(--vidrio-texto); }
+  & .video__centro { color: var(--vidrio-texto); }
+  & .video__disco { background: radial-gradient(circle, var(--vidrio-texto) 0 6%, var(--vidrio-carbon) 7% 22%, var(--vidrio-rosa) 23% 34%, var(--vidrio-carbon) 35%); box-shadow: 0 0 40px var(--vidrio-halo); }
+
+  & .ahora-tv { margin-top: 18px; grid-template-columns: 1fr 140px; min-height: 0; background: none; border-radius: 0; }
+  & .ahora-tv .tarjeta__centro { padding: 0; }
+  & .ahora-tv__etiqueta { font-size: 18px; font-weight: 500; color: var(--vidrio-texto-2); }
+  & .ahora-tv__titulo { padding: 0; font-size: 52px; line-height: 1.2; letter-spacing: -.025em; }
+  & .ahora-tv .tarjeta__artista { margin-top: 0; padding: 0; font-size: 24px; line-height: 1.25; color: var(--vidrio-texto-2); }
+  & .ahora-tv .tarjeta__votos { align-self: start; font-size: 32px; }
+  & .ahora-tv .tarjeta__votos small { font-size: 18px; color: var(--vidrio-texto-2); }
+  & .ahora-tv .avance { padding: 12px 0 0; font-size: 16px; color: var(--vidrio-texto); }
+  & .ahora-tv .surco { height: 6px; border-radius: 3px; }
+  & .ahora-tv__casa { color: var(--vidrio-texto-2); }
+
+  & .tv__der { gap: 0; }
+  & .tv__cabeza { height: 44px; }
+  & .tv__cabeza h2 { font-size: 26px; letter-spacing: -.01em; }
+  & .viene { margin-top: 10px; }
+  & .viene .tarjeta, & .viene .tarjeta--miniatura { min-height: 66px; }
+  & .viene .tarjeta { grid-template-columns: 44px 1fr 52px 56px; }
+  & .viene .tarjeta--miniatura { grid-template-columns: 70px 1fr 52px 56px; }
+  & .viene .tarjeta__num { font-size: 20px; }
+  & .viene .tarjeta__titulo { font-size: 21px; line-height: 1.15; }
+  & .viene .tarjeta__artista { font-size: 15px; }
+  & .viene .tarjeta__votos { font-size: 24px; }
+  & .sube { border: 0; color: var(--vidrio-durazno-claro); font-stretch: normal; font-weight: 600; font-size: 16px; }
+  & .viene__mas { margin-top: 12px; color: var(--vidrio-texto-2); }
+
+  & .qr-tv { padding: 0; border-radius: var(--radio-marco); background: none; }
+  & .qr-tv__placa {
+    gap: 20px; padding: 16px 20px 16px 16px;
+    border-radius: var(--radio-marco); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie); color: var(--vidrio-texto);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .qr-tv__codigo { width: 132px; height: 132px; padding: 10px; border-radius: 18px; box-shadow: none; }
+  & .qr-tv h2 { font-size: 28px; letter-spacing: -.02em; }
+  & .qr-tv p { color: var(--vidrio-texto-2); font-size: 18px; }
+  & .qr-tv .qr-tv__enlace { color: var(--vidrio-texto); font-weight: 500; font-size: 16px; }
+
+  & .tv-aviso {
+    border-radius: var(--radio-marco); border: 1px solid var(--vidrio-borde);
+    background: var(--vidrio-superficie); color: var(--vidrio-texto); box-shadow: none;
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .tv-aviso h3 { font-stretch: normal; font-weight: 600; font-size: 32px; letter-spacing: -.02em; }
+  & .tv-aviso p { color: var(--vidrio-texto-2); }
+  & .tv-aviso .dia:not(.dia--abre) { background: none; box-shadow: none; color: var(--vidrio-texto-2); }
+  & .tv-banner { background: var(--vidrio-velo); color: var(--vidrio-texto); border-bottom: 1px solid var(--vidrio-rosa); }
+  & .tv-encender { background: var(--vidrio-velo); }
+  & .pasos-tv li { color: var(--vidrio-texto); }
+  & .pasos-tv li::before { font-stretch: normal; font-weight: 700; font-size: 24px; color: var(--vidrio-durazno-claro); }
+  & .codigo-tv__etiqueta { color: var(--vidrio-texto); }
+  & .codigo-tv .tecla { width: 78px; height: 104px; border-radius: 22px; font-size: 64px; font-weight: 600; }
+}

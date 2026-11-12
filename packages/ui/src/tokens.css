@@ -43,6 +43,8 @@
   --pie-filete: #9EA3AA;
   --video-fondo: #1A0E0A;
   --qr-fondo: #FFFFFF;
+  /* AÑADIDO (RF-059): los módulos del QR, oscuros en todos los temas (no siguen al texto). */
+  --qr-tinta: #23140F;
 
   /* Teclas: cara clara, canto marrón (AÑADIDO: nombres para los valores de .tecla) */
   --tecla-cara: linear-gradient(180deg, #FFF8E6, #E8D8B6);
@@ -112,6 +114,7 @@
   --afiche-resaltador: linear-gradient(176deg, rgba(255, 230, 0, 0) 6%, #FFE600 7%, #FFE600 92%, rgba(255, 230, 0, 0) 93%);
   --afiche-resaltador-fila: linear-gradient(176deg, rgba(255, 230, 0, 0) 4%, rgba(255, 230, 0, .32) 5%, rgba(255, 230, 0, .32) 95%, rgba(255, 230, 0, 0) 96%);
   --afiche-grano: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 .07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --qr-tinta: var(--afiche-tinta);
   --fuente-cartel-afiche: var(--fuente-cartel, 'League Gothic'), 'Arial Narrow', sans-serif;
 
   /* Los papeles de Rockola, con valores de Afiche */
@@ -145,4 +148,94 @@
   --radio-marco: 0;
 
   color-scheme: light;
+}
+
+/*
+ * Diseño Vidrio (RF-059, ADR-25; prototipos/vidrio/estilos.css). Fiel al prototipo (D13): vidrio
+ * esmerilado, degradado pastel y píldoras, que en Rockola están prohibidos (doc 05). Como en
+ * Afiche, los nombres de Rockola hacen de papeles: las superficies de «papel» (ventana, tarjeta,
+ * buscador) son aquí vidrio oscuro, así que --tinta es el texto claro y solo vuelve a ser oscura
+ * sobre el degradado (temas/vidrio.css lo acota).
+ */
+:root[data-tema="vidrio"] {
+  /* Del prototipo */
+  --vidrio-carbon: #121016;
+  --vidrio-carbon-video: #1C1820;
+  --vidrio-durazno: #F4A98E;
+  --vidrio-rosa: #E07FAE;
+  --vidrio-lavanda: #9A86EC;
+  --vidrio-durazno-claro: #F6B29A;
+  --vidrio-superficie: rgba(255, 255, 255, .08);
+  --vidrio-superficie-alta: rgba(255, 255, 255, .12);
+  --vidrio-tecla: rgba(255, 255, 255, .14);
+  --vidrio-tecla-borde: rgba(255, 255, 255, .2);
+  --vidrio-borde: rgba(255, 255, 255, .13);
+  --vidrio-separador: rgba(255, 255, 255, .09);
+  --vidrio-pista: rgba(255, 255, 255, .16);
+  --vidrio-tuya-borde: rgba(255, 255, 255, .38);
+  --vidrio-hoy: rgba(255, 255, 255, .7);
+  --vidrio-apagado: rgba(255, 255, 255, .45);
+  --vidrio-subio: rgba(255, 255, 255, .42);
+  --vidrio-votado: rgba(168, 148, 238, .22);
+  --vidrio-votado-borde: rgba(196, 182, 255, .45);
+  --vidrio-velo: rgba(18, 16, 22, .86);
+  --vidrio-velo-marca: rgba(18, 16, 22, .55);
+  --vidrio-halo: rgba(246, 178, 154, .22);
+  --vidrio-sombra-acento: 0 10px 30px -12px rgba(229, 139, 176, .7);
+  --vidrio-sombra-tuya: 0 18px 40px -22px rgba(229, 139, 176, .9);
+  --vidrio-desenfoque: blur(26px) saturate(140%);
+  --vidrio-acento: linear-gradient(118deg, #F6B29A 0%, #E58BB0 52%, #A894EE 100%);
+  --vidrio-texto: #FFFFFF;
+  --vidrio-texto-2: rgba(255, 255, 255, .74); /* el prototipo: .62; no llegaba a 4,5:1 sobre el vidrio encima de una mancha */
+  --vidrio-tinta: #2A1230;
+  --vidrio-tinta-2: rgba(42, 18, 48, .84);
+  --vidrio-manchas:
+    radial-gradient(34% 24% at 92% 0%, rgba(244, 169, 142, .34), transparent 72%),
+    radial-gradient(36% 26% at 0% 30%, rgba(224, 127, 174, .26), transparent 72%),
+    radial-gradient(48% 30% at 40% 92%, rgba(154, 134, 236, .29), transparent 72%);
+  --vidrio-manchas-tv:
+    radial-gradient(30% 40% at 18% 20%, rgba(244, 169, 142, .3), transparent 72%),
+    radial-gradient(30% 45% at 70% 85%, rgba(224, 127, 174, .22), transparent 72%),
+    radial-gradient(35% 45% at 88% 30%, rgba(154, 134, 236, .3), transparent 72%);
+  --vidrio-manchas-apagadas:
+    radial-gradient(34% 24% at 92% 0%, rgba(244, 169, 142, .1), transparent 72%),
+    radial-gradient(48% 30% at 40% 92%, rgba(154, 134, 236, .1), transparent 72%);
+  --vidrio-video:
+    radial-gradient(60% 80% at 30% 40%, rgba(246, 178, 154, .55), transparent 70%),
+    radial-gradient(50% 70% at 75% 65%, rgba(168, 148, 238, .45), transparent 70%),
+    #1C1820;
+  --qr-tinta: var(--vidrio-carbon);
+  --fuente-vidrio: var(--fuente-outfit, 'Outfit'), system-ui, sans-serif;
+
+  /* Los papeles de Rockola, con valores de Vidrio */
+  --nogal: var(--vidrio-carbon);
+  --nogal-hondo: var(--vidrio-carbon);
+  --madera: var(--vidrio-superficie);
+  --madera-clara: var(--vidrio-superficie-alta);
+  --borde: var(--vidrio-borde);
+  --hueco: rgba(255, 255, 255, .06);
+  --crema: var(--vidrio-texto);
+  --crema-2: var(--vidrio-texto-2);
+  --papel: var(--vidrio-superficie);
+  --papel-apagado: rgba(255, 255, 255, .04);
+  --tinta: var(--vidrio-texto);
+  --tinta-2: var(--vidrio-texto-2);
+  --gris-apagado: var(--vidrio-apagado);
+  --cereza: var(--vidrio-rosa);
+  --cereza-hondo: var(--vidrio-rosa);
+  --ambar: var(--vidrio-durazno-claro);
+  --ambar-claro: var(--vidrio-durazno-claro);
+  --luz: var(--vidrio-acento);
+  --luz-horizontal: var(--vidrio-acento);
+  --video-fondo: var(--vidrio-carbon-video);
+  --fuente: var(--fuente-vidrio);
+  --radio-insignia: 999px;
+  --radio-tarjeta: 20px;
+  --radio-dia: 16px;
+  --radio-tecla: 999px;
+  --radio-aviso: 20px;
+  --radio-caja: 20px;
+  --radio-marco: 28px;
+
+  color-scheme: dark;
 }

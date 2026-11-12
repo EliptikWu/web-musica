@@ -13,7 +13,8 @@
     "./pantalla.css": "./src/pantalla.css",
     "./panel.css": "./src/panel.css",
     "./analitica.css": "./src/analitica.css",
-    "./temas/afiche.css": "./src/temas/afiche.css"
+    "./temas/afiche.css": "./src/temas/afiche.css",
+    "./temas/vidrio.css": "./src/temas/vidrio.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
