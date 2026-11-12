@@ -27,6 +27,12 @@ hasta medirlas.
   a `/bar` y volvería el destello de Rockola (ADR-26). Sus fuentes se declaran en el layout
   raíz sin precarga: solo se descargan si el tema las usa, pero sus variables tienen que estar
   en `<html>` para que `--fuente` las resuelva.
+- Búsqueda (corrección del 2026-11-12): el backend arma cada página de resultados con cuatro
+  consultas en lote (`IN (…)`) y no cuatro por resultado; solo arma la foto de la cola si la
+  búsqueda coincide con algo de ella; y guarda la búsqueda de YouTube 6 h *(propuesto; `youtube.cache.horas`)* en vez de 30 min,
+  porque la cuota es de 80 búsquedas diarias y la disponibilidad se valida al pedir. El
+  autocompletado sigue mirando solo lo buscado en los últimos 30 min (la caché es de todos los bares).
+  El teléfono sigue esperando 300 ms tras la última tecla.
 - Vidrio desenfoca el fondo (`backdrop-filter`) en las piezas del prototipo, sobre un fondo
   que se desplaza con la página (sin `background-attachment: fixed`, que obliga a desenfocar
   de nuevo en cada fotograma). Su costo en teléfonos de gama baja está **sin medir**.
@@ -38,6 +44,7 @@ hasta medirlas.
 | 2026-10-27 | JavaScript que descarga cada ruta, compilación real (`NEXT_PUBLIC_API_MODE=real`), API del navegador (`encodedBodySize`) | `/b/[bar]` 211 kB comprimidos (699 kB sin comprimir), `/b/[bar]/buscar` 213 kB, `/b/[bar]/pantalla` 213 kB, `/panel/entrar` 204 kB |
 | 2026-10-27 | Qué pesa en `/b/[bar]` | React DOM 72 kB y el runtime de Next 44 kB (fijos); zod con el contrato **entero** 40 kB (incluye los esquemas del panel y de la analítica); el resto, menos de 12 kB por archivo |
 | 2026-10-27 | La simulación en la compilación real | Fuera: ningún archivo lleva MSW. En modo simulado es un archivo aparte de 110 kB comprimidos que solo se descarga en la demo |
+| 2026-11-12 | Búsqueda del backend (`GET /bares/{slug}/busqueda`), 10 resultados en caché y una cola de 8; Postgres 16 en Docker con `log_statement=all`, 20 peticiones | **Antes:** 55 consultas a la base por búsqueda, 35 ms de media en local. **Después:** 9 consultas al buscar algo que no está en la cola (lo habitual) y 20 cuando coincide; 12 y 20 ms en local. Con unos 25 ms por ida y vuelta a una base remota *(estimado, sin medir contra Railway)*, de ~1,4 s a ~0,2 s solo en base de datos. Mismas respuestas (bloqueada, sonó hace poco, no embebible) |
 
 **Por encima del presupuesto propuesto** (180 kB para `/b/[bar]`): 211 kB. El siguiente paso
 es partir el registro de operaciones por superficie (`endpoints` del cliente, de la pantalla y

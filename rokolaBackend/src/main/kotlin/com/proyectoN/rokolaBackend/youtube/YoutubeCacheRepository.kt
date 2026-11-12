@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.youtube
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Repository
 import tools.jackson.databind.json.JsonMapper
@@ -9,6 +10,12 @@ import tools.jackson.databind.json.JsonMapper
 class YoutubeCacheRepository(
     private val jdbc: JdbcTemplate,
     private val json: JsonMapper,
+    /**
+     * Cuánto se guarda una búsqueda de YouTube (rapidez de la búsqueda, 2026-11-12). Antes 30 min;
+     * 6 h cubre una noche de búsquedas repetidas con la cuota diaria (`youtube.busquedas.max-diarias`).
+     * La disponibilidad real se vuelve a validar al pedir. *Propuesto*: por confirmar con el backend.
+     */
+    @Value("\${youtube.cache.horas:6}") private val horasCache: Int,
 ) {
     private val region = "CO"
     private val idioma = "es"
@@ -53,14 +60,14 @@ class YoutubeCacheRepository(
             INSERT INTO public.busqueda_cache
               (consulta_normalizada, region, idioma, resultados, fecha_creacion, expira_en, aciertos)
             VALUES (?, ?, ?, CAST(? AS jsonb), CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP + INTERVAL '30 minutes', 0)
+                    CURRENT_TIMESTAMP + (? * INTERVAL '1 hour'), 0)
             ON CONFLICT (consulta_normalizada, region, idioma)
             DO UPDATE SET resultados = EXCLUDED.resultados,
                           fecha_creacion = CURRENT_TIMESTAMP,
                           expira_en = EXCLUDED.expira_en,
                           aciertos = 0
             """.trimIndent(),
-            consulta, region, idioma, json.writeValueAsString(resultados),
+            consulta, region, idioma, json.writeValueAsString(resultados), horasCache,
         )
     }
 
@@ -75,7 +82,9 @@ class YoutubeCacheRepository(
               WHERE artista IS NOT NULL AND STRPOS(LOWER(artista), ?) > 0
             UNION
             SELECT consulta_normalizada AS sugerencia FROM public.busqueda_cache
-              WHERE expira_en > CURRENT_TIMESTAMP
+              -- Solo lo buscado hace poco, como antes de alargar la caché: la caché es de
+              -- todos los bares y una búsqueda no debe sugerirse a otro bar durante horas.
+              WHERE fecha_creacion > CURRENT_TIMESTAMP - INTERVAL '30 minutes'
                 AND STRPOS(LOWER(consulta_normalizada), ?) > 0
         ) AS candidatos
         ORDER BY LOWER(sugerencia)

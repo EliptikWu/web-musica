@@ -226,7 +226,8 @@ resincroniza al reconectar.
 1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
 2. Cuota de YouTube: `search.list` cuesta 100 unidades de 10 000 diarias; el
    autocompletado necesita caché en el servidor y espera entre teclas (el cliente espera
-   300 ms). RF-008 y PB-54.
+   300 ms). RF-008 y PB-54. El 2026-11-12 la caché pasó de 30 min a 6 h, configurable con
+   `youtube.cache.horas` *(propuesto, por confirmar)*; ver doc 07, «Mediciones».
 3. Cómo se deriva `artista` y de dónde sale el género (la categoría de YouTube casi
    siempre es «Música»), para RF-051 y los filtros de RF-055; y si la popularidad de los
    filtros son las veces pedida en el bar (lo propuesto) u otra medida.
