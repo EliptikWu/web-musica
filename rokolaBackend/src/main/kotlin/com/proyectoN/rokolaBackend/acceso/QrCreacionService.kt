@@ -14,71 +14,72 @@ import java.net.URI
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-/** Datos devueltos por la creación; el token original nunca se almacena en la BD. */
+/** Datos devueltos por la creación; el token se valida por hash y la URL pública se conserva para mostrar el QR. */
 data class QrCreado(val id: Long, val url: String, val png: ByteArray)
 
 @Service
 class QrCreacionService(
-    private val entityManager: EntityManager,
-    private val qrRepository: CodigoQrRepository,
-    private val tokens: TokenSeguro,
-    private val imagen: QrImagenService,
-    @Value("\${rokola.qr-base-url:}") private val baseUrl: String,
+  private val entityManager: EntityManager,
+  private val qrRepository: CodigoQrRepository,
+  private val tokens: TokenSeguro,
+  private val imagen: QrImagenService,
+  @Value("\${rokola.qr-base-url:}") private val baseUrl: String,
 ) {
-    @Transactional
-    fun crearParaEstablecimiento(idEstablecimiento: Long): QrCreado {
-        val raiz = raizConfigurada()
-        // Bloquea la fila para serializar dos generaciones simultáneas del mismo establecimiento.
-        val establecimiento = entityManager.find(
-            Establecimiento::class.java,
-            idEstablecimiento,
-            LockModeType.PESSIMISTIC_WRITE,
-        ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Establecimiento no encontrado")
-        if (!establecimiento.activo) {
-            throw ResponseStatusException(HttpStatus.CONFLICT, "El establecimiento está inactivo")
-        }
-
-        val token = tokens.generar()
-        val url = "$raiz/q/$token"
-        val png = imagen.generarPng(url)
-        val ahora = OffsetDateTime.now(ZoneOffset.UTC)
-
-        // Cada POST rota el QR: revoca los anteriores del mismo establecimiento.
-        val anteriores = qrRepository.findByEstablecimientoIdOrderByFechaCreacionDesc(idEstablecimiento)
-            .filter { it.activo }
-        anteriores.forEach {
-            it.activo = false
-            if (it.fechaRevocacion == null) {
-                it.fechaRevocacion = maxOf(ahora, it.fechaCreacion)
-            }
-        }
-        if (anteriores.isNotEmpty()) qrRepository.saveAll(anteriores)
-
-        val nuevo = qrRepository.saveAndFlush(
-            CodigoQr(
-                establecimiento = establecimiento,
-                tokenHash = tokens.huellaQr(token),
-                fechaCreacion = ahora,
-                fechaRevocacion = null,
-                activo = true,
-            ),
-        )
-        return QrCreado(requireNotNull(nuevo.id), url, png)
+  @Transactional
+  fun crearParaEstablecimiento(idEstablecimiento: Long): QrCreado {
+    val raiz = raizConfigurada()
+    // Bloquea la fila para serializar dos generaciones simultáneas del mismo establecimiento.
+    val establecimiento = entityManager.find(
+      Establecimiento::class.java,
+      idEstablecimiento,
+      LockModeType.PESSIMISTIC_WRITE,
+    ) ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Establecimiento no encontrado")
+    if (!establecimiento.activo) {
+      throw ResponseStatusException(HttpStatus.CONFLICT, "El establecimiento está inactivo")
     }
 
-    private fun raizConfigurada(): String {
-        if (baseUrl.isBlank()) {
-            throw ResponseStatusException(
-                HttpStatus.SERVICE_UNAVAILABLE,
-                "Configura ROKOLA_QR_BASE_URL con la IP Wi-Fi del computador (http://IP:8080)",
-            )
-        }
-        val uri = try { URI.create(baseUrl.trim()) } catch (_: IllegalArgumentException) {
-            throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "ROKOLA_QR_BASE_URL no es una URL válida")
-        }
-        if (uri.scheme !in listOf("http", "https") || uri.host == null || uri.rawQuery != null || uri.rawFragment != null || (uri.path != null && uri.path !in listOf("", "/"))) {
-            throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "ROKOLA_QR_BASE_URL debe ser http(s)://host:puerto sin ruta")
-        }
-        return baseUrl.trim().trimEnd('/')
+    val token = tokens.generar()
+    val url = "$raiz/q/$token"
+    val png = imagen.generarPng(url)
+    val ahora = OffsetDateTime.now(ZoneOffset.UTC)
+
+    // Cada POST rota el QR: revoca los anteriores del mismo establecimiento.
+    val anteriores = qrRepository.findByEstablecimientoIdOrderByFechaCreacionDesc(idEstablecimiento)
+      .filter { it.activo }
+    anteriores.forEach {
+      it.activo = false
+      if (it.fechaRevocacion == null) {
+        it.fechaRevocacion = maxOf(ahora, it.fechaCreacion)
+      }
     }
+    if (anteriores.isNotEmpty()) qrRepository.saveAll(anteriores)
+
+    val nuevo = qrRepository.saveAndFlush(
+      CodigoQr(
+        establecimiento = establecimiento,
+        tokenHash = tokens.huellaQr(token),
+        urlPublica = url,
+        fechaCreacion = ahora,
+        fechaRevocacion = null,
+        activo = true,
+      ),
+    )
+    return QrCreado(requireNotNull(nuevo.id), url, png)
+  }
+
+  private fun raizConfigurada(): String {
+    if (baseUrl.isBlank()) {
+      throw ResponseStatusException(
+        HttpStatus.SERVICE_UNAVAILABLE,
+        "Configura ROKOLA_QR_BASE_URL con la IP Wi-Fi del computador (http://IP:8080)",
+      )
+    }
+    val uri = try { URI.create(baseUrl.trim()) } catch (_: IllegalArgumentException) {
+      throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "ROKOLA_QR_BASE_URL no es una URL válida")
+    }
+    if (uri.scheme !in listOf("http", "https") || uri.host == null || uri.rawQuery != null || uri.rawFragment != null || (uri.path != null && uri.path !in listOf("", "/"))) {
+      throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "ROKOLA_QR_BASE_URL debe ser http(s)://host:puerto sin ruta")
+    }
+    return baseUrl.trim().trimEnd('/')
+  }
 }
