@@ -88,14 +88,19 @@ del bar», y `endpoints.md`):
 
 ## Lo que el equipo de frontend hizo en el backend (D14)
 
-La base de Railway está apagada y sin acceso: estos cambios se probaron con pruebas
-unitarias y contra un Postgres local con `src/test/resources/esquema-reconstruido.sql`, un
-esquema **reconstruido del código** que puede no coincidir con la base real. Revisarlos antes
-de desplegar.
+La base de Railway está apagada y sin acceso. Estos cambios se probaron con pruebas
+unitarias y levantando el backend contra un Postgres 16 en Docker cargado con
+`src/test/resources/esquema-reconstruido.sql`: un esquema **reconstruido del código** (cada
+supuesto lleva su comentario) que puede no coincidir con la base real. Revisarlos antes de
+desplegar. Para repetir la prueba: cargar el esquema, poner las claves demo con
+`UPDATE public.usuario SET password_hash = crypt('rockola-demo', gen_salt('bf', 10))`
+(extensión `pgcrypto`) y arrancar con `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` y
+`ROKOLA_DEVICE_HMAC_SECRET` apuntando a esa base. En una base vacía la V2 falla: Flyway solo
+hace la línea base sobre una base que ya tiene tablas.
 
 | Fecha | Qué | Archivos | Para revisar |
 |---|---|---|---|
-| 2026-11-12 | `tema` del bar (RF-059) y edición del establecimiento (RF-034) | `db/migration/V2__tema_establecimiento.sql`, `compat/ContratoEstablecimientoService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoQrBarController.kt` | Que `accion_admin.tipo` admita `editar_establecimiento`; que la base real no tenga ya otra V2 de Flyway |
+| 2026-11-12 | `tema` del bar (RF-059) y edición del establecimiento (RF-034) | `db/migration/V2__tema_establecimiento.sql`, `compat/ContratoEstablecimientoService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoQrBarController.kt` | Que `accion_admin.tipo` admita `editar_establecimiento` y que `detalle` sea JSONB; que la base real no tenga ya otra V2 de Flyway. Los teléfonos y la TV abiertos no reciben aviso del cambio: lo toman al recargar |
 
 ## Lo que el frontend no hace
 

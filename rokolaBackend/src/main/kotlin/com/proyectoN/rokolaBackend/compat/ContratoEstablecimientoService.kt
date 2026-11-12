@@ -52,16 +52,15 @@ class ContratoEstablecimientoService(
     val cambio = CambioEstablecimiento.desde(cuerpo ?: emptyMap())
     if (cambio.vacio) return leer(p)
     val bar = p.barId
-    cambio.nombre?.let { jdbc.update("UPDATE public.establecimiento SET nombre = ? WHERE id_establecimiento = ?", it, bar) }
-    cambio.direccion?.let { jdbc.update("UPDATE public.establecimiento SET direccion = ? WHERE id_establecimiento = ?", it, bar) }
-    cambio.zonaHoraria?.let { jdbc.update("UPDATE public.establecimiento SET zona_horaria = ? WHERE id_establecimiento = ?", it, bar) }
-    cambio.tema?.let { jdbc.update("UPDATE public.establecimiento SET tema = ? WHERE id_establecimiento = ?", it, bar) }
-    cambio.pedidosMaximos?.let { configuracion("max_solicitudes_dispositivo", it, bar) }
-    cambio.duracionMaxSeg?.let { configuracion("duracion_max_seg", it, bar) }
-    cambio.ventanaMin?.let { configuracion("minutos_bloqueo_repeticion", it, bar) }
+    actualizar("establecimiento", cambio.columnasEstablecimiento(), bar)
+    val config = cambio.columnasConfiguracion()
+    if (config.isNotEmpty() && actualizar("configuracion_servicio", config + ("fecha_modificacion" to Ahora), bar) == 0) {
+      throw ContratoApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error_interno", "El bar no tiene configuración del servicio")
+    }
+    // `detalle` es JSONB y la bitácora lee `detalle->>'texto'` (ContratoNocheService).
     jdbc.update(
       """INSERT INTO public.accion_admin (id_establecimiento, id_usuario, tipo, objetivo_tipo, objetivo_id, detalle)
-         VALUES (?, ?, 'editar_establecimiento', 'establecimiento', ?, ?)""",
+         VALUES (?, ?, 'editar_establecimiento', 'establecimiento', ?, jsonb_build_object('texto', ?::text))""",
       bar, p.id, bar, cambio.resumen(),
     )
     // `yo` lleva el nombre y la zona del bar; `bitacora`, la línea nueva.
@@ -69,11 +68,27 @@ class ContratoEstablecimientoService(
     return leer(p)
   }
 
-  /** La columna sale de una lista fija (nunca de la petición): no hay SQL armado con datos. */
-  private fun configuracion(columna: String, valor: Int, bar: Long) {
-    require(columna in setOf("max_solicitudes_dispositivo", "duracion_max_seg", "minutos_bloqueo_repeticion"))
-    val filas = jdbc.update("UPDATE public.configuracion_servicio SET $columna = ? WHERE id_establecimiento = ?", valor, bar)
-    if (filas == 0) throw ContratoApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error_interno", "El bar no tiene configuración del servicio")
+  /**
+   * Un solo UPDATE por tabla. Tabla y columnas salen de listas fijas del código (nunca de la
+   * petición): el SQL no se arma con datos; los valores van como parámetros.
+   */
+  private fun actualizar(tabla: String, columnas: Map<String, Any>, bar: Long): Int {
+    if (columnas.isEmpty()) return 0
+    require(tabla in TABLAS && columnas.keys.all { it in COLUMNAS })
+    val asignaciones = columnas.entries.joinToString(", ") { (c, v) -> if (v === Ahora) "$c = CURRENT_TIMESTAMP" else "$c = ?" }
+    val valores = columnas.values.filter { it !== Ahora } + bar
+    return jdbc.update("UPDATE public.$tabla SET $asignaciones WHERE id_establecimiento = ?", *valores.toTypedArray())
+  }
+
+  /** Marca para «la hora del servidor de base de datos» en un UPDATE. */
+  private object Ahora
+
+  private companion object {
+    val TABLAS = setOf("establecimiento", "configuracion_servicio")
+    val COLUMNAS = setOf(
+      "nombre", "direccion", "zona_horaria", "tema",
+      "max_solicitudes_dispositivo", "duracion_max_seg", "minutos_bloqueo_repeticion", "fecha_modificacion",
+    )
   }
 }
 
@@ -92,11 +107,22 @@ data class CambioEstablecimiento(
 ) {
   val vacio: Boolean get() = this == CambioEstablecimiento()
 
-  /** Qué campos cambiaron, para el detalle de la bitácora; el tema va con su valor. */
+  fun columnasEstablecimiento(): Map<String, Any> = listOfNotNull(
+    nombre?.let { "nombre" to it }, direccion?.let { "direccion" to it },
+    zonaHoraria?.let { "zona_horaria" to it }, tema?.let { "tema" to it },
+  ).toMap()
+
+  fun columnasConfiguracion(): Map<String, Any> = listOfNotNull(
+    pedidosMaximos?.let { "max_solicitudes_dispositivo" to it },
+    duracionMaxSeg?.let { "duracion_max_seg" to it },
+    ventanaMin?.let { "minutos_bloqueo_repeticion" to it },
+  ).toMap()
+
+  /** Qué cambió, para el detalle de la bitácora; el diseño va con su nombre. */
   fun resumen(): String = listOfNotNull(
-    nombre?.let { "nombre" }, direccion?.let { "direccion" }, zonaHoraria?.let { "zona_horaria" },
-    pedidosMaximos?.let { "pedidos_maximos" }, duracionMaxSeg?.let { "duracion_max_seg" },
-    ventanaMin?.let { "ventana_no_repeticion_min" }, tema?.let { "tema=$it" },
+    nombre?.let { "nombre" }, direccion?.let { "dirección" }, zonaHoraria?.let { "zona horaria" },
+    pedidosMaximos?.let { "pedidos por teléfono" }, duracionMaxSeg?.let { "duración máxima" },
+    ventanaMin?.let { "tiempo sin repetir" }, tema?.let { "diseño ${it.replaceFirstChar(Char::uppercase)}" },
   ).joinToString(", ")
 
   companion object {
@@ -107,8 +133,8 @@ data class CambioEstablecimiento(
       val desconocidos = cuerpo.keys - CAMPOS
       if (desconocidos.isNotEmpty()) invalido("Campos que no se pueden cambiar: ${desconocidos.sorted().joinToString()}")
       return CambioEstablecimiento(
-        nombre = texto(cuerpo, "nombre", max = 150)?.trim()?.also { if (it.isEmpty()) invalido("El nombre no puede quedar vacío") },
-        direccion = texto(cuerpo, "direccion", max = 250)?.trim(),
+        nombre = texto(cuerpo, "nombre", max = 150)?.also { if (it.isEmpty()) invalido("El nombre no puede quedar vacío") },
+        direccion = texto(cuerpo, "direccion", max = 250),
         zonaHoraria = texto(cuerpo, "zona_horaria", max = 60)?.also {
           try { ZoneId.of(it) } catch (_: DateTimeException) { invalido("Zona horaria desconocida") }
         },
@@ -119,9 +145,10 @@ data class CambioEstablecimiento(
       )
     }
 
+    /** Sin los espacios de los lados, y entonces se mide (un nombre pegado con espacios no falla). */
     private fun texto(cuerpo: Map<String, Any?>, campo: String, max: Int): String? {
       if (!cuerpo.containsKey(campo)) return null
-      val v = cuerpo[campo] as? String ?: invalido("$campo debe ser texto")
+      val v = (cuerpo[campo] as? String ?: invalido("$campo debe ser texto")).trim()
       if (v.length > max) invalido("$campo: máximo $max caracteres")
       return v
     }

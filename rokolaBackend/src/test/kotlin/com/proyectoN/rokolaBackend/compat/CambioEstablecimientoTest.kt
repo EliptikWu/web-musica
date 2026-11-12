@@ -20,7 +20,9 @@ class CambioEstablecimientoTest {
     val c = CambioEstablecimiento.desde(mapOf("tema" to "afiche"))
     assertEquals("afiche", c.tema)
     assertNull(c.nombre)
-    assertEquals("tema=afiche", c.resumen())
+    assertEquals("diseño Afiche", c.resumen())
+    assertEquals(mapOf("tema" to "afiche"), c.columnasEstablecimiento())
+    assertTrue(c.columnasConfiguracion().isEmpty())
   }
 
   @Test
@@ -47,6 +49,12 @@ class CambioEstablecimientoTest {
     rechaza(mapOf("slug" to "otro-bar"))
     rechaza(mapOf("id" to "1", "tema" to "vidrio"))
     rechaza(mapOf("estado" to "inactivo"))
+  }
+
+  @Test
+  fun `los espacios de los lados no cuentan para el largo`() {
+    val nombre = "a".repeat(148)
+    assertEquals(nombre, CambioEstablecimiento.desde(mapOf("nombre" to "  $nombre   ")).nombre)
   }
 
   @Test
