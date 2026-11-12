@@ -26,7 +26,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | ID | Fecha | Decisión | Quién |
 |---|---|---|---|
 | D1 | 2026-10-26 | Este repositorio es solo el frontend; el backend es de otro equipo | Usuario |
-| D2 | 2026-10-26 | Se implementa solo la dirección visual **Rockola** (Tema #2); Vidrio y Afiche se descartan | Usuario |
+| D2 | 2026-10-26 | Se implementa solo la dirección visual **Rockola** (Tema #2); Vidrio y Afiche se descartan. *Reemplazada por D13* | Usuario |
 | D3 | 2026-10-26 | Next.js 16 + React 19 + Tailwind 4 + TypeScript estricto, en un monorepo con npm workspaces | Usuario |
 | D4 | 2026-10-26 | Una sola app (`apps/web`) con tres superficies: cliente, pantalla del bar y panel | Usuario |
 | D5 | 2026-10-26 | Sin backend, la app corre contra una simulación en el navegador que cumple el contrato propuesto | Usuario |
@@ -37,6 +37,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D10 | 2026-11-10 | Respuesta al backend: el teléfono sigue con UUID propio (ADR-21), la espera la calcula el backend (ADR-20) y la canción que suena cuenta para el cupo (RN-01) | Usuario |
 | D11 | 2026-11-10 | La TV muestra el código y el Administrador lo escribe en el panel (ADR-23, reemplaza a ADR-22) | Usuario |
 | D12 | 2026-11-10 | La app Android entra al repositorio en `frontend/movil`, y la web pasa a `frontend/web` (ADR-24) | Usuario |
+| D13 | 2026-11-11 | Reemplaza a D2. Se implementan también **Vidrio** y **Afiche**, fieles a sus prototipos, y el Administrador elige el de su bar (RF-059, ADR-25). El diseño cambia el teléfono y la TV; el panel sigue en Rockola. La app Android, por ahora, sigue en Rockola | Usuario |
 
 ## Decisiones abiertas
 

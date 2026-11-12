@@ -101,6 +101,7 @@ function momentoB(persona: string): { estado: EstadoSim; ancla: number } {
       pedidos_maximos: 3,
       duracion_max_seg: 600,
       ventana_no_repeticion_min: 60,
+      tema: 'rockola',
     },
     modo_qr: 'automatico',
     mantenimiento: false,

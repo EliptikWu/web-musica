@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Franja, Servicio } from './bar.ts';
+import { Franja, Servicio, Tema } from './bar.ts';
 import { Cancion } from './cancion.ts';
 import { ItemCola, Reproduccion } from './cola.ts';
 import { Fecha, Id, Segundos, Slug } from './comunes.ts';
@@ -210,10 +210,12 @@ export const Establecimiento = z
     pedidos_maximos: z.int().min(1).max(10),
     duracion_max_seg: z.int().min(60).max(3600),
     ventana_no_repeticion_min: z.int().min(0).max(600),
+    tema: Tema.default('rockola').describe('RF-059: diseño del teléfono y la TV; solo lo cambia el Administrador'),
   })
   .meta({ id: 'Establecimiento' });
 export type Establecimiento = z.infer<typeof Establecimiento>;
-export const CambioEstablecimiento = Establecimiento.omit({ id: true, slug: true, estado: true }).partial().meta({ id: 'CambioEstablecimiento' });
+// `tema` sin valor por defecto: un PATCH que no lo trae no debe devolver el bar a Rockola.
+export const CambioEstablecimiento = Establecimiento.omit({ id: true, slug: true, estado: true }).extend({ tema: Tema }).partial().meta({ id: 'CambioEstablecimiento' });
 export const QrEstablecimiento = z.object({ url: z.url(), token: z.string(), generado_en: Fecha }).meta({ id: 'QrEstablecimiento' });
 
 // ── Calendario de eventos (RF-045) ────────────────────────────────────────────

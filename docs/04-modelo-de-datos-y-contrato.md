@@ -32,7 +32,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | Entidad | Campos | Notas |
 |---|---|---|
 | `Cancion` | `video_id`, `titulo`, `artista`, `duracion_seg`, `miniatura_url` | `artista` se deriva del canal o del título: `TBD` cómo |
-| `Bar` (público) | `slug`, `nombre`, `zona_horaria`, `pedidos_maximos` (3), `duracion_max_seg` (600), `ventana_no_repeticion_min` (60), `horario[]` | De `Establecimiento` y `Horario` |
+| `Bar` (público) | `slug`, `nombre`, `zona_horaria`, `pedidos_maximos` (3), `duracion_max_seg` (600), `ventana_no_repeticion_min` (60), `tema` (`rockola`), `horario[]` | De `Establecimiento` y `Horario`. `tema`: el diseño con que se ve el teléfono y la TV (RF-059) |
 | `Franja` (horario) | `dia_semana` (1 = lunes … 7 = domingo), `hora_inicio`, `hora_fin` (`"20:00"`, `"02:00"`), `activo` | Una franja que cruza medianoche pertenece al día en que empieza |
 | `Servicio` | `estado`, `modo_qr`, `desde`, `hasta`, `proxima_apertura` | Ver «Estado del servicio» |
 | `Reproduccion` | `id`, `cancion`, `origen` (`solicitud` \| `lista_casa`), `solicitud_id`, `votos`, `inicio`, `posicion_seg`, `estado` (`sonando` \| `pausada`) | El avance se calcula con `posicion_seg` y el reloj del servidor |
@@ -46,7 +46,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `Bloqueo` | `id`, `cancion`, `motivo`, `duracion` (`fin_sesion` \| `horas` \| `indefinido`), `inicio`, `fin`, `creado_por` | |
 | `AccionAdmin` | `id`, `fecha`, `usuario` (o `null` = sistema), `tipo`, `objetivo`, `detalle` | La interfaz arma la frase («Bloqueaste «La Bachata», de Manuel Turizo») |
 | `ListaCasa` | `id`, `nombre`, `modo_rotacion` (`secuencial` \| `aleatoria`), `activa`, `total_canciones`, `duracion_total_seg`, `canciones[]` | `aleatoria` = sin repetir hasta agotar la lista |
-| `Establecimiento` | `id`, `slug`, `nombre`, `direccion`, `zona_horaria`, `estado`, límites | |
+| `Establecimiento` | `id`, `slug`, `nombre`, `direccion`, `zona_horaria`, `estado`, límites, `tema` | `tema`: `rockola` \| `vidrio` \| `afiche`; por defecto `rockola`. Se cambia con `PATCH /panel/establecimiento` (solo Administrador) y queda en la bitácora como `editar_establecimiento` (RF-059) |
 | `EventoBar` | `id`, `nombre`, `tipo_evento`, `inicio`, `fin`, `descripcion` | Calendario (RF-045) |
 
 ### Correcciones propuestas al modelo
@@ -276,4 +276,8 @@ resincroniza al reconectar.
     - `noche.sesion.origen` sale siempre `manual` y los bloqueos «hasta el fin de la noche»
       salen como horas o indefinido: el modelo de datos no guarda esa diferencia.
     - De paso se corrigió `GET /bares/{slug}/busqueda`: `en_cola` no traía `espera_seg` y la
-      interfaz rechazaba la respuesta cuando la búsqueda coincidía con algo de la cola.
+      interfaz rechazaba la respuesta cuando la búsqueda coincidía con algo de la cola.14. Campo `tema` (RF-059, ADR-25), nuevo el 2026-11-11: una columna en `establecimiento`
+    (`rockola` | `vidrio` | `afiche`, por defecto `rockola`) que sale en `GET /bares/{slug}`
+    y en `GET/PATCH /panel/establecimiento`. Solo el Administrador la cambia y el cambio va a
+    la bitácora como `editar_establecimiento`. Mientras el backend no la mande, la web usa
+    `rockola`.

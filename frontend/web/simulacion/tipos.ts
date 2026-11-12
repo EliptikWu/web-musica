@@ -1,4 +1,4 @@
-import type { AccionAdmin, DuracionBloqueo, EventoBar, Franja, ModoQr, Rol, TipoAccion, UmbralesAnalitica } from '@rockola/contrato';
+import type { AccionAdmin, DuracionBloqueo, EventoBar, Franja, ModoQr, Rol, Tema, TipoAccion, UmbralesAnalitica } from '@rockola/contrato';
 
 /**
  * Estado interno de la simulación: se parece más a la base de datos que al contrato. Las
@@ -123,6 +123,8 @@ export type EstadoSim = {
     pedidos_maximos: number;
     duracion_max_seg: number;
     ventana_no_repeticion_min: number;
+    /** RF-059. Opcional: un estado guardado antes de la iteración 8 no lo tiene (vale `rockola`). */
+    tema?: Tema;
   };
   modo_qr: ModoQr;
   mantenimiento: boolean;

@@ -65,7 +65,11 @@ export function Selector({ etiqueta, children, ...resto }: { etiqueta: string; c
   );
 }
 
-export type Opcion<V extends string> = { valor: V; texto: string };
+/**
+ * Una opción de `GrupoTeclas`. Con `figura` (una vista previa, decorativa) y `detalle` (una
+ * frase que la describe) el grupo se dibuja en columnas: figura, tecla y detalle (RF-059).
+ */
+export type Opcion<V extends string> = { valor: V; texto: string; figura?: ReactNode; detalle?: string };
 
 /** Opciones excluyentes como teclas: la elegida queda hundida. Es un grupo de radios de verdad. */
 export function GrupoTeclas<V extends string>({
@@ -74,23 +78,45 @@ export function GrupoTeclas<V extends string>({
   opciones,
   valor,
   onCambio,
+  leyendaOculta = false,
 }: {
   leyenda: string;
   nombre: string;
   opciones: Opcion<V>[];
   valor: V;
   onCambio: (valor: V) => void;
+  /** Cuando un título visible ya nombra el grupo: la leyenda queda solo para lectores de pantalla. */
+  leyendaOculta?: boolean;
 }) {
+  const id = useId();
+  const conFiguras = opciones.some((o) => o.figura);
   return (
-    <fieldset className="grupo-teclas">
-      <legend>{leyenda}</legend>
+    <fieldset className={conFiguras ? 'grupo-teclas grupo-teclas--figuras' : 'grupo-teclas'}>
+      <legend className={leyendaOculta ? 'solo-lector' : undefined}>{leyenda}</legend>
       {opciones.map((o) => (
         <label key={o.valor}>
-          <input type="radio" name={nombre} value={o.valor} checked={valor === o.valor} onChange={() => onCambio(o.valor)} />
+          <input
+            type="radio"
+            name={nombre}
+            value={o.valor}
+            checked={valor === o.valor}
+            onChange={() => onCambio(o.valor)}
+            aria-describedby={o.detalle ? `${id}-${o.valor}` : undefined}
+          />
+          {o.figura ? (
+            <span className="grupo-teclas__figura" aria-hidden="true">
+              {o.figura}
+            </span>
+          ) : null}
           <span className="tecla" aria-hidden="true">
             {o.texto}
           </span>
           <span className="solo-lector">{o.texto}</span>
+          {o.detalle ? (
+            <span className="grupo-teclas__detalle" id={`${id}-${o.valor}`}>
+              {o.detalle}
+            </span>
+          ) : null}
         </label>
       ))}
     </fieldset>

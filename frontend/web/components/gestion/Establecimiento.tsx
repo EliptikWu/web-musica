@@ -1,7 +1,7 @@
 'use client';
 
-import type { Establecimiento as DatosBar } from '@rockola/contrato';
-import { Campo, claseTecla, Icono, LuzEstado, Selector, Tecla } from '@rockola/ui';
+import type { Establecimiento as DatosBar, Tema } from '@rockola/contrato';
+import { Campo, claseTecla, GrupoTeclas, Icono, LuzEstado, type Opcion, Selector, Tecla } from '@rockola/ui';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
@@ -44,18 +44,27 @@ export function Establecimiento() {
   const [aviso, setAviso] = useState<Mensaje | null>(null);
   // El nombre y la zona del bar salen también en la cabecera y en las fechas: `yo` se recarga.
   const guardar = useAccionGestion('editarEstablecimiento', [claves.panel.establecimiento, claves.panel.yo, ['bar']]);
+  const [avisoTema, setAvisoTema] = useState<Mensaje | null>(null);
+  const guardarTema = useAccionGestion('editarEstablecimiento', [claves.panel.establecimiento, ['bar']]);
   return (
     <PaginaGestion titulo="Bar y QR" nota="Los datos del establecimiento, las reglas de los pedidos, el código QR de las mesas y las pantallas que ponen la música.">
       <div className="gestion-rejilla gestion-rejilla--dos">
-        <Cargando consulta={bar}>{() => <FormularioBar key={JSON.stringify(bar.data)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
+        <Cargando consulta={bar}>{() => <FormularioBar key={claveDatos(bar.data!)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
         <Cargando consulta={qr}>{() => <PlacaQrGestion url={qr.data!.url} generado={qr.data!.generado_en} />}</Cargando>
       </div>
+      {bar.data ? <ElegirTema key={bar.data.tema} bar={bar.data} guardar={guardarTema} aviso={avisoTema} setAviso={setAvisoTema} /> : null}
       <Pantallas />
     </PaginaGestion>
   );
 }
 
 type Mensaje = { tipo: 'luz' | 'error'; texto: string };
+
+/** El formulario de datos se vuelve a montar cuando cambian sus datos, no cuando cambia el diseño:
+ *  guardar el diseño no debe borrar lo que se está escribiendo en «Datos del bar». */
+function claveDatos(bar: DatosBar): string {
+  return JSON.stringify({ ...bar, tema: null });
+}
 
 function FormularioBar({
   bar,
@@ -132,6 +141,78 @@ function FormularioBar({
       <Tecla type="submit" variante="cereza" tamano="ancha" className="self-start" ocupada={guardar.isPending}>
         Guardar datos
       </Tecla>
+    </form>
+  );
+}
+
+// Un nombre y una frase por diseño: si el contrato gana un tema, esto deja de compilar.
+const TEMAS: Record<Tema, { texto: string; detalle: string }> = {
+  rockola: { texto: 'Rockola', detalle: 'Madera, luz ámbar y teclas.' },
+  vidrio: { texto: 'Vidrio', detalle: 'Vidrio oscuro con luces de color.' },
+  afiche: { texto: 'Afiche', detalle: 'Cartel de imprenta: letras grandes y tinta fluorescente.' },
+};
+// Las vistas previas son la bienvenida de cada prototipo (`prototipos/capturas/<tema>/`).
+const OPCIONES_TEMA: Opcion<Tema>[] = (Object.keys(TEMAS) as Tema[]).map((valor) => ({
+  valor,
+  ...TEMAS[valor],
+  // eslint-disable-next-line @next/next/no-img-element -- miniatura estática, decorativa (la tecla da el nombre)
+  figura: <img src={`/temas/${valor}.webp`} alt="" width={360} height={504} loading="lazy" />,
+}));
+
+/** El diseño con que los clientes ven la rockola del bar: teléfono y TV (RF-059, ADR-25). */
+function ElegirTema({
+  bar,
+  guardar,
+  aviso,
+  setAviso,
+}: {
+  bar: DatosBar;
+  guardar: ReturnType<typeof useAccionGestion<'editarEstablecimiento'>>;
+  aviso: Mensaje | null;
+  setAviso: (a: Mensaje | null) => void;
+}) {
+  const [tema, setTema] = useState<Tema>(bar.tema);
+  const enUso = TEMAS[bar.tema]?.texto ?? TEMAS.rockola.texto;
+  return (
+    <form
+      className="caja mt-4 flex flex-col gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (tema === bar.tema) return setAviso({ tipo: 'luz', texto: `${enUso} ya es el diseño en uso.` });
+        guardar.mutate(
+          { cuerpo: { tema } },
+          {
+            onSuccess: () => setAviso({ tipo: 'luz', texto: 'Diseño guardado. Los teléfonos y la pantalla del bar lo muestran al recargar.' }),
+            onError: (err) => setAviso({ tipo: 'error', texto: mensajeDeError(err) }),
+          },
+        );
+      }}
+    >
+      <div className="caja__cabeza mb-0!">
+        <h2>Diseño de la rockola</h2>
+        <LuzEstado encendida>En uso: {enUso}</LuzEstado>
+      </div>
+      <p className="text-crema-2">Así ven tu rockola los clientes en el teléfono y en la pantalla del bar. El panel, la cola y los votos no cambian.</p>
+      <GrupoTeclas
+        leyenda="Diseño"
+        leyendaOculta
+        nombre="tema"
+        opciones={OPCIONES_TEMA}
+        valor={tema}
+        onCambio={(v) => {
+          setAviso(null);
+          setTema(v);
+        }}
+      />
+      {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
+      <div className="flex flex-wrap items-center gap-4">
+        <Tecla type="submit" variante="cereza" tamano="ancha" ocupada={guardar.isPending}>
+          Guardar diseño
+        </Tecla>
+        <a className="enlace" href={`/b/${bar.slug}`} target="_blank" rel="noopener">
+          Ver la rockola de los clientes
+        </a>
+      </div>
     </form>
   );
 }

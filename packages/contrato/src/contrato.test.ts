@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { Bar } from './bar.ts';
 import { endpoints, rutaDe } from './endpoints.ts';
+import { CambioEstablecimiento } from './panel.ts';
 
 describe('el contrato', () => {
   it('arma rutas con sus parámetros y escapa los valores', () => {
@@ -37,5 +39,23 @@ describe('el contrato', () => {
 
   it('cada endpoint cita al menos un requisito', () => {
     for (const [nombre, e] of Object.entries(endpoints)) expect(e.rf.length, nombre).toBeGreaterThan(0);
+  });
+});
+
+describe('el tema del bar (RF-059)', () => {
+  const base = { slug: 'demo', nombre: 'Bar', zona_horaria: 'America/Bogota', pedidos_maximos: 3, duracion_max_seg: 600, ventana_no_repeticion_min: 60, horario: [] };
+
+  it('sin dato del backend, el bar se ve en Rockola', () => {
+    expect(Bar.parse(base).tema).toBe('rockola');
+  });
+
+  it('solo acepta los tres diseños', () => {
+    expect(Bar.parse({ ...base, tema: 'afiche' }).tema).toBe('afiche');
+    expect(Bar.safeParse({ ...base, tema: 'neon' }).success).toBe(false);
+  });
+
+  it('un cambio sin tema no lo toca', () => {
+    expect(CambioEstablecimiento.parse({ nombre: 'Otro' })).not.toHaveProperty('tema');
+    expect(CambioEstablecimiento.parse({ tema: 'vidrio' })).toEqual({ tema: 'vidrio' });
   });
 });

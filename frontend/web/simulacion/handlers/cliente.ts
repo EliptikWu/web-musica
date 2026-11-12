@@ -26,6 +26,7 @@ export const manejadoresCliente = [
       pedidos_maximos: estado.bar.pedidos_maximos,
       duracion_max_seg: estado.bar.duracion_max_seg,
       ventana_no_repeticion_min: estado.bar.ventana_no_repeticion_min,
+      tema: estado.bar.tema ?? 'rockola',
       horario: estado.horario,
     }),
   ),

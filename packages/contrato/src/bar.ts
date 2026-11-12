@@ -33,6 +33,14 @@ export const Servicio = z
   .meta({ id: 'Servicio' });
 export type Servicio = z.infer<typeof Servicio>;
 
+/**
+ * El diseño con que el teléfono y la TV ven la rockola del bar (RF-059, ADR-25). El backend debe
+ * mandarlo (en el OpenAPI es obligatorio); mientras se integra, el cliente que no lo recibe usa
+ * `rockola` (doc 04, pendiente 14).
+ */
+export const Tema = z.enum(['rockola', 'vidrio', 'afiche']).meta({ id: 'Tema' });
+export type Tema = z.infer<typeof Tema>;
+
 /** Lo público de un establecimiento (RF-001, RF-003). */
 export const Bar = z
   .object({
@@ -42,6 +50,7 @@ export const Bar = z
     pedidos_maximos: z.int().positive().describe('RN-01: solicitudes pendientes por teléfono y sesión'),
     duracion_max_seg: z.int().positive().describe('RN-06: 600 = 10 minutos'),
     ventana_no_repeticion_min: z.int().nonnegative().describe('RN-07'),
+    tema: Tema.default('rockola').describe('RF-059: diseño del teléfono y la TV'),
     horario: z.array(Franja),
   })
   .meta({ id: 'Bar' });

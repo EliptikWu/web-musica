@@ -147,12 +147,22 @@
     border-radius: var(--radio-tecla); cursor: pointer;
   }
   .grupo-teclas input:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; }
-  .grupo-teclas input:checked + .tecla {
+  .grupo-teclas input:checked ~ .tecla {
     background: var(--tecla-cara-hundida);
     box-shadow: 0 1px 0 var(--tecla-canto), inset 0 3px 6px rgba(0, 0, 0, .3);
     transform: translateY(1px);
   }
   .grupo-teclas .tecla { width: auto; padding: 0 16px; height: 46px; font-size: 16px; }
+  /* AÑADIDO (RF-059): con vista previa. Cada opción es una columna (figura, tecla, detalle) y el
+     radio cubre la columna entera: se elige tocando también la figura. La elegida se marca con la
+     tecla hundida y con la figura enmarcada en crema, no solo con color (la tecla cambia de forma). */
+  .grupo-teclas--figuras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 540px; }
+  .grupo-teclas--figuras label { flex-direction: column; align-items: stretch; gap: 10px; }
+  .grupo-teclas--figuras .tecla { width: 100%; padding: 0 4px; } /* cabe en columnas de 75 px (320 px, WCAG 1.4.10) */
+  .grupo-teclas__figura { display: block; border-radius: var(--radio-tecla); overflow: hidden; background: var(--hueco); box-shadow: inset 0 0 0 1px var(--borde); }
+  .grupo-teclas__figura img { display: block; width: 100%; height: auto; }
+  .grupo-teclas--figuras input:checked ~ .grupo-teclas__figura { box-shadow: 0 0 0 3px var(--crema); }
+  .grupo-teclas__detalle { font-size: 14px; line-height: 1.35; color: var(--crema-2); }
 
   /* ── Diálogo (AÑADIDO): una caja de madera sobre la penumbra ─────────────── */
   .dialogo {

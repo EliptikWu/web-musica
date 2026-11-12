@@ -1,3 +1,4 @@
+import { Tema } from '@rockola/contrato';
 import { idDispositivo } from '../lib/dispositivo';
 import { crearEstado, type Escenario, esEscenario } from './datos/semilla';
 import { ahoraSim, avanzar } from './motor';
@@ -80,17 +81,31 @@ async function conCandado<T>(fn: () => T): Promise<T> {
   return fn();
 }
 
-/** Prepara el escenario pedido en la URL (`?escenario=…&reloj=fijo|rapido`) o conserva el guardado. */
+/**
+ * Prepara el escenario pedido en la URL (`?escenario=…&reloj=fijo|rapido`) o conserva el guardado.
+ * `?tema=rockola|vidrio|afiche` cambia el diseño del bar (RF-059) sin reiniciar la noche.
+ */
 export async function preparar(parametros: URLSearchParams): Promise<void> {
   const pedido = parametros.get('escenario');
   const reloj = parametros.get('reloj');
   const velocidad = reloj === 'fijo' ? 0 : reloj === 'rapido' ? 10 : 1;
+  const tema = Tema.safeParse(parametros.get('tema'));
   await conCandado(() => {
     const actual = leer();
     const reiniciar = parametros.has('reiniciar');
-    if (actual && !reiniciar && (!esEscenario(pedido) || actual.escenario === pedido) && (reloj === null || actual.reloj.velocidad === velocidad)) return;
+    const mismaNoche = !reiniciar && (!esEscenario(pedido) || actual?.escenario === pedido) && (reloj === null || actual?.reloj.velocidad === velocidad);
+    if (actual && mismaNoche) {
+      // Solo cambia el diseño, si se pidió uno distinto: la noche sigue donde iba.
+      if (!tema.success || (actual.bar.tema ?? 'rockola') === tema.data) return;
+      actual.bar.tema = tema.data;
+      actual.version++;
+      guardar(actual);
+      canal?.postMessage({ version: actual.version });
+      return;
+    }
     const escenario: Escenario = esEscenario(pedido) ? pedido : (actual?.escenario as Escenario | undefined) ?? 'momento-b';
     const nuevo = crearEstado(escenario, idDispositivo(), Date.now(), velocidad);
+    if (tema.success) nuevo.bar.tema = tema.data;
     nuevo.version = (actual?.version ?? 0) + 1;
     guardar(nuevo);
     canal?.postMessage({ version: nuevo.version });

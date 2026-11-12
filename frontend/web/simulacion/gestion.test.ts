@@ -1,8 +1,8 @@
-import { EventoBar, ListaCasaDetalle, ListaPantallas, PaginaBitacora, UsuarioPanel, VinculoPantalla } from '@rockola/contrato';
+import { Establecimiento, EventoBar, ListaCasaDetalle, ListaPantallas, PaginaBitacora, UsuarioPanel, VinculoPantalla } from '@rockola/contrato';
 import { describe, expect, it } from 'vitest';
 import { crearEstado } from './datos/semilla';
 import {
-  activarLista, agregarALista, bitacora, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEvento, editarUsuario,
+  activarLista, agregarALista, bitacora, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEstablecimiento, editarEvento, editarUsuario,
   desvincularPantalla, eliminarEvento, eliminarLista, guardarHorario, listaDetalle, listarPantallas, listarUsuarios, ordenarLista, pedirCodigo,
   quitarDeLista, regenerarQr, restablecerClave, VIGENCIA_CODIGO_MS, vincularPantalla, vinculoDe,
 } from './gestion';
@@ -177,5 +177,23 @@ describe('pantallas del bar (RF-058)', () => {
     expect(vinculoDe(estado, 'tok-tv', ahora)).toEqual({ estado: 'sin_vincular' });
     expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'desvincular_pantalla', objetivo: { nombre: 'TV de la terraza' } });
     expect(desvincularPantalla(estado, r.cuerpo.id, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'no_encontrado' });
+  });
+});
+
+describe('diseño de la rockola (RF-059)', () => {
+  it('cambiar el tema no toca lo demás y queda en la bitácora', () => {
+    const { estado, ahora } = escena();
+    const antes = { ...estado.bar };
+    const r = editarEstablecimiento(estado, { tema: 'afiche' }, ADMIN, ahora);
+    if (!r.ok) throw new Error(r.mensaje);
+    expect(Establecimiento.parse(r.cuerpo)).toEqual({ ...Establecimiento.parse({ ...antes, tema: 'rockola' }), tema: 'afiche' });
+    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'editar_establecimiento' });
+  });
+
+  it('un estado guardado sin tema se ve en Rockola', () => {
+    const { estado, ahora } = escena();
+    delete estado.bar.tema;
+    const r = editarEstablecimiento(estado, { nombre: 'Otro nombre' }, ADMIN, ahora);
+    expect(r).toMatchObject({ ok: true, cuerpo: { tema: 'rockola', nombre: 'Otro nombre' } });
   });
 });

@@ -1,11 +1,15 @@
 # Prototipos de Rockola
 
-Prototipos estáticos (HTML + un CSS, sin JavaScript) de la dirección visual **Rockola**,
-el Tema #2 de `docs/fuente/Prototipos, Arquitectura y Modelado de datos .docx`. Son la
-referencia visual de la app: `frontend/` no los importa y aquí no se programa nada nuevo.
+Prototipos estáticos (HTML + un CSS, sin JavaScript) de las tres direcciones visuales de
+`docs/fuente/Prototipos, Arquitectura y Modelado de datos .docx`: **Rockola** (Tema #2, la
+base), **Vidrio** (Tema #1) y **Afiche** (Tema #3). Son la referencia visual de la app:
+`frontend/` no los importa y aquí no se programa nada nuevo.
 
-Las otras dos direcciones (Vidrio y Afiche) se descartaron y no se copiaron. Siguen en
-la carpeta original del equipo (`Documents\Rockola`).
+Vidrio y Afiche se habían descartado (D2) y volvieron el 2026-11-11 (D13): el Administrador
+elige el diseño de su bar (RF-059). Se copiaron sin cambios de la carpeta original del
+equipo (`Documents\Rockola`); `vidrio/` y `afiche/` tienen las mismas seis pantallas que
+`rockola/`, con capturas en `capturas/vidrio/` y `capturas/afiche/`. Cargan sus fuentes de
+Google Fonts (Outfit; League Gothic y Libre Franklin); la app las sirve con `next/font`.
 
 ## Qué hay
 

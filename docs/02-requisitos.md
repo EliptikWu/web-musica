@@ -106,6 +106,22 @@ Administrador vinculó puede mover la cola; si no, cualquiera que abra
 | RF-043 | Gestión de contenido bloqueado | Must | PB-34 | 3, 4 | F+B |
 | RF-044 | Bitácora de acciones administrativas | Must | PB-40 | 3, 4 | F+B |
 | RF-045 | Gestión del calendario de eventos del establecimiento | Should | PB-41 | 4 | F+B |
+| RF-059 | Diseño de la rockola del establecimiento (nuevo, 2026-11-11; criterio abajo) | Should | — | 8–10 | F+B |
+
+**RF-059 (nuevo, no está en las fuentes del equipo).** El Administrador elige con qué
+dirección visual ven los clientes la rockola de su bar, entre las tres del documento de
+prototipos del equipo: **Rockola** (Tema #2, la de siempre), **Vidrio** (Tema #1) y
+**Afiche** (Tema #3). Criterios:
+- Se elige en el panel, en «Bar y QR», con una vista previa de cada diseño. Solo el
+  Administrador la cambia (`editar_establecimiento`); el servidor lo comprueba y el cambio
+  queda en la bitácora (RNF-014).
+- El diseño cambia el teléfono y la pantalla del bar. El panel del personal sigue en
+  Rockola.
+- Cambiarlo no toca la cola, los votos ni las reglas: es solo la apariencia. Un teléfono o
+  una TV abiertos lo toman la próxima vez que piden los datos del bar.
+- Todos los diseños cumplen lo mismo: contraste AA, objetivos de 44 px, estados vacío,
+  cargando y error, y «Votaste» y «Tuya» distinguibles sin color.
+- Un bar nuevo empieza en Rockola. Sin dato del backend, también Rockola.
 
 ### Módulo 8. Datos y analítica
 

@@ -1,8 +1,17 @@
 # 05 — UI/UX: sistema de diseño Rockola
 
-Dirección elegida: **Rockola** (Tema #2, D2). Referencia visual: `prototipos/rockola/` y
-sus capturas. Este doc manda sobre los prototipos cuando chocan, y registra cada cambio
+Dirección base: **Rockola** (Tema #2). Referencia visual: `prototipos/rockola/` y sus
+capturas. Este doc manda sobre los prototipos cuando chocan, y registra cada cambio
 («Reworks»).
+
+**Tres diseños (D13, RF-059, ADR-25).** El Administrador elige con qué diseño ven los
+clientes su bar: Rockola, **Vidrio** (Tema #1, `prototipos/vidrio/`) o **Afiche** (Tema #3,
+`prototipos/afiche/`). El tema cambia el teléfono y la TV; el panel es siempre Rockola. Cada
+tema son valores en `tokens.css` bajo `[data-tema=…]` y reglas de forma en
+`packages/ui/src/temas/`: el marcado y los textos son los mismos. Lo que este doc dice de
+Rockola (identidad, tokens, «Reglas para que no parezca una plantilla») vale para Rockola y
+el panel; Vidrio y Afiche siguen su prototipo y su fila de `prototipos/decisiones-de-diseno.md`,
+fieles a él (decisión del usuario), con las mismas reglas de accesibilidad y de textos.
 
 ## Identidad
 
@@ -193,6 +202,9 @@ Método de la skill `dataviz`, con los tokens Rockola:
 
 ## Reglas para que no parezca una plantilla
 
+Valen para Rockola y el panel. Vidrio usa vidrio esmerilado, un degradado pastel y
+píldoras por diseño (D13): ahí estas reglas 1 y 2 las reemplaza su prototipo.
+
 1. Solo tokens Rockola.
 2. Nada de titular centrado con tres tarjetas, degradados morados, vidrio esmerilado,
    píldoras ni emojis.
@@ -258,3 +270,4 @@ Método de la skill `dataviz`, con los tokens Rockola:
 | 2026-10-27 | Buscar | «Filtrar» junto al título de los resultados: género, duración y popularidad en una caja hundida; la tecla se hunde mientras está abierta | RF-055, PB-51: el mockup los ubicaba junto a la caja de búsqueda |
 | 2026-11-10 | TV | Sin vincular, la TV muestra su código dentro del arco apagado como seis teclas de selección (75 % de ancho, 68 px en el lienzo) y los tres pasos a la derecha, con la luz «Sin vincular»; no hay «Encender» hasta que queda vinculada | RF-058, ADR-23: el código se lee desde la barra y la luz apagada dice que esa TV todavía no mueve la cola |
 | 2026-11-10 | Bar y QR | Caja «Pantallas del bar» (lista con «Desvincular») y «Vincular una pantalla» (código, nombre de la pantalla y la dirección que se abre en la TV). Al desvincular, el foco va al título de la caja | RF-058. Crítica: la dirección de la TV iba solo en el estado vacío y no se encontraba para una segunda TV. Accesibilidad: el foco se perdía al desaparecer la fila |
+| 2026-11-11 | Bar y QR | Caja «Diseño de la rockola»: las tres bienvenidas en miniatura, cada una sobre su tecla (`GrupoTeclas` con `figura` y `detalle`); la elegida queda hundida y con la miniatura enmarcada en crema; «En uso: …» con la luz; «Guardar diseño» y «Ver la rockola de los clientes». Tres columnas también a 360 px | RF-059. Una miniatura dice más que el nombre del diseño. Guardar sin cambiar lo avisa en vez de apagar el botón (`decisiones-de-diseno.md`). El marco va en crema y no en ámbar: el acento se reserva |

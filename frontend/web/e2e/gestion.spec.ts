@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { abrir, sinViolaciones } from './support';
+import { abrir, objetivosDe44, sinViolaciones } from './support';
 
 // Iteración 4: la gestión (PB-01, 02, 23, 24, 26, 28, 34–37, 39–42).
 
@@ -152,4 +152,40 @@ test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', a
   }
   await page.waitForTimeout(1500);
   expect(pedidas).toEqual([]);
+});
+
+test('diseño de la rockola: el Administrador lo elige y el teléfono lo toma (RF-059)', async ({ page }) => {
+  await entrar(page);
+  await page.goto('/panel/establecimiento');
+  const caja = page.locator('form', { has: page.getByRole('heading', { name: 'Diseño de la rockola' }) });
+  await expect(caja.getByText('En uso: Rockola')).toBeVisible();
+  await expect(caja.getByRole('radio', { name: 'Rockola' })).toBeChecked();
+  await sinViolaciones(page, 'diseño de la rockola');
+  await objetivosDe44(page, 'form input[name="tema"]');
+  // Guardar sin cambiar lo dice, en vez de un botón apagado.
+  await caja.getByRole('button', { name: 'Guardar diseño' }).click();
+  await expect(caja.getByText('Rockola ya es el diseño en uso.')).toBeVisible();
+  // Con teclado: las flechas recorren el grupo de radios.
+  await caja.getByRole('radio', { name: 'Rockola' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('ArrowRight');
+  await expect(caja.getByRole('radio', { name: 'Afiche' })).toBeChecked();
+  await caja.getByRole('button', { name: 'Guardar diseño' }).click();
+  await expect(caja.getByText(/^Diseño guardado\./)).toBeVisible();
+  await expect(caja.getByText('En uso: Afiche')).toBeVisible();
+  await page.goto('/b/demo');
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'afiche');
+  // El panel no cambia de diseño.
+  await page.goto('/panel/establecimiento');
+  await expect(page.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+});
+
+test('guardar el diseño no borra lo que se escribe en «Datos del bar» (RF-059)', async ({ page }) => {
+  await entrar(page);
+  await page.goto('/panel/establecimiento');
+  await page.getByLabel('Nombre', { exact: true }).fill('Nombre a medio escribir');
+  await page.getByRole('radio', { name: 'Vidrio' }).check();
+  await page.getByRole('button', { name: 'Guardar diseño' }).click();
+  await expect(page.getByText('En uso: Vidrio')).toBeVisible();
+  await expect(page.getByLabel('Nombre', { exact: true })).toHaveValue('Nombre a medio escribir');
 });

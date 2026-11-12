@@ -95,11 +95,11 @@ export function cambiarEstadoUsuario(estado: EstadoSim, id: string, activo: bool
 
 export function establecimientoAContrato(estado: EstadoSim) {
   const b = estado.bar;
-  return { id: b.id, slug: b.slug, nombre: b.nombre, direccion: b.direccion, zona_horaria: b.zona_horaria, estado: b.estado, pedidos_maximos: b.pedidos_maximos, duracion_max_seg: b.duracion_max_seg, ventana_no_repeticion_min: b.ventana_no_repeticion_min };
+  return { id: b.id, slug: b.slug, nombre: b.nombre, direccion: b.direccion, zona_horaria: b.zona_horaria, estado: b.estado, pedidos_maximos: b.pedidos_maximos, duracion_max_seg: b.duracion_max_seg, ventana_no_repeticion_min: b.ventana_no_repeticion_min, tema: b.tema ?? 'rockola' };
 }
 
 export function editarEstablecimiento(estado: EstadoSim, cambios: Partial<EstadoSim['bar']>, quien: Personal, ahora: number) {
-  const permitidos = ['nombre', 'direccion', 'zona_horaria', 'pedidos_maximos', 'duracion_max_seg', 'ventana_no_repeticion_min'] as const;
+  const permitidos = ['nombre', 'direccion', 'zona_horaria', 'pedidos_maximos', 'duracion_max_seg', 'ventana_no_repeticion_min', 'tema'] as const;
   for (const clave of permitidos) if (cambios[clave] !== undefined) (estado.bar as Record<string, unknown>)[clave] = cambios[clave];
   anotar(estado, ahora, quien, 'editar_establecimiento', { tipo: 'establecimiento', nombre: estado.bar.nombre, detalle: null });
   return bien(establecimientoAContrato(estado));
