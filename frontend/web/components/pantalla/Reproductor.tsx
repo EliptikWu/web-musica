@@ -2,7 +2,7 @@
 
 import type { Reproduccion } from '@rockola/contrato';
 import { Icono } from '@rockola/ui';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 /**
  * El reproductor de la pantalla del bar (RF-019, RNF-011). Con un ID de YouTube real usa el
@@ -112,6 +112,10 @@ const TERMINADO = 0;
 const SONANDO = 1;
 const DESFASE_MAXIMO_SEG = 4;
 const REVISAR_DESFASE_MS = 5000;
+// Si YouTube no emite ENDED, la TV intenta recuperar la cola sin intervención manual.
+const REVISAR_FINAL_MS = 2000;
+const FINAL_SIN_EVENTO_MS = 8000;
+const REINTENTAR_FIN_MS = 12000;
 
 /**
  * El reproductor de YouTube. Reglas que evitan los fallos del barrido de la iteración 2:
@@ -127,6 +131,8 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
   const listo = useRef(false);
   const idCargado = useRef<string | null>(null);
   const iniciosReportados = useRef(new Set<string>());
+  const ultimoFinEnviado = useRef<{ id: string; instante: number } | null>(null);
+  const finalDetectado = useRef<{ id: string; desde: number } | null>(null);
   const deseado = useRef({ reproduccion, posicionSeg, volumen });
   const llamadas = useRef({ onInicio, onFin, onError });
   useEffect(() => {
@@ -135,6 +141,18 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
   });
 
   const posicionReal = () => Math.floor(reproductor.current?.getCurrentTime() ?? 0);
+
+  // El mismo ID/tipo siempre se informa con la misma posición (duración completa).
+  // Así las retransmisiones conservan el cuerpo exigido por la clave idempotente del backend.
+  const avisarFin = useCallback((id: string) => {
+    const rep = deseado.current.reproduccion;
+    if (rep.id !== id || rep.estado === 'pausada') return;
+    const ahora = Date.now();
+    const anterior = ultimoFinEnviado.current;
+    if (anterior?.id === id && ahora - anterior.instante < REINTENTAR_FIN_MS) return;
+    ultimoFinEnviado.current = { id, instante: ahora };
+    llamadas.current.onFin(id, Math.max(0, rep.cancion.duracion_seg));
+  }, []);
 
   // Crea el reproductor al encender la pantalla.
   useEffect(() => {
@@ -176,7 +194,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
                 iniciosReportados.current.add(id);
                 llamadas.current.onInicio(id, posicionReal());
               }
-              if (e.data === TERMINADO) llamadas.current.onFin(id, posicionReal());
+              if (e.data === TERMINADO) avisarFin(id);
             },
             onError: (e) => {
               if (idCargado.current) llamadas.current.onError(idCargado.current, posicionReal(), e.data);
@@ -193,7 +211,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
       idCargado.current = null;
       destino.remove();
     };
-  }, [encendida]);
+  }, [encendida, avisarFin]);
 
   // Otra canción: se carga desde donde vaya (por si la pantalla se une tarde).
   const { id, estado } = reproduccion;
@@ -220,6 +238,43 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
     const r = reproductor.current;
     if (r && listo.current) aplicarVolumen(r, volumen);
   }, [volumen]);
+
+  // Recuperación cuando el navegador llega al final sin emitir el evento ENDED.
+  // IMPORTANTE: no concluye una canción mientras YouTube sigue reproduciendo lejos del final.
+  // Si la TV se vinculó tarde y la posición del servidor ya está agotada, espera un margen
+  // breve antes de liberar la reproducción atascada; no requiere otro POST manual.
+  useEffect(() => {
+    if (!encendida) return;
+    const temporizador = window.setInterval(() => {
+      const r = reproductor.current;
+      if (!r || !listo.current) return;
+      const { reproduccion: rep, posicionSeg: posServidor } = deseado.current;
+      if (idCargado.current !== rep.id || rep.estado === 'pausada') {
+        finalDetectado.current = null;
+        return;
+      }
+      const duracion = rep.cancion.duracion_seg;
+      if (duracion <= 0) return;
+      const estadoYT = r.getPlayerState();
+      const posicionYT = r.getCurrentTime();
+      const cercaDelFinalYT = posicionYT >= Math.max(0, duracion - 2);
+      const servidorAgotado = posServidor >= duracion - 1;
+      const youtubeDetenido = estadoYT !== SONANDO;
+      // No saltar un video que todavía está sonando normalmente a mitad de camino.
+      const finProbable = estadoYT === TERMINADO || cercaDelFinalYT || (servidorAgotado && youtubeDetenido);
+      if (!finProbable) {
+        finalDetectado.current = null;
+        return;
+      }
+      const ahora = Date.now();
+      if (finalDetectado.current?.id !== rep.id) finalDetectado.current = { id: rep.id, desde: ahora };
+      // ENDED es señal definitiva; otros casos esperan por un posible retraso de YouTube.
+      if (estadoYT === TERMINADO || ahora - finalDetectado.current.desde >= FINAL_SIN_EVENTO_MS) {
+        avisarFin(rep.id);
+      }
+    }, REVISAR_FINAL_MS);
+    return () => window.clearInterval(temporizador);
+  }, [encendida, avisarFin]);
 
   // Si se desfasó del servidor (se colgó la red, se unió tarde), se corrige cada 5 s.
   useEffect(() => {

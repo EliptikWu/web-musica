@@ -2,7 +2,7 @@
 
 import type { Ahora, Bar, ItemCola, VinculoPantalla } from '@rockola/contrato';
 import { Arco, Avance, DiasSemana, Icono, LuzEstado, TarjetaTitulo, Tecla } from '@rockola/ui';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
 import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import { claves } from '@/lib/api/claves';
@@ -32,10 +32,11 @@ export function PantallaBar({ slug }: { slug: string }) {
   const { vinculo, sinRed, desvinculada, alPerderVinculo } = useVinculoPantalla(slug);
   const bar = useBar(slug);
   const ahora = useAhora(slug);
-  const qr = useQuery({ queryKey: claves.qrPublico(slug), queryFn: ({ signal }) => pedir('qrPublico', { parametros: { slug }, signal }), staleTime: Infinity });
+  const qr = useQuery({ queryKey: claves.qrPublico(slug), queryFn: ({ signal }) => pedir('qrPublico', { parametros: { slug }, signal }), staleTime: 0, refetchInterval: 30_000 });
   const instante = useAhoraServidor();
   const { caida } = useConexionCaida();
   const [encendida, setEncendida] = useState(false);
+  const consultas = useQueryClient();
   const reporte = useMutation({
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
       // La clave es fija por reproducción y tipo: dos pantallas que reportan el mismo fin no saltan dos canciones.
@@ -44,6 +45,10 @@ export function PantallaBar({ slug }: { slug: string }) {
       // 401: la desvincularon desde el panel; vuelve a mostrar un código (RF-058).
       if (codigoDe(error) === 'no_autenticado') alPerderVinculo();
       else console.error('[pantalla] no se pudo reportar', error);
+    },
+    onSuccess: (_respuesta, variables) => {
+      // Si la señal SSE se retrasa o cae, la TV vuelve a consultar qué debe sonar.
+      if (variables.tipo !== 'reportarInicio') void consultas.invalidateQueries({ queryKey: claves.ahora(slug) });
     },
   });
 
