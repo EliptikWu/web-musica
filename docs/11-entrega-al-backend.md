@@ -86,6 +86,17 @@ del bar», y `endpoints.md`):
 - Los tres reportes de reproducción responden `401 no_autenticado` sin una pantalla vinculada
   a ese bar, y la sesión se comprueba antes de la caché de `Idempotency-Key`.
 
+## Lo que el equipo de frontend hizo en el backend (D14)
+
+La base de Railway está apagada y sin acceso: estos cambios se probaron con pruebas
+unitarias y contra un Postgres local con `src/test/resources/esquema-reconstruido.sql`, un
+esquema **reconstruido del código** que puede no coincidir con la base real. Revisarlos antes
+de desplegar.
+
+| Fecha | Qué | Archivos | Para revisar |
+|---|---|---|---|
+| 2026-11-12 | `tema` del bar (RF-059) y edición del establecimiento (RF-034) | `db/migration/V2__tema_establecimiento.sql`, `compat/ContratoEstablecimientoService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoQrBarController.kt` | Que `accion_admin.tipo` admita `editar_establecimiento`; que la base real no tenga ya otra V2 de Flyway |
+
 ## Lo que el frontend no hace
 
 - Llamar a YouTube: la búsqueda pasa por el backend (cuota, caché y claves, RF-008, PB-54).

@@ -9,7 +9,9 @@ von Humboldt, 2026).
 **Este equipo hace los frontends:** la web (`frontend/web`, Next.js) y la app Android
 (`frontend/movil`, Kotlin + Compose, con su propio `CLAUDE.md`). El backend (base de datos,
 reglas del servidor, YouTube Data API, tiempo real, analítica con Spark) lo hace otro equipo
-en `rokolaBackend/`, en este mismo repositorio: aquí no se toca. Mientras la API no esté,
+en `rokolaBackend/`, en este mismo repositorio. Por decisión del usuario (D14, 2026-11-12) este
+equipo también hace ahí lo que el frontend necesita y el backend no tiene: cada cambio va
+en el doc 11 y en «Pendiente del backend» del doc 04 para que el otro equipo lo revise. Mientras la API no esté,
 la web corre contra una **simulación en el navegador** y la app contra la suya, las dos
 con el contrato propuesto (doc 04). Integrar es apuntar a la API real.
 

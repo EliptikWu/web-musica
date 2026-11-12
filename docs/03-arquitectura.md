@@ -55,7 +55,8 @@ packages/
 frontend/
   web/           @rockola/web: la app web (Next.js)
   movil/         la app Android del cliente (Kotlin + Compose, Gradle; ADR-19, ADR-24)
-rokolaBackend/   el backend (Spring Boot + Kotlin), del equipo de backend: aquí no se toca
+rokolaBackend/   el backend (Spring Boot + Kotlin), del equipo de backend; el de frontend añade
+                 lo que le falta (D14) y lo anota en el doc 11
 ```
 
 ### `frontend/web`

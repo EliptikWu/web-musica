@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Panel mínimo del contrato: entrar, salir, `yo`, la noche y saltar (RF-021, RF-037, RF-040).
+ * Panel mínimo del contrato: entrar, salir, `yo`, la noche, saltar y el establecimiento
+ * (RF-021, RF-034, RF-037, RF-040, RF-059).
  * La sesión es la cookie httpOnly `rockola_panel`; el resto del panel aún no existe.
  */
 @RestController
@@ -24,6 +26,7 @@ class ContratoPanelController(
   private val sesiones: ContratoPanelSesiones,
   private val noches: ContratoNocheService,
   private val saltos: ContratoSaltoService,
+  private val establecimientos: ContratoEstablecimientoService,
 ) {
   @PostMapping("/sesion")
   fun entrar(@RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Map<String, Any?>> {
@@ -59,6 +62,18 @@ class ContratoPanelController(
     saltos.saltar(acceso.exigir(token), id, clave)
     return ResponseEntity.noContent().build()
   }
+
+  /** Solo el Administrador (matriz de permisos, doc 04): el Operador recibe 403. */
+  @GetMapping("/establecimiento")
+  fun establecimiento(@CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?): ResponseEntity<Map<String, Any?>> =
+    sinCache(establecimientos.leer(acceso.exigir(token, rolMinimo = "administrador")))
+
+  @PatchMapping("/establecimiento")
+  fun editarEstablecimiento(
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ): ResponseEntity<Map<String, Any?>> =
+    sinCache(establecimientos.editar(acceso.exigir(token, rolMinimo = "administrador"), cuerpo))
 
   /** Lo que el panel del backend todavía no tiene: 404 con el formato del contrato. */
   @RequestMapping("/**")

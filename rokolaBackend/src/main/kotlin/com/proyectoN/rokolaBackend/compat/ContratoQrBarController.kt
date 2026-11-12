@@ -67,6 +67,7 @@ class ContratoQrBarController(
     val pedidosMaximos: Int?,
     val duracionMaxSeg: Int?,
     val ventanaNoRepeticion: Int?,
+    val tema: String,
   )
 
   @GetMapping("/bares/{slug}")
@@ -77,7 +78,7 @@ class ContratoQrBarController(
     dispositivos.huella(uuid)
     val bar = jdbc.query(
       """
-            SELECT e.id_establecimiento, e.slug, e.nombre, e.zona_horaria, e.activo,
+            SELECT e.id_establecimiento, e.slug, e.nombre, e.zona_horaria, e.activo, e.tema,
                    c.max_solicitudes_dispositivo,
                    c.duracion_max_seg,
                    c.minutos_bloqueo_repeticion
@@ -96,6 +97,7 @@ class ContratoQrBarController(
           pedidosMaximos = rs.getObject("max_solicitudes_dispositivo")?.let { (it as Number).toInt() },
           duracionMaxSeg = rs.getObject("duracion_max_seg")?.let { (it as Number).toInt() },
           ventanaNoRepeticion = rs.getObject("minutos_bloqueo_repeticion")?.let { (it as Number).toInt() },
+          tema = rs.getString("tema"), // RF-059 (migración V2)
         )
       },
       slug,
@@ -140,6 +142,7 @@ class ContratoQrBarController(
       "pedidos_maximos" to pedidosMaximos,
       "duracion_max_seg" to duracionMaxSeg,
       "ventana_no_repeticion_min" to ventana,
+      "tema" to bar.tema,
       "horario" to horario,
     )
   }

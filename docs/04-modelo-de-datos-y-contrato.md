@@ -276,8 +276,14 @@ resincroniza al reconectar.
     - `noche.sesion.origen` sale siempre `manual` y los bloqueos «hasta el fin de la noche»
       salen como horas o indefinido: el modelo de datos no guarda esa diferencia.
     - De paso se corrigió `GET /bares/{slug}/busqueda`: `en_cola` no traía `espera_seg` y la
-      interfaz rechazaba la respuesta cuando la búsqueda coincidía con algo de la cola.14. Campo `tema` (RF-059, ADR-25), nuevo el 2026-11-11: una columna en `establecimiento`
-    (`rockola` | `vidrio` | `afiche`, por defecto `rockola`) que sale en `GET /bares/{slug}`
-    y en `GET/PATCH /panel/establecimiento`. Solo el Administrador la cambia y el cambio va a
-    la bitácora como `editar_establecimiento`. Mientras el backend no la mande, la web usa
-    `rockola`.
+      interfaz rechazaba la respuesta cuando la búsqueda coincidía con algo de la cola.
+14. Campo `tema` (RF-059, ADR-25). **Hecho por el equipo de frontend el 2026-11-12** (D14),
+    sin poder verificarlo contra la base de Railway (apagada y sin acceso):
+    - Migración `V2__tema_establecimiento.sql`, la primera del repositorio: columna
+      `establecimiento.tema` (`rockola` | `vidrio` | `afiche`, por defecto `rockola`, con CHECK).
+      La base existente queda como versión 1 (`baseline-on-migrate`).
+    - `GET /api/bares/{slug}` devuelve `tema`.
+    - `GET/PATCH /api/panel/establecimiento` (`ContratoEstablecimientoService`), solo
+      Administrador y solo su bar; valida con los límites del contrato y anota
+      `editar_establecimiento` en `accion_admin`. **`TBD`:** si `accion_admin.tipo` tiene un
+      CHECK en la base real, tiene que admitir `editar_establecimiento`; si no, el PATCH falla.
