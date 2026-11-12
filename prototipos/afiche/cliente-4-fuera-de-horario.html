@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fuera de horario, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .cabeza { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 3px solid var(--tinta); }
+    .cabeza p:first-child { font-size: 30px; }
+
+    .mensaje { margin-top: 30px; }
+    .mensaje h1 { font-size: 72px; line-height: .88; }
+    .mensaje p { margin-top: 16px; font-size: 17px; line-height: 1.45; font-weight: 500; max-width: 30ch; }
+
+    .horario { margin-top: 30px; border: 3px solid var(--tinta); border-radius: 4px; padding: 14px 14px 16px; }
+    .horario h2 { font-size: 22px; }
+    .horario__dias { font-family: var(--cartel); font-size: 40px; line-height: 1; text-transform: uppercase; margin-top: 6px; }
+    .horario__horas { font-family: var(--cartel); font-size: 40px; line-height: 1; text-transform: uppercase; }
+    .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; list-style: none; margin: 14px 0 0; padding: 0; }
+    .dia { height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--tinta); border-radius: 3px; font-size: 13px; font-weight: 700; }
+    .dia--abre { background: var(--tinta); color: var(--papel); }
+    .dia small { font-size: 11px; font-weight: 800; color: var(--amarillo); line-height: 1; }
+
+    .accion { position: absolute; left: 16px; right: 16px; bottom: 24px; text-align: center; }
+    .accion p a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 6px; font-size: 14px; font-weight: 700; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="movil">
+  <main class="contenido">
+    <header class="cabeza">
+      <p class="cartel">[Nombre del bar]</p>
+      <p class="en-vivo en-vivo--apagado">Pedidos cerrados</p>
+    </header>
+
+    <section class="mensaje" data-solape="ok">
+      <h1 class="cartel">Por ahora no recibimos canciones</h1>
+      <p>Los pedidos abren hoy a las 8:00 p. m. Mientras tanto suena la lista de la casa.</p>
+    </section>
+
+    <section class="horario" aria-labelledby="t-horario" data-solape="ok">
+      <h2 class="titulo-seccion" id="t-horario">Horario de pedidos</h2>
+      <p class="horario__dias">Jueves a sábado</p>
+      <p class="horario__horas">8:00 p. m. a 2:00 a. m.</p>
+      <ul class="dias">
+        <li class="dia">Lun</li><li class="dia">Mar</li><li class="dia">Mié</li>
+        <li class="dia dia--abre">Jue<small>Hoy</small></li><li class="dia dia--abre">Vie</li><li class="dia dia--abre">Sáb</li>
+        <li class="dia">Dom</li>
+      </ul>
+    </section>
+  </main>
+
+  <div class="accion">
+    <a class="bloque bloque--grande" href="cliente-1-bienvenida.html">Ver qué está sonando</a>
+    <p><a href="#politica">Política de datos</a></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscar y pedir, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .cabeza h1 { font-size: 52px; }
+    .cupo { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 14px; font-weight: 600; }
+    .boletas { display: inline-flex; gap: 4px; }
+    .boleta { width: 22px; height: 13px; border: 2px solid var(--tinta); border-radius: 2px; }
+    .boleta--libre { background: var(--tinta); }
+
+    .buscador { display: flex; align-items: center; gap: 10px; height: 52px; margin-top: 14px; padding: 0 4px 0 14px; border: 3px solid var(--tinta); border-radius: 4px; background: #F7F5F0; }
+    .buscador:focus-within { outline: 3px solid var(--rosa); outline-offset: 2px; }
+    .buscador svg { width: 22px; height: 22px; flex: none; }
+    .buscador input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; font: 700 17px var(--texto); color: var(--tinta); }
+    .buscador button { width: 44px; height: 44px; display: grid; place-items: center; }
+    .buscador button svg { width: 18px; height: 18px; }
+
+    .aviso { display: flex; align-items: center; gap: 10px; margin: 14px -16px 0; padding: 12px 8px 12px 16px; }
+    .aviso__texto { flex: 1; }
+    .aviso__titulo { font-family: var(--cartel); font-size: 30px; line-height: .95; text-transform: uppercase; }
+    .aviso__meta { font-size: 14px; font-weight: 700; margin-top: 2px; }
+    .aviso a { display: inline-flex; align-items: center; height: 44px; padding: 0 10px; font-weight: 800; font-size: 14px; text-underline-offset: 3px; }
+
+    .seccion { margin-top: 16px; }
+    .seccion__cabeza { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 6px; border-bottom: 3px solid var(--tinta); }
+    .seccion__cabeza span { font-size: 13px; font-weight: 600; }
+    .fila { min-height: 58px; }
+    .fila .bloque { width: 78px; padding: 0; }
+    .bloqueo { flex: none; width: 78px; font-size: 13px; font-weight: 700; line-height: 1.25; text-align: center; }
+    /* Se tacha el título; la duración queda legible porque es el motivo del bloqueo. */
+    .fila--bloqueada .fila__titulo { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+
+    body:not(:has(#pedido:target)) .despues { display: none !important; }
+    body:has(#pedido:target) .antes { display: none !important; }
+  </style>
+</head>
+<body class="movil">
+  <span id="pedido"></span>
+  <main class="contenido">
+    <header class="cabeza">
+      <h1 class="cartel">Pide una canción</h1>
+      <p class="cupo antes"><span class="boletas" aria-hidden="true"><i class="boleta boleta--libre"></i><i class="boleta boleta--libre"></i><i class="boleta"></i></span>Te quedan 2 de 3 pedidos</p>
+      <p class="cupo despues"><span class="boletas" aria-hidden="true"><i class="boleta boleta--libre"></i><i class="boleta"></i><i class="boleta"></i></span>Te queda 1 de 3 pedidos</p>
+    </header>
+
+    <form class="buscador" role="search" onsubmit="return false">
+      <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></svg>
+      <input type="search" value="bad bunny" aria-label="Buscar en YouTube">
+      <button type="reset" aria-label="Borrar búsqueda"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg></button>
+    </form>
+
+    <div class="aviso partida despues" role="status">
+      <div class="aviso__texto">
+        <p class="aviso__titulo">Monaco entró a la cola</p>
+        <p class="aviso__meta">Puesto #4, suena en unos 14 min</p>
+      </div>
+      <a href="cliente-3-cola.html">Ver cola</a>
+    </div>
+
+    <section class="seccion" aria-labelledby="t-cola">
+      <div class="seccion__cabeza"><h2 class="titulo-seccion" id="t-cola">Ya está en la cola</h2><span class="secundario">Vota en vez de pedirla</span></div>
+      <ul class="lista">
+        <li class="fila">
+          <div class="fila__texto"><p class="fila__titulo">NUEVAYoL</p><p class="fila__meta">Bad Bunny, puesto 2, 14 votos</p></div>
+          <button class="casilla" aria-label="Votar por NUEVAYoL">+1</button>
+        </li>
+        <li class="fila">
+          <div class="fila__texto"><p class="fila__titulo">DtMF</p><p class="fila__meta">Bad Bunny, puesto 3, 13 votos</p></div>
+          <span class="sello">Votaste</span>
+        </li>
+      </ul>
+    </section>
+
+    <section class="seccion" aria-labelledby="t-yt">
+      <div class="seccion__cabeza"><h2 class="titulo-seccion" id="t-yt">Resultados en YouTube</h2></div>
+      <ul class="lista">
+        <li class="fila">
+          <div class="fila__texto"><p class="fila__titulo">Monaco</p><p class="fila__meta antes">Bad Bunny, 4:27</p><p class="fila__meta despues">Bad Bunny, puesto 4</p></div>
+          <button class="bloque antes" aria-label="Pedir Monaco">Pedir</button>
+          <span class="resaltada despues">Tuya</span>
+        </li>
+        <li class="fila">
+          <div class="fila__texto"><p class="fila__titulo">Tití Me Preguntó</p><p class="fila__meta">Bad Bunny, 4:03</p></div>
+          <button class="bloque" aria-label="Pedir Tití Me Preguntó">Pedir</button>
+        </li>
+        <li class="fila fila--bloqueada">
+          <div class="fila__texto"><p class="fila__titulo">Mix Bad Bunny 2025</p><p class="fila__meta">Grandes éxitos, 1:12:40</p></div>
+          <p class="bloqueo">Dura más de 10 min</p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="pie" data-capa>
+    <div class="mini" aria-label="Suena ahora">
+      <div class="mini__texto"><p class="mini__etiqueta">Suena ahora</p><p class="mini__titulo">Rebelión <span>Joe Arroyo</span></p></div>
+      <p class="mini__votos">24<small>votos</small></p>
+    </div>
+    <div class="mini-avance" aria-hidden="true"><span style="--v:45%"></span></div>
+    <nav class="pestanas" aria-label="Secciones">
+      <a class="pestana" href="cliente-1-bienvenida.html"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.5 12 4.5l7.5 6V20H15v-5.5H9V20H4.5z"/></svg>Inicio</a>
+      <a class="pestana" href="cliente-2-buscar.html" aria-current="page"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></svg>Buscar</a>
+      <a class="pestana" href="cliente-3-cola.html"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h9"/></svg>Cola</a>
+    </nav>
+  </footer>
+</body>
+</html>

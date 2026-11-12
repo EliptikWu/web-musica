@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cola en tiempo real, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .cabeza { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+    .cabeza__titulo { font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+    .cabeza__sub { margin-top: 4px; font-size: 14px; }
+
+    .tuya {
+      margin-top: 16px; padding: 14px 16px 16px;
+      border-radius: var(--r-grande);
+      background: var(--acento); color: var(--tinta);
+      box-shadow: 0 18px 40px -22px rgba(229, 139, 176, .9);
+    }
+    .tuya__arriba { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .tuya__etiqueta { font-size: 14px; font-weight: 500; color: var(--tinta-2); }
+    .tuya__subio {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 28px; padding: 0 11px 0 8px; border-radius: var(--pildora);
+      background: rgba(255, 255, 255, .42); font-size: 13px; font-weight: 600;
+    }
+    .tuya__subio svg { width: 16px; height: 16px; }
+    .tuya__medio { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+    .tuya__puesto { font-size: 52px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+    .tuya .portada { --tam: 52px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+    .tuya__cancion { font-size: 19px; font-weight: 600; line-height: 1.15; }
+    .tuya__meta { font-size: 14px; color: var(--tinta-2); margin-top: 2px; }
+
+    .lista { list-style: none; margin: 14px 0 0; padding: 0; }
+    .fila { min-height: 62px; padding: 8px 8px 8px 10px; gap: 10px; }
+    .fila .portada { --tam: 40px; border-radius: 11px; }
+    .fila__titulo { font-size: 15px; }
+    .fila__votos { width: 34px; }
+    .fila--tuya { background: rgba(255, 255, 255, .06); }
+
+    .regla { margin-top: 12px; padding: 0 4px; font-size: 14px; line-height: 1.45; }
+    .regla b { color: var(--texto); font-weight: 600; }
+  </style>
+</head>
+<body class="movil">
+  <div class="fondo" aria-hidden="true">
+    <span class="mancha mancha--rosa" style="--x:-110px;--y:-80px;--t:280px;--o:.4"></span>
+    <span class="mancha mancha--lavanda" style="--x:-150px;--y:420px;--t:280px;--o:.4"></span>
+    <span class="mancha mancha--durazno" style="--x:220px;--y:640px;--t:260px;--o:.3"></span>
+  </div>
+
+  <main class="capa contenido">
+    <header class="cabeza">
+      <div>
+        <h1 class="cabeza__titulo">La cola</h1>
+        <p class="cabeza__sub secundario">9 canciones, unos 36 min</p>
+      </div>
+      <span class="en-vivo vidrio">En vivo</span>
+    </header>
+
+    <section class="tuya" aria-label="Tu canción">
+      <div class="tuya__arriba">
+        <p class="tuya__etiqueta">Tu canción va de</p>
+        <span class="tuya__subio"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true" style="stroke-width:2.2"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>Subió 2 puestos</span>
+      </div>
+      <div class="tuya__medio">
+        <p class="tuya__puesto">#3</p>
+        <div class="portada p-cielo" aria-hidden="true"></div>
+        <div>
+          <p class="tuya__cancion">Monaco</p>
+          <p class="tuya__meta">Bad Bunny, 15 votos</p>
+        </div>
+      </div>
+      <p class="tuya__meta" style="margin-top:10px">Suena en unos 13 min</p>
+    </section>
+
+    <ol class="lista grupo vidrio">
+      <li class="fila">
+        <span class="fila__puesto">1</span>
+        <div class="portada p-mantequilla" aria-hidden="true"></div>
+        <div class="fila__texto"><p class="fila__titulo">Cali Pachanguero</p><p class="fila__meta">Grupo Niche</p></div>
+        <p class="fila__votos"><b>21</b><small>votos</small></p>
+        <button class="voto" aria-label="Votar por Cali Pachanguero">+1</button>
+      </li>
+      <li class="fila">
+        <span class="fila__puesto">2</span>
+        <div class="portada p-lavanda" aria-hidden="true"></div>
+        <div class="fila__texto"><p class="fila__titulo">DtMF</p><p class="fila__meta">Bad Bunny</p></div>
+        <p class="fila__votos"><b>18</b><small>votos</small></p>
+        <span class="voto voto--hecho">Votaste</span>
+      </li>
+      <li class="fila fila--tuya">
+        <span class="fila__puesto">3</span>
+        <div class="portada p-cielo" aria-hidden="true"></div>
+        <div class="fila__texto"><p class="fila__titulo">Monaco</p><p class="fila__meta">Bad Bunny</p></div>
+        <p class="fila__votos"><b>15</b><small>votos</small></p>
+        <span class="voto voto--tuya">Tuya</span>
+      </li>
+      <li class="fila">
+        <span class="fila__puesto">4</span>
+        <div class="portada p-menta" aria-hidden="true"></div>
+        <div class="fila__texto"><p class="fila__titulo">La Bicicleta</p><p class="fila__meta">Carlos Vives y Shakira</p></div>
+        <p class="fila__votos"><b>15</b><small>votos</small></p>
+        <button class="voto" aria-label="Votar por La Bicicleta">+1</button>
+      </li>
+      <li class="fila">
+        <span class="fila__puesto">5</span>
+        <div class="portada p-coral" aria-hidden="true"></div>
+        <div class="fila__texto"><p class="fila__titulo">NUEVAYoL</p><p class="fila__meta">Bad Bunny</p></div>
+        <p class="fila__votos"><b>14</b><small>votos</small></p>
+        <button class="voto" aria-label="Votar por NUEVAYoL">+1</button>
+      </li>
+    </ol>
+
+    <p class="regla secundario">Con los mismos votos, suena primero la que se pidió antes. Por eso <b>Monaco</b> va antes que <b>La Bicicleta</b>.</p>
+  </main>
+
+  <footer class="pie" data-capa>
+    <div class="mini vidrio vidrio--alto" aria-label="Suena ahora">
+      <div class="portada portada--chica p-durazno" aria-hidden="true"></div>
+      <div class="mini__texto"><p class="mini__titulo">Rebelión</p><p class="mini__meta">Joe Arroyo</p></div>
+      <p class="mini__votos"><b>24</b> votos</p>
+      <div class="progreso" aria-hidden="true"><span style="--v:45%"></span></div>
+    </div>
+    <nav class="pestanas vidrio" aria-label="Secciones">
+      <a class="pestana" href="cliente-1-bienvenida.html">
+        <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.5 12 4.5l7.5 6V19a1 1 0 0 1-1 1H15v-5.5H9V20H5.5a1 1 0 0 1-1-1z"/></svg>Inicio</a>
+      <a class="pestana" href="cliente-2-buscar.html">
+        <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></svg>Buscar</a>
+      <a class="pestana" href="cliente-3-cola.html" aria-current="page">
+        <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15M4.5 12h15M4.5 17h9"/></svg>Cola</a>
+    </nav>
+  </footer>
+</body>
+</html>

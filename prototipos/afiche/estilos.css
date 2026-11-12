@@ -1,0 +1,128 @@
+/* Rockola, dirección «Afiche». La noche como cartel callejero de tipos de madera:
+   tinta partida fluorescente en tres bloques, tinta negra sobre papel en lo demás. */
+
+:root {
+  --papel: #ECE9E1;
+  --papel-hondo: #E2DED4;
+  --tinta: #17120F;
+  --tinta-2: #4E4741;
+  --regla: #17120F;
+  --punteado: rgba(23, 18, 15, .35);
+  --amarillo: #FFE600;
+  --naranja: #FF7A2F;
+  --rosa: #FF2E93;
+  --sello: #B0105D;
+  --partida: linear-gradient(100deg, #FFE600 0%, #FFB02E 30%, #FF7A2F 52%, #FF2E93 100%);
+  --rodillo: repeating-linear-gradient(0deg, rgba(255, 255, 255, .07) 0 2px, rgba(255, 255, 255, 0) 2px 6px);
+
+  --cartel: 'League Gothic', 'Arial Narrow', sans-serif;
+  --texto: 'Libre Franklin', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 400 15px/1.4 var(--texto);
+  color: var(--tinta);
+  background-color: var(--papel);
+  /* Grano de papel */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.07  0 0 0 0 0.06  0 0 0 .07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--rosa); outline-offset: 2px; }
+
+.secundario { color: var(--tinta-2); }
+.cartel { font-family: var(--cartel); font-weight: 400; line-height: .92; letter-spacing: .005em; text-transform: uppercase; }
+.titulo-seccion { font-family: var(--cartel); font-size: 26px; line-height: 1; text-transform: uppercase; letter-spacing: .01em; }
+
+/* Bloque de tinta partida, a sangre */
+.partida { background: var(--rodillo), var(--partida); color: var(--tinta); }
+
+/* Indicador en vivo */
+.en-vivo { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+.en-vivo::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--tinta); box-shadow: 0 0 0 3px rgba(23, 18, 15, .18); }
+.en-vivo--apagado::before { background: transparent; border: 2px solid var(--tinta); box-shadow: none; width: 8px; height: 8px; }
+
+/* Avance: regla gruesa con su parte llena */
+.avance { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.regla-avance { flex: 1; height: 6px; background: rgba(23, 18, 15, .22); }
+.regla-avance > span { display: block; height: 100%; width: var(--v); background: var(--tinta); }
+
+/* Botones: gestos de imprenta */
+.bloque {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 18px;
+  border-radius: 4px;
+  background: var(--tinta); color: var(--amarillo);
+  font-family: var(--cartel); font-size: 24px; line-height: 1; text-transform: uppercase; letter-spacing: .02em;
+  text-decoration: none; white-space: nowrap;
+}
+.bloque--grande { width: 100%; min-height: 60px; font-size: 32px; }
+.casilla {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 78px; height: 44px; border-radius: 4px;
+  border: 2.5px solid var(--tinta);
+  font-family: var(--cartel); font-size: 26px; line-height: 1;
+}
+.sello {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 78px; height: 40px;
+  border: 2px solid var(--sello); border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--papel), inset 0 0 0 3px var(--sello);
+  color: var(--sello);
+  font-family: var(--cartel); font-size: 21px; line-height: 1; text-transform: uppercase; letter-spacing: .04em;
+  transform: rotate(-4deg);
+}
+.resaltada {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 78px; height: 40px;
+  background: linear-gradient(176deg, rgba(255, 230, 0, 0) 6%, var(--amarillo) 7%, var(--amarillo) 92%, rgba(255, 230, 0, 0) 93%);
+  font-family: var(--cartel); font-size: 24px; line-height: 1; text-transform: uppercase; letter-spacing: .03em;
+}
+
+/* Filas de canción: líneas punteadas de corte */
+.lista { list-style: none; margin: 0; padding: 0; }
+.fila { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 0; border-top: 1.5px dashed var(--punteado); }
+.fila:first-child { border-top: 0; }
+.fila__puesto { width: 26px; flex: none; font-family: var(--cartel); font-size: 32px; line-height: 1; text-align: center; }
+.fila__texto { flex: 1; min-width: 0; }
+.fila__titulo { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.fila__meta { font-size: 13px; color: var(--tinta-2); line-height: 1.35; }
+.fila__votos { flex: none; width: 40px; text-align: right; font-family: var(--cartel); font-size: 30px; line-height: 1.12; }
+.fila__votos small { display: block; font-family: var(--texto); font-size: 11px; font-weight: 600; color: var(--tinta-2); text-transform: none; }
+
+/* Móvil con pie */
+.movil { height: 844px; }
+.contenido { padding: 22px 16px 0; }
+.pie { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: var(--papel); border-top: 3px solid var(--regla); }
+.mini { display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px; background: var(--tinta); color: var(--papel); }
+.mini__texto { flex: 1; min-width: 0; }
+.mini__etiqueta { font-size: 12px; font-weight: 600; color: var(--amarillo); }
+.mini__titulo { font-size: 15px; font-weight: 700; line-height: 1.2; }
+.mini__titulo span { font-weight: 400; color: rgba(236, 233, 225, .78); }
+.mini__votos { font-family: var(--cartel); font-size: 30px; line-height: 1.12; text-align: right; }
+.mini__votos small { display: block; font-family: var(--texto); font-size: 11px; font-weight: 600; color: rgba(236, 233, 225, .78); }
+.mini-avance { height: 4px; background: rgba(236, 233, 225, .2); }
+.mini-avance > span { display: block; height: 100%; width: var(--v); background: var(--partida); }
+
+.pestanas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px 12px 22px; }
+.pestana {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  height: 54px; border-radius: 4px;
+  font-size: 12px; font-weight: 700; text-decoration: none; color: var(--tinta-2);
+}
+.pestana svg { width: 24px; height: 24px; }
+.pestana[aria-current="page"] { background: var(--tinta); color: var(--amarillo); }
+.icono { fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: square; stroke-linejoin: miter; }
+
+/* El buscador ya tiene su botón de borrar: sin la «x» nativa del navegador. */
+input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }

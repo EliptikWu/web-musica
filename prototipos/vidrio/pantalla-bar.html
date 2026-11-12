@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280">
+  <title>Pantalla del bar, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    body { width: 1280px; height: 720px; }
+    .mancha { filter: blur(110px); }
+
+    .tv {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: 712px 1fr; column-gap: 32px;
+      height: 100%; padding: 32px 40px 36px;
+    }
+    .izq { display: flex; flex-direction: column; }
+    .der { display: flex; flex-direction: column; gap: 18px; }
+
+    .bar { display: flex; align-items: center; gap: 16px; height: 44px; }
+    .bar__nombre { font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+    .en-vivo { height: 36px; font-size: 16px; padding: 0 16px 0 13px; }
+
+    .video {
+      position: relative; overflow: hidden;
+      margin-top: 18px; width: 712px; aspect-ratio: 16 / 9;
+      border-radius: var(--r-grande);
+      background:
+        radial-gradient(60% 80% at 30% 40%, rgba(246, 178, 154, .55), transparent 70%),
+        radial-gradient(50% 70% at 75% 65%, rgba(168, 148, 238, .45), transparent 70%),
+        #1c1820;
+      border: 1px solid var(--borde);
+    }
+    .video__marca {
+      position: absolute; left: 20px; bottom: 18px;
+      display: inline-flex; align-items: center; gap: 10px;
+      height: 36px; padding: 0 16px 0 12px; border-radius: var(--pildora);
+      background: rgba(18, 16, 22, .55); font-size: 15px; font-weight: 500;
+    }
+    .video__marca svg { width: 22px; height: 22px; }
+
+    .ahora { margin-top: 20px; }
+    .ahora__arriba { display: flex; justify-content: space-between; align-items: baseline; }
+    .ahora__etiqueta { font-size: 18px; font-weight: 500; color: var(--texto-2); }
+    .ahora__votos { font-size: 18px; color: var(--texto-2); }
+    .ahora__votos b { font-size: 26px; color: var(--texto); }
+    .ahora__titulo { margin-top: 0; font-size: 52px; font-weight: 600; letter-spacing: -.025em; line-height: 1.28; }
+    .ahora__artista { font-size: 24px; color: var(--texto-2); margin-top: 0; line-height: 1.25; }
+    .ahora__avance { display: flex; align-items: center; gap: 16px; margin-top: 14px; font-size: 16px; font-variant-numeric: tabular-nums; }
+    .ahora__avance .progreso { flex: 1; height: 6px; border-radius: 3px; }
+
+    .viene { padding: 20px 20px 10px; border-radius: var(--r-grande); flex: 1; }
+    .viene__cabeza { display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px 8px; }
+    .viene__cabeza h2 { font-size: 24px; font-weight: 600; letter-spacing: -.01em; }
+    .viene__cabeza span { font-size: 16px; }
+    .viene ol { list-style: none; margin: 0; padding: 0; }
+    .viene li { display: flex; align-items: center; gap: 14px; height: 66px; padding: 0 4px; }
+    .viene__mas { margin-top: 6px; padding: 12px 4px 0; border-top: 1px solid var(--separador); font-size: 15px; line-height: 1.35; }
+    .viene li + li { border-top: 1px solid var(--separador); }
+    .viene .fila__puesto { width: 20px; font-size: 20px; }
+    .viene .portada { --tam: 44px; border-radius: 12px; }
+    .viene__texto { flex: 1; min-width: 0; }
+    .viene__titulo { font-size: 21px; font-weight: 600; line-height: 1.15; white-space: nowrap; }
+    .viene__artista { font-size: 15px; color: var(--texto-2); white-space: nowrap; }
+    .viene__votos { width: 40px; text-align: right; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .sube { width: 44px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 2px; font-size: 16px; font-weight: 600; color: #F6B29A; }
+    .sube svg { width: 18px; height: 18px; }
+
+    .qr { display: flex; align-items: center; gap: 20px; padding: 16px 20px 16px 16px; border-radius: var(--r-grande); }
+    .qr__codigo { flex: none; width: 132px; height: 132px; padding: 10px; border-radius: 18px; background: #fff; color: #121016; }
+    .qr__codigo svg { display: block; width: 100%; height: 100%; }
+    .qr h2 { font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+    .qr p { margin-top: 6px; font-size: 18px; color: var(--texto-2); line-height: 1.3; }
+    .qr .qr__enlace { margin-top: 10px; font-size: 16px; color: var(--texto); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="fondo" aria-hidden="true">
+    <span class="mancha mancha--durazno" style="--x:-120px;--y:-140px;--t:520px;--o:.4"></span>
+    <span class="mancha mancha--rosa" style="--x:560px;--y:420px;--t:460px;--o:.3"></span>
+    <span class="mancha mancha--lavanda" style="--x:1060px;--y:120px;--t:440px;--o:.34"></span>
+  </div>
+
+  <div class="tv">
+    <section class="izq">
+      <header class="bar">
+        <h1 class="bar__nombre">[Nombre del bar]</h1>
+        <span class="en-vivo vidrio">En vivo</span>
+      </header>
+
+      <div class="video" role="img" aria-label="Video de YouTube de la canción que suena">
+        <span class="video__marca"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="m10.5 9.5 4 2.5-4 2.5z" fill="currentColor"/></svg>Video de YouTube</span>
+      </div>
+
+      <div class="ahora">
+        <div class="ahora__arriba">
+          <p class="ahora__etiqueta">Suena ahora</p>
+          <p class="ahora__votos"><b class="cifra">24</b> votos</p>
+        </div>
+        <h2 class="ahora__titulo">Rebelión</h2>
+        <p class="ahora__artista">Joe Arroyo</p>
+        <div class="ahora__avance secundario"><span>2:41</span><div class="progreso"><span style="--v:45%"></span></div><span>5:58</span></div>
+      </div>
+    </section>
+
+    <section class="der">
+      <div class="viene vidrio">
+        <div class="viene__cabeza">
+          <h2>Lo que viene</h2>
+          <span class="secundario">Votos</span>
+        </div>
+        <ol>
+          <li><span class="fila__puesto">1</span><div class="portada p-mantequilla"></div>
+            <div class="viene__texto"><p class="viene__titulo">Cali Pachanguero</p><p class="viene__artista">Grupo Niche</p></div>
+            <span class="sube"></span><span class="viene__votos">21</span></li>
+          <li><span class="fila__puesto">2</span><div class="portada p-lavanda"></div>
+            <div class="viene__texto"><p class="viene__titulo">DtMF</p><p class="viene__artista">Bad Bunny</p></div>
+            <span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 1 puesto" style="stroke-width:2.4"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>1</span><span class="viene__votos">18</span></li>
+          <li><span class="fila__puesto">3</span><div class="portada p-cielo"></div>
+            <div class="viene__texto"><p class="viene__titulo">Monaco</p><p class="viene__artista">Bad Bunny</p></div>
+            <span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 2 puestos" style="stroke-width:2.4"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>2</span><span class="viene__votos">15</span></li>
+          <li><span class="fila__puesto">4</span><div class="portada p-menta"></div>
+            <div class="viene__texto"><p class="viene__titulo">La Bicicleta</p><p class="viene__artista">Carlos Vives y Shakira</p></div>
+            <span class="sube"></span><span class="viene__votos">15</span></li>
+          <li><span class="fila__puesto">5</span><div class="portada p-coral"></div>
+            <div class="viene__texto"><p class="viene__titulo">NUEVAYoL</p><p class="viene__artista">Bad Bunny</p></div>
+            <span class="sube"></span><span class="viene__votos">14</span></li>
+        </ol>
+        <p class="viene__mas secundario">Y 4 más en la cola. Con los mismos votos, va primero la que se pidió antes.</p>
+      </div>
+
+      <div class="qr vidrio vidrio--alto">
+        <div class="qr__codigo" role="img" aria-label="Código QR para pedir y votar">
+          <svg viewBox="0 0 29 29" aria-hidden="true"><path stroke="currentColor" d="M0 0.5h7m1 0h3m1 0h1m6 0h2m1 0h7m-29 1h1m5 0h1m2 0h1m1 0h3m3 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m4 0h3m8 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h3m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h2m2 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m3 0h7m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-18 1h1m4 0h1m1 0h3m-20 1h7m1 0h1m1 0h4m1 0h1m2 0h1m3 0h2m3 0h1m-29 1h4m4 0h5m2 0h3m1 0h6m1 0h1m1 0h1m-27 1h1m3 0h1m1 0h2m2 0h3m2 0h2m2 0h2m1 0h1m-25 1h5m3 0h1m3 0h2m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m-28 1h4m1 0h7m3 0h1m1 0h1m3 0h1m1 0h1m2 0h3m-29 1h2m1 0h2m3 0h1m1 0h1m5 0h7m1 0h2m2 0h1m-27 1h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m8 0h1m-22 1h3m2 0h1m1 0h1m2 0h2m1 0h2m2 0h1m4 0h2m-22 1h7m2 0h4m1 0h1m2 0h1m3 0h2m-27 1h2m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h8m2 0h2m-29 1h1m3 0h3m4 0h2m1 0h4m2 0h1m1 0h1m1 0h2m-26 1h1m3 0h2m1 0h1m1 0h5m1 0h1m3 0h1m2 0h1m1 0h2m-26 1h1m1 0h5m5 0h1m2 0h1m1 0h1m1 0h6m1 0h1m1 0h1m-21 1h1m1 0h1m2 0h1m4 0h3m3 0h2m1 0h2m-29 1h7m1 0h2m3 0h4m1 0h3m1 0h1m1 0h1m-25 1h1m5 0h1m1 0h2m4 0h2m2 0h3m3 0h2m1 0h2m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h6m2 0h1m1 0h7m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h7m1 0h1m1 0h2m-27 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m4 0h7m1 0h1m-28 1h1m5 0h1m1 0h2m3 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h1m-28 1h7m2 0h4m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3"/></svg>
+        </div>
+        <div>
+          <h2>Escanea y vota</h2>
+          <p>Sin descargas ni registro</p>
+          <p class="qr__enlace">[enlace del bar]</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

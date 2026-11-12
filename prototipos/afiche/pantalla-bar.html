@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280">
+  <title>Pantalla del bar, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    body { width: 1280px; height: 720px; }
+    .tv { display: grid; grid-template-columns: 700px 1fr; column-gap: 40px; height: 100%; padding: 22px 40px 30px; }
+    .izq { display: flex; flex-direction: column; }
+
+    .bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 6px; border-bottom: 3px solid var(--tinta); }
+    .bar h1 { font-size: 40px; line-height: 1.05; }
+    .bar .en-vivo { font-size: 17px; }
+    .video {
+      position: relative; margin-top: 14px; aspect-ratio: 16 / 9;
+      border: 3px solid var(--tinta); border-radius: 4px;
+      background: radial-gradient(60% 80% at 30% 40%, rgba(255, 122, 47, .35), transparent 70%), radial-gradient(50% 70% at 75% 65%, rgba(255, 46, 147, .3), transparent 70%), #2A2420;
+    }
+    .video__marca { position: absolute; left: 14px; bottom: 12px; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px 0 10px; border-radius: 3px; background: var(--papel); font-size: 15px; font-weight: 700; }
+    .video__marca svg { width: 22px; height: 22px; }
+
+    .ahora { margin-top: auto; padding: 10px 18px 14px; border-radius: 4px; }
+    .ahora__arriba { display: flex; justify-content: space-between; align-items: baseline; }
+    .ahora__etiqueta { font-size: 28px; }
+    .ahora__votos { font-family: var(--cartel); font-size: 44px; line-height: .9; }
+    .ahora__votos small { font-family: var(--texto); font-size: 16px; font-weight: 700; }
+    .ahora__cancion { font-size: 96px; line-height: .86; text-shadow: 3px 2px 0 rgba(255, 46, 147, .5); }
+    .ahora__pie { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+    .ahora__artista { font-size: 22px; font-weight: 800; white-space: nowrap; }
+    .ahora .avance { flex: 1; font-size: 15px; }
+
+    .der { display: flex; flex-direction: column; }
+    .der h2 { font-size: 56px; line-height: .9; padding-bottom: 6px; border-bottom: 3px solid var(--tinta); }
+    .viene { list-style: none; margin: 0; padding: 0; }
+    .viene li { display: flex; align-items: center; gap: 16px; height: 70px; border-bottom: 1.5px dashed var(--punteado); }
+    .viene .num { width: 34px; font-family: var(--cartel); font-size: 48px; line-height: 1; text-align: center; }
+    .viene .texto { flex: 1; min-width: 0; }
+    .viene b { display: block; font-size: 23px; font-weight: 800; line-height: 1.15; }
+    .viene span.artista { font-size: 16px; color: var(--tinta-2); }
+    .sube { width: 46px; display: inline-flex; align-items: center; justify-content: flex-end; gap: 1px; color: var(--sello); font-weight: 800; font-size: 19px; }
+    .sube svg { width: 18px; height: 18px; }
+    .viene .votos { width: 52px; text-align: right; font-family: var(--cartel); font-size: 46px; line-height: 1; }
+    .viene__mas { margin-top: 8px; font-size: 15px; font-weight: 600; }
+
+    .qr { margin-top: auto; display: flex; align-items: center; gap: 20px; padding: 14px 18px 14px 14px; border-radius: 4px; background: var(--tinta); color: var(--papel); }
+    .qr__codigo { flex: none; width: 122px; height: 122px; padding: 9px; background: #fff; border-radius: 3px; }
+    .qr__codigo svg { display: block; width: 100%; height: 100%; }
+    .qr h3 { font-family: var(--cartel); font-weight: 400; font-size: 54px; line-height: .9; text-transform: uppercase; color: var(--amarillo); }
+    .qr p { margin-top: 6px; font-size: 18px; font-weight: 600; }
+    .qr .qr__enlace { margin-top: 4px; font-size: 15px; font-weight: 500; color: rgba(236, 233, 225, .82); }
+  </style>
+</head>
+<body>
+  <div class="tv">
+    <section class="izq">
+      <header class="bar">
+        <h1 class="cartel">[Nombre del bar]</h1>
+        <p class="en-vivo">En vivo</p>
+      </header>
+      <div class="video" role="img" aria-label="Video de YouTube de la canción que suena">
+        <span class="video__marca"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="m10.5 9.5 4 2.5-4 2.5z" fill="currentColor"/></svg>Video de YouTube</span>
+      </div>
+      <div class="ahora partida" data-solape="ok">
+        <div class="ahora__arriba">
+          <p class="ahora__etiqueta cartel">Suena ahora</p>
+          <p class="ahora__votos">24 <small>votos</small></p>
+        </div>
+        <h2 class="ahora__cancion cartel">Rebelión</h2>
+        <div class="ahora__pie">
+          <p class="ahora__artista">Joe Arroyo</p>
+          <div class="avance"><span>2:41</span><div class="regla-avance"><span style="--v:45%"></span></div><span>5:58</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="der">
+      <h2 class="cartel">Lo que viene</h2>
+      <ol class="viene">
+        <li><span class="num">1</span><p class="texto"><b>Cali Pachanguero</b><span class="artista">Grupo Niche</span></p><span class="sube"></span><span class="votos">21</span></li>
+        <li><span class="num">2</span><p class="texto"><b>DtMF</b><span class="artista">Bad Bunny</span></p><span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 1 puesto" style="stroke-width:2.8"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>1</span><span class="votos">18</span></li>
+        <li><span class="num">3</span><p class="texto"><b>Monaco</b><span class="artista">Bad Bunny</span></p><span class="sube"><svg class="icono" viewBox="0 0 24 24" aria-label="Subió 2 puestos" style="stroke-width:2.8"><path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/></svg>2</span><span class="votos">15</span></li>
+        <li><span class="num">4</span><p class="texto"><b>La Bicicleta</b><span class="artista">Carlos Vives y Shakira</span></p><span class="sube"></span><span class="votos">15</span></li>
+        <li><span class="num">5</span><p class="texto"><b>NUEVAYoL</b><span class="artista">Bad Bunny</span></p><span class="sube"></span><span class="votos">14</span></li>
+      </ol>
+      <p class="viene__mas">Y 4 más en la cola. Con los mismos votos, va primero la que se pidió antes.</p>
+
+      <div class="qr" data-solape="ok">
+        <div class="qr__codigo" role="img" aria-label="Código QR para pedir y votar">
+          <svg viewBox="0 0 29 29" aria-hidden="true"><path stroke="#17120F" d="M0 0.5h7m1 0h3m1 0h1m6 0h2m1 0h7m-29 1h1m5 0h1m2 0h1m1 0h3m3 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m4 0h3m8 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h3m4 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h2m2 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m1 0h1m3 0h7m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-18 1h1m4 0h1m1 0h3m-20 1h7m1 0h1m1 0h4m1 0h1m2 0h1m3 0h2m3 0h1m-29 1h4m4 0h5m2 0h3m1 0h6m1 0h1m1 0h1m-27 1h1m3 0h1m1 0h2m2 0h3m2 0h2m2 0h2m1 0h1m-25 1h5m3 0h1m3 0h2m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m-28 1h4m1 0h7m3 0h1m1 0h1m3 0h1m1 0h1m2 0h3m-29 1h2m1 0h2m3 0h1m1 0h1m5 0h7m1 0h2m2 0h1m-27 1h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m8 0h1m-22 1h3m2 0h1m1 0h1m2 0h2m1 0h2m2 0h1m4 0h2m-22 1h7m2 0h4m1 0h1m2 0h1m3 0h2m-27 1h2m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h8m2 0h2m-29 1h1m3 0h3m4 0h2m1 0h4m2 0h1m1 0h1m1 0h2m-26 1h1m3 0h2m1 0h1m1 0h5m1 0h1m3 0h1m2 0h1m1 0h2m-26 1h1m1 0h5m5 0h1m2 0h1m1 0h1m1 0h6m1 0h1m1 0h1m-21 1h1m1 0h1m2 0h1m4 0h3m3 0h2m1 0h2m-29 1h7m1 0h2m3 0h4m1 0h3m1 0h1m1 0h1m-25 1h1m5 0h1m1 0h2m4 0h2m2 0h3m3 0h2m1 0h2m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h6m2 0h1m1 0h7m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h7m1 0h1m1 0h2m-27 1h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m4 0h7m1 0h1m-28 1h1m5 0h1m1 0h2m3 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h1m-28 1h7m2 0h4m1 0h1m2 0h1m1 0h1m2 0h1m1 0h3"/></svg>
+        </div>
+        <div>
+          <h3>Escanea y vota</h3>
+          <p>Sin descargas ni registro</p>
+          <p class="qr__enlace">[enlace del bar]</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

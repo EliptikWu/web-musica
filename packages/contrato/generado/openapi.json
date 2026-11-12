@@ -202,6 +202,15 @@
             "minimum": 0,
             "description": "RN-07"
           },
+          "tema": {
+            "default": "rockola",
+            "description": "RF-059: diseño del teléfono y la TV",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Tema"
+              }
+            ]
+          },
           "horario": {
             "type": "array",
             "items": {
@@ -216,6 +225,7 @@
           "pedidos_maximos",
           "duracion_max_seg",
           "ventana_no_repeticion_min",
+          "tema",
           "horario"
         ]
       },
@@ -365,6 +375,13 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 600
+          },
+          "tema": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Tema"
+              }
+            ]
           }
         }
       },
@@ -1124,6 +1141,15 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 600
+          },
+          "tema": {
+            "default": "rockola",
+            "description": "RF-059: diseño del teléfono y la TV; solo lo cambia el Administrador",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Tema"
+              }
+            ]
           }
         },
         "required": [
@@ -1135,7 +1161,8 @@
           "estado",
           "pedidos_maximos",
           "duracion_max_seg",
-          "ventana_no_repeticion_min"
+          "ventana_no_repeticion_min",
+          "tema"
         ]
       },
       "EstadoServicio": {
@@ -2638,6 +2665,14 @@
         "type": "string",
         "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
         "description": "Identificador del establecimiento en las rutas."
+      },
+      "Tema": {
+        "type": "string",
+        "enum": [
+          "rockola",
+          "vidrio",
+          "afiche"
+        ]
       },
       "TipoAccion": {
         "type": "string",

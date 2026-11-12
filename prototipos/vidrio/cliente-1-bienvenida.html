@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bienvenida, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .bar__nombre { font-size: 30px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+    .bar__sub { margin-top: 6px; font-size: 15px; }
+
+    .ahora { margin-top: 28px; padding: 18px 18px 18px; border-radius: var(--r-grande); }
+    .ahora__fila { display: flex; gap: 16px; align-items: flex-end; }
+    .ahora .portada--grande { --tam: 164px; border-radius: 24px; }
+    .ahora__etiqueta { font-size: 13px; font-weight: 500; color: var(--texto-2); }
+    .ahora__titulo { margin-top: 6px; font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+    .ahora__artista { margin-top: 4px; font-size: 16px; color: var(--texto-2); }
+    .ahora__votos { margin-top: 12px; font-size: 14px; color: var(--texto-2); }
+    .ahora__votos b { color: var(--texto); font-size: 17px; }
+    .ahora .progreso { margin-top: 18px; }
+
+    .top { margin-top: 34px; }
+    .top__cabeza { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding: 0 2px; }
+    .top__cabeza span { font-size: 13px; }
+    .top .fila { padding-left: 12px; min-height: 72px; }
+
+    .accion { position: absolute; left: 16px; right: 16px; bottom: 30px; z-index: 1; }
+    .privacidad { margin-bottom: 14px; font-size: 14px; line-height: 1.45; padding: 0 4px; text-align: center; }
+    .privacidad a { color: var(--texto); font-weight: 500; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="movil">
+  <div class="fondo" aria-hidden="true">
+    <span class="mancha mancha--durazno" style="--x:230px;--y:-150px;--t:260px;--o:.5"></span>
+    <span class="mancha mancha--rosa" style="--x:-150px;--y:150px;--t:250px;--o:.42"></span>
+    <span class="mancha mancha--lavanda" style="--x:110px;--y:640px;--t:320px;--o:.46"></span>
+  </div>
+
+  <main class="capa contenido">
+    <header class="bar">
+      <div>
+        <h1 class="bar__nombre">[Nombre del bar]</h1>
+        <p class="bar__sub secundario">Pide y vota la música de esta noche</p>
+      </div>
+      <span class="en-vivo vidrio">En vivo</span>
+    </header>
+
+    <section class="ahora vidrio vidrio--alto" aria-label="Suena ahora">
+      <div class="ahora__fila">
+        <div class="portada portada--grande p-durazno" role="img" aria-label="Carátula de Rebelión"></div>
+        <div>
+          <p class="ahora__etiqueta">Suena ahora</p>
+          <h2 class="ahora__titulo">Rebelión</h2>
+          <p class="ahora__artista">Joe Arroyo</p>
+          <p class="ahora__votos"><b class="cifra">24</b> votos</p>
+        </div>
+      </div>
+      <div class="progreso" role="progressbar" aria-label="Avance de la canción" aria-valuemin="0" aria-valuemax="358" aria-valuenow="161"><span style="--v:45%"></span></div>
+      <div class="tiempos secundario"><span>2:41</span><span>5:58</span></div>
+    </section>
+
+    <section class="top" aria-labelledby="top-titulo">
+      <div class="top__cabeza">
+        <h2 class="titulo-seccion" id="top-titulo">Lo más votado de la noche</h2>
+        <span class="secundario">Votos</span>
+      </div>
+      <ol class="grupo vidrio" style="list-style:none;margin:0;padding:0">
+        <li class="fila">
+          <span class="fila__puesto">1</span>
+          <div class="portada p-durazno" aria-hidden="true"></div>
+          <div class="fila__texto"><p class="fila__titulo">Rebelión</p><p class="fila__meta">Joe Arroyo, suena ahora</p></div>
+          <p class="fila__votos"><b>24</b></p>
+        </li>
+        <li class="fila">
+          <span class="fila__puesto">2</span>
+          <div class="portada p-rosa" aria-hidden="true"></div>
+          <div class="fila__texto"><p class="fila__titulo">Hips Don't Lie</p><p class="fila__meta">Shakira, sonó a las 9:40 p. m.</p></div>
+          <p class="fila__votos"><b>19</b></p>
+        </li>
+        <li class="fila">
+          <span class="fila__puesto">3</span>
+          <div class="portada p-mantequilla" aria-hidden="true"></div>
+          <div class="fila__texto"><p class="fila__titulo">Cali Pachanguero</p><p class="fila__meta">Grupo Niche, en la cola</p></div>
+          <p class="fila__votos"><b>15</b></p>
+        </li>
+      </ol>
+    </section>
+
+  </main>
+
+  <div class="accion">
+    <p class="privacidad secundario">Sin registro ni descargas: tu teléfono queda como un código anónimo. <a href="#politica">Política de datos</a></p>
+    <a class="boton boton--acento boton--grande" href="cliente-2-buscar.html">Entrar y votar</a>
+  </div>
+</body>
+</html>

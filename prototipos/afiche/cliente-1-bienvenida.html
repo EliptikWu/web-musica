@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bienvenida, Rockola</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <style>
+    .cartelera { padding: 22px 16px 20px; text-align: center; }
+    .cartelera__hoy { font-size: 26px; }
+    .cartelera__bar { font-size: 54px; margin-top: 2px; }
+    .cartelera .en-vivo { margin-top: 10px; }
+    .cartelera__corte { height: 3px; margin: 16px -16px 14px; background: var(--tinta); }
+    .cartelera__etiqueta { font-size: 28px; }
+    .cartelera__cancion { font-size: 118px; line-height: .86; margin-top: 4px; text-shadow: 3px 2px 0 rgba(255, 46, 147, .55); }
+    .cartelera__artista { margin-top: 8px; font-size: 18px; font-weight: 700; }
+    .cartelera .avance { margin-top: 14px; }
+
+    .top { padding: 22px 16px 0; }
+    .programa { list-style: none; margin: 12px 0 0; padding: 0; }
+    .programa li { display: grid; grid-template-columns: 30px 1fr; column-gap: 10px; padding: 8px 0 9px; border-top: 1.5px dashed var(--punteado); }
+    .programa li:first-child { border-top: 3px solid var(--tinta); }
+    .programa .num { font-family: var(--cartel); font-size: 32px; line-height: 1; text-align: center; grid-row: span 2; }
+    .linea { display: flex; align-items: baseline; gap: 8px; }
+    .linea b { font-size: 17px; font-weight: 800; }
+    .guia { flex: 1; border-bottom: 2.5px dotted rgba(23, 18, 15, .5); transform: translateY(-4px); }
+    .linea .votos { font-family: var(--cartel); font-size: 30px; line-height: .9; }
+    .programa .meta { font-size: 13px; color: var(--tinta-2); }
+
+    .accion { position: absolute; left: 16px; right: 16px; bottom: 28px; text-align: center; }
+    .privacidad { margin-bottom: 14px; font-size: 14px; line-height: 1.45; }
+    .privacidad a { font-weight: 700; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="movil">
+  <header class="cartelera partida" data-solape="ok">
+    <p class="cartelera__hoy cartel">Esta noche en</p>
+    <h1 class="cartelera__bar cartel">[Nombre del bar]</h1>
+    <p class="en-vivo">En vivo</p>
+    <div class="cartelera__corte" aria-hidden="true"></div>
+    <p class="cartelera__etiqueta cartel">Suena ahora</p>
+    <h2 class="cartelera__cancion cartel">Rebelión</h2>
+    <p class="cartelera__artista">Joe Arroyo, 24 votos</p>
+    <div class="avance"><span>2:41</span><div class="regla-avance" role="progressbar" aria-label="Avance de la canción" aria-valuemin="0" aria-valuemax="358" aria-valuenow="161"><span style="--v:45%"></span></div><span>5:58</span></div>
+  </header>
+
+  <main class="top">
+    <h2 class="titulo-seccion">Lo más votado de la noche</h2>
+    <ol class="programa">
+      <li><span class="num">1</span><p class="linea"><b>Rebelión</b><span class="guia"></span><span class="votos">24</span></p><p class="meta">Joe Arroyo, suena ahora</p></li>
+      <li><span class="num">2</span><p class="linea"><b>Hips Don't Lie</b><span class="guia"></span><span class="votos">19</span></p><p class="meta">Shakira, sonó a las 9:40 p. m.</p></li>
+      <li><span class="num">3</span><p class="linea"><b>Cali Pachanguero</b><span class="guia"></span><span class="votos">15</span></p><p class="meta">Grupo Niche, en la cola</p></li>
+    </ol>
+  </main>
+
+  <div class="accion">
+    <p class="privacidad">Sin registro ni descargas: tu teléfono queda como un código anónimo. <a href="#politica">Política de datos</a></p>
+    <a class="bloque bloque--grande" href="cliente-2-buscar.html">Entrar y votar</a>
+  </div>
+</body>
+</html>

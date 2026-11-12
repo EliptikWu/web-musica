@@ -1,0 +1,227 @@
+/* Rockola, dirección «Vidrio». Tokens y componentes compartidos por las seis pantallas. */
+
+:root {
+  --carbon: #121016;
+  --durazno: #F4A98E;
+  --rosa: #E07FAE;
+  --lavanda: #9A86EC;
+
+  --vidrio: rgba(255, 255, 255, .08);
+  --vidrio-bajo: rgba(255, 255, 255, .07);
+  --vidrio-alto: rgba(255, 255, 255, .12);
+  --borde: rgba(255, 255, 255, .13);
+  --separador: rgba(255, 255, 255, .09);
+  --desenfoque: blur(26px) saturate(140%);
+
+  --acento: linear-gradient(118deg, #F6B29A 0%, #E58BB0 52%, #A894EE 100%);
+  --tinta: #2A1230;
+  --tinta-2: rgba(42, 18, 48, .84);
+
+  --texto: #FFFFFF;
+  --texto-2: rgba(255, 255, 255, .62);
+  --votado: rgba(168, 148, 238, .22);
+  --votado-borde: rgba(196, 182, 255, .45);
+
+  --r-grande: 28px;
+  --r-grupo: 20px;
+  --r-portada: 14px;
+  --pildora: 999px;
+
+  --fuente: 'Outfit', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font: 400 15px/1.4 var(--fuente);
+  color: var(--texto);
+  background: var(--carbon);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; padding: 0; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* Fondo: manchas muy difuminadas. Cada pantalla coloca las suyas con --x, --y, --t. */
+.fondo { position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+.mancha {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  width: var(--t); height: var(--t);
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: var(--o, .42);
+}
+.mancha--durazno { background: var(--durazno); }
+.mancha--rosa { background: var(--rosa); }
+.mancha--lavanda { background: var(--lavanda); }
+
+.capa { position: relative; z-index: 1; }
+
+/* Superficies */
+.vidrio {
+  background: var(--vidrio);
+  -webkit-backdrop-filter: var(--desenfoque);
+  backdrop-filter: var(--desenfoque);
+  border: 1px solid var(--borde);
+}
+.vidrio--alto { background: var(--vidrio-alto); }
+.grupo { border-radius: var(--r-grupo); }
+
+/* Texto */
+.secundario { color: var(--texto-2); }
+.titulo-seccion { font-size: 17px; font-weight: 600; letter-spacing: -.005em; }
+.cifra { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Indicador en vivo */
+.en-vivo {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 13px 0 11px;
+  border-radius: var(--pildora);
+  font-size: 13px; font-weight: 500;
+}
+.en-vivo::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: #F6B29A;
+  box-shadow: 0 0 0 4px rgba(246, 178, 154, .22);
+}
+.en-vivo--apagado::before { background: rgba(255, 255, 255, .45); box-shadow: none; }
+
+/* Carátulas: cuadrados redondeados con degradado pastel y un brillo propio. */
+.portada {
+  --tam: 48px;
+  flex: none;
+  width: var(--tam); height: var(--tam);
+  border-radius: var(--r-portada);
+  background:
+    radial-gradient(circle at var(--bx, 28%) var(--by, 22%), rgba(255, 255, 255, .55), transparent 46%),
+    var(--p);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22);
+}
+.portada--grande { --tam: 132px; border-radius: 22px; }
+.portada--chica { --tam: 40px; border-radius: 11px; }
+.p-durazno { --p: linear-gradient(140deg, #FBD3BF, #F4A98E 55%, #E58BB0); --bx: 30%; --by: 20%; }
+.p-mantequilla { --p: linear-gradient(150deg, #FBEBC0, #F3C98F 58%, #F4A98E); --bx: 72%; --by: 26%; }
+.p-rosa { --p: linear-gradient(135deg, #F9C6DC, #E07FAE 70%, #B86AA8); --bx: 22%; --by: 70%; }
+.p-cielo { --p: linear-gradient(155deg, #D3E6FB, #9CC3F0 52%, #A894EE); --bx: 68%; --by: 68%; }
+.p-ciruela { --p: linear-gradient(140deg, #E9C6F2, #B98AD9 58%, #7E5FB8); --bx: 26%; --by: 30%; }
+.p-menta { --p: linear-gradient(145deg, #CDEFE3, #8FD3C1 58%, #79A9E0); --bx: 76%; --by: 18%; }
+.p-lavanda { --p: linear-gradient(150deg, #D9CFFF, #A894EE 60%, #7F6FD6); --bx: 40%; --by: 76%; }
+.p-coral { --p: linear-gradient(135deg, #FFD9C9, #F59A8A 64%, #E07FAE); --bx: 70%; --by: 40%; }
+.p-gris { --p: linear-gradient(140deg, #5B5560, #3A3540); --bx: 30%; --by: 30%; }
+
+/* Botones */
+.boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 20px;
+  border-radius: var(--pildora);
+  font-size: 15px; font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.boton--acento {
+  background: var(--acento);
+  color: var(--tinta);
+  box-shadow: 0 10px 30px -12px rgba(229, 139, 176, .7);
+}
+.boton--grande { min-height: 56px; font-size: 17px; width: 100%; }
+.boton--vidrio {
+  background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .18);
+}
+
+/* Botón de voto y sus estados (+1, Votaste, Tuya) */
+.voto {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 84px; height: 44px; padding: 0;
+  border-radius: var(--pildora);
+  font-size: 15px; font-weight: 600;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.voto--hecho {
+  background: var(--votado);
+  border-color: var(--votado-borde);
+  font-weight: 500;
+}
+.voto--tuya {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, .38);
+  font-weight: 500;
+}
+
+/* Barra de progreso */
+.progreso {
+  height: 4px; border-radius: 2px;
+  background: rgba(255, 255, 255, .16);
+  overflow: hidden;
+}
+.progreso > span { display: block; height: 100%; width: var(--v); border-radius: 2px; background: #fff; }
+.tiempos { display: flex; justify-content: space-between; margin-top: 8px; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Fila de canción */
+.fila {
+  display: flex; align-items: center; gap: 12px;
+  min-height: 64px; padding: 10px 14px;
+}
+.fila + .fila { border-top: 1px solid var(--separador); }
+.fila__puesto { width: 18px; flex: none; font-size: 15px; font-weight: 600; color: var(--texto-2); text-align: center; font-variant-numeric: tabular-nums; }
+.fila__texto { flex: 1; min-width: 0; }
+.fila__titulo { font-size: 16px; font-weight: 600; line-height: 1.25; }
+.fila__meta { font-size: 13px; color: var(--texto-2); line-height: 1.35; margin-top: 1px; }
+.fila__votos { flex: none; text-align: right; line-height: 1.1; }
+.fila__votos b { display: block; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fila__votos small { font-size: 13px; color: var(--texto-2); }
+
+/* Pantallas de móvil con barra inferior */
+.movil { height: 844px; }
+.contenido { padding: 22px 16px 0; }
+.pie {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  padding: 0 12px 22px;
+}
+.pie::before {
+  content: ""; position: absolute; inset: -40px 0 0; z-index: -1;
+  background: linear-gradient(to bottom, rgba(18, 16, 22, 0), rgba(18, 16, 22, .86) 46%);
+}
+
+.mini {
+  display: flex; align-items: center; gap: 12px;
+  height: 64px; padding: 0 16px 0 12px;
+  border-radius: 22px;
+  position: relative; overflow: hidden;
+}
+.mini__texto { flex: 1; min-width: 0; }
+.mini__titulo { font-size: 15px; font-weight: 600; line-height: 1.25; }
+.mini__meta { font-size: 13px; color: var(--texto-2); }
+.mini__votos { font-size: 13px; color: var(--texto-2); white-space: nowrap; }
+.mini__votos b { color: var(--texto); font-weight: 700; font-size: 15px; }
+.mini .progreso { position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px; border-radius: 2px 2px 0 0; }
+
+.pestanas {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  margin-top: 10px; padding: 6px;
+  border-radius: 26px;
+}
+.pestana {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  height: 52px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; color: var(--texto-2);
+  text-decoration: none;
+}
+.pestana svg { width: 24px; height: 24px; }
+.pestana[aria-current="page"] { color: var(--texto); background: rgba(255, 255, 255, .13); font-weight: 600; }
+
+.icono { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Estados por ancla, sin JavaScript: pantalla.html#estado */
+.estado { display: none; }
+
+/* El buscador ya tiene su botón de borrar: sin la «x» nativa del navegador. */
+input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
