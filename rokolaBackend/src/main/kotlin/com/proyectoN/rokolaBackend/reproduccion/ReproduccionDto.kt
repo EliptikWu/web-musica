@@ -19,6 +19,8 @@ data class ReproduccionActualResponse(
     val segundosTranscurridos: Long,
     val segundosRestantes: Long,
     val resultado: String, // iniciada
+    /** RF-040: pausada desde el panel (migración V3); la posición está quieta. */
+    val pausada: Boolean = false,
 )
 
 data class EstadoReproduccionResponse(

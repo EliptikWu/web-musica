@@ -2374,11 +2374,28 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Destacada"
-            }
+            },
+            "description": "Hasta 3, de más a menos votos"
           }
         },
         "required": [
           "destacadas"
+        ]
+      },
+      "RespuestaRetiroPedido": {
+        "type": "object",
+        "properties": {
+          "solicitud_id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "pedidos_restantes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "solicitud_id",
+          "pedidos_restantes"
         ]
       },
       "RespuestaSolicitud": {
@@ -3123,7 +3140,7 @@
     "/bares/{slug}/destacadas": {
       "get": {
         "operationId": "destacadas",
-        "summary": "Lo más votado de la noche",
+        "summary": "Lo más votado de la noche: las tres primeras",
         "tags": [
           "cliente"
         ],
@@ -3587,6 +3604,93 @@
             }
           }
         }
+      },
+      "delete": {
+        "operationId": "quitarVoto",
+        "summary": "Quitar mi voto de una solicitud",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-060.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaVoto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "no_pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "servicio_no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/bares/{slug}/dispositivo/voto": {
@@ -3649,6 +3753,95 @@
           },
           "409": {
             "description": "ya_votaste",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "no_pendiente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "servicio_no_disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bares/{slug}/solicitudes/{id}": {
+      "delete": {
+        "operationId": "retirarPedido",
+        "summary": "Retirar mi pedido de la cola",
+        "tags": [
+          "cliente"
+        ],
+        "description": "Requisitos: RF-061.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Rockola-Dispositivo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "UUID del teléfono; el servidor guarda solo su SHA-256"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaRetiroPedido"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
             "content": {
               "application/json": {
                 "schema": {

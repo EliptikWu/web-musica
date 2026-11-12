@@ -126,6 +126,19 @@ export const voto = {
   sinVotoQueMover: (titulo: string) => ({ titulo: `Tu voto por ${titulo} ya no estaba`, meta: 'La cola se acaba de actualizar: revísala y vuelve a intentarlo.' }),
   enCamino: { titulo: 'Tu voto anterior todavía se está enviando', meta: 'Espera un segundo y vuelve a intentarlo.' },
   tuya: (titulo: string) => `${titulo} la pediste tú`,
+  // Quitar el voto (RF-060): desde el mismo diálogo de mover.
+  quitar: 'Quitar mi voto',
+  quitado: (titulo: string) => ({ titulo: `Quitaste tu voto de ${titulo}`, meta: 'Puedes volver a votar por ella cuando quieras.' }),
+  noQuitado: (titulo: string) => ({ titulo: `No se quitó tu voto de ${titulo}`, meta: 'Revisa tu conexión e inténtalo de nuevo.' }),
+  // Retirar mi pedido (RF-061): parte de la tecla «Tuya».
+  retirarEtiqueta: (titulo: string) => `Tuya: ${titulo}. Retirar tu pedido`, // con «Tuya», lo que se ve (WCAG 2.5.3)
+  retirarTitulo: (titulo: string) => `¿Retirar ${titulo} de la cola?`,
+  retirarTexto: 'Sale de la cola y recuperas ese pedido para pedir otra. Los votos que tenía se pierden.',
+  retirar: 'Retirar mi pedido',
+  conservar: 'Dejarla en la cola',
+  retirado: (titulo: string) => ({ titulo: `Retiraste ${titulo}`, meta: 'Ya puedes pedir otra canción.' }),
+  noRetirado: (titulo: string) => ({ titulo: `No se retiró ${titulo}`, meta: 'Revisa tu conexión e inténtalo de nuevo.' }),
+  yaNoSeRetira: (titulo: string) => ({ titulo: `${titulo} ya no se puede retirar`, meta: 'Ya está sonando o salió de la cola. Revisa «Tus pedidos».' }),
 };
 
 export function estadoPedido(estado: EstadoSolicitud, puesto: number | null): string {
@@ -143,7 +156,7 @@ export function estadoPedido(estado: EstadoSolicitud, puesto: number | null): st
     case 'bloqueada':
       return 'Bloqueada por el bar';
     case 'retirada':
-      return 'Retirada por el bar';
+      return 'Retirada';
     case 'expirada':
       return 'La noche cerró antes de que sonara';
   }

@@ -39,6 +39,19 @@ Columna «Quién»: **F** = este repositorio, **B** = equipo de backend, **F+B**
 | RF-012 | Confirmación visual del voto | Must | PB-14 | 1 | F |
 | RF-013 | Consulta del estado de mis solicitudes | Should | PB-22 | 1 | F+B |
 | RF-014 | Cambio de voto | Could | PB-50 | 6 | F+B |
+| RF-060 | Quitar mi voto (nuevo, 2026-11-12; criterio abajo) | Should | — | 12 | F+B |
+| RF-061 | Retirar mi pedido (nuevo, 2026-11-12; criterio abajo) | Should | — | 12 | F+B |
+
+**RF-060 y RF-061 (nuevos, correcciones del equipo del 2026-11-12, no están en las fuentes).**
+- RF-060: desde «Votaste» (el diálogo de mover el voto), el teléfono quita su voto de una
+  canción pendiente que pidió otro. Se puede volver a votar. El voto de tu propio pedido no
+  se quita: para eso está RF-061.
+- RF-061: desde «Tuya», el teléfono retira una canción que pidió y que todavía no suena,
+  con confirmación. Sale de la cola, el teléfono recupera ese pedido (RN-01) y los votos que
+  tenía se pierden. Una canción que ya suena no se retira (la quita el bar, RF-040, RF-041).
+- Los dos solo con los pedidos abiertos, como votar; el servidor comprueba que el voto o el
+  pedido sean de ese teléfono. El retiro queda con estado `retirada` y motivo «La retiraste
+  tú» en «Tus pedidos» (RF-013).
 
 ### Módulo 4. Cola pública y reproducción
 

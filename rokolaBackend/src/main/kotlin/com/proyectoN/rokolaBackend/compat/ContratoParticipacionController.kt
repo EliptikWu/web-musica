@@ -3,6 +3,7 @@ package com.proyectoN.rokolaBackend.compat
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -33,6 +34,24 @@ class ContratoParticipacionController(private val servicio: ContratoParticipacio
         @RequestHeader(value = "X-Rockola-Dispositivo", required = false) dispositivo: String?,
         @RequestHeader(value = "Idempotency-Key", required = false) clave: String?,
     ): ResponseEntity<String> = resultado(servicio.votar(slug, id, dispositivo, clave))
+
+    /** RF-060: quitar mi voto. */
+    @DeleteMapping("/{id}/votos")
+    fun quitarVoto(
+        @PathVariable slug: String,
+        @PathVariable id: String,
+        @RequestHeader(value = "X-Rockola-Dispositivo", required = false) dispositivo: String?,
+        @RequestHeader(value = "Idempotency-Key", required = false) clave: String?,
+    ): ResponseEntity<String> = resultado(servicio.quitarVoto(slug, id, dispositivo, clave))
+
+    /** RF-061: retirar mi pedido. */
+    @DeleteMapping("/{id}")
+    fun retirarPedido(
+        @PathVariable slug: String,
+        @PathVariable id: String,
+        @RequestHeader(value = "X-Rockola-Dispositivo", required = false) dispositivo: String?,
+        @RequestHeader(value = "Idempotency-Key", required = false) clave: String?,
+    ): ResponseEntity<String> = resultado(servicio.retirarPedido(slug, id, dispositivo, clave))
 
     private fun resultado(respuesta: ContratoParticipacionService.RespuestaGuardada): ResponseEntity<String> =
         ResponseEntity.status(respuesta.estado)

@@ -13,6 +13,7 @@ class ReproduccionConsultaRepository(private val jdbc: JdbcTemplate) {
         """
         SELECT r.id_reproduccion, r.id_sesion, r.id_solicitud, r.id_elemento,
                r.id_cancion, r.fecha_inicio, r.segundos_reproducidos, r.resultado,
+               r.pausada_desde, r.segundos_en_pausa,
                c.youtube_video_id, c.titulo, c.artista, c.miniatura_url, c.duracion_seg
         FROM public.reproduccion r
         JOIN public.cancion c ON c.id_cancion = r.id_cancion
@@ -23,12 +24,12 @@ class ReproduccionConsultaRepository(private val jdbc: JdbcTemplate) {
         { rs, _ ->
             val inicio = rs.getObject("fecha_inicio", OffsetDateTime::class.java)
             val duracion = rs.getInt("duracion_seg").coerceAtLeast(0).toLong()
-            val transcurridoPorReloj = inicio?.let {
-                Duration.between(it.toInstant(), ahora.toInstant()).seconds.coerceAtLeast(0L)
-            } ?: 0L
-            // Estimacion: se supone reproduccion continua; no refleja pausas del reproductor YouTube.
-            val transcurridos = maxOf(transcurridoPorReloj, rs.getLong("segundos_reproducidos"))
-                .coerceIn(0L, duracion)
+            val pausadaDesde = rs.getObject("pausada_desde", OffsetDateTime::class.java)
+            // RF-040: el reloj descuenta las pausas del panel (migración V3).
+            val transcurridos = ReproduccionReloj.posicionSeg(
+                inicio, ahora, rs.getLong("segundos_en_pausa"), pausadaDesde,
+                rs.getLong("segundos_reproducidos"), duracion,
+            )
             ReproduccionActualResponse(
                 reproduccionId = rs.getLong("id_reproduccion"),
                 sesionId = rs.getLong("id_sesion"),
@@ -45,6 +46,7 @@ class ReproduccionConsultaRepository(private val jdbc: JdbcTemplate) {
                 segundosTranscurridos = transcurridos,
                 segundosRestantes = (duracion - transcurridos).coerceAtLeast(0L),
                 resultado = rs.getString("resultado"),
+                pausada = pausadaDesde != null,
             )
         },
         idSesion,

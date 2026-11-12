@@ -27,6 +27,7 @@ class SecurityConfig {
           "/api/bares/*/dispositivo/aviso",
           "/api/bares/*/solicitudes",
           "/api/bares/*/solicitudes/*/votos",
+          "/api/bares/*/solicitudes/*", // RF-061: retirar mi pedido (DELETE)
           "/api/bares/*/dispositivo/voto",
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",
@@ -47,6 +48,8 @@ class SecurityConfig {
           "/api/bares/*/dispositivo", "/api/bares/*/dispositivo/aviso").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/bares/*/solicitudes", "/api/bares/*/solicitudes/*/votos").permitAll()
         it.requestMatchers(HttpMethod.PUT, "/api/bares/*/dispositivo/voto").permitAll()
+        // RF-060 y RF-061: el teléfono quita su voto o retira su pedido; el servicio comprueba que sean suyos.
+        it.requestMatchers(HttpMethod.DELETE, "/api/bares/*/solicitudes/*", "/api/bares/*/solicitudes/*/votos").permitAll()
         // El propio servicio exige la credencial de pantalla antes de cualquier escritura.
         it.requestMatchers(HttpMethod.POST,
           "/api/bares/*/pantalla/reproducciones/*/inicio",

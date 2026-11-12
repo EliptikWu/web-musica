@@ -160,3 +160,32 @@ test('sin conexión en vivo: aviso a los 5 s y la cola sigue al día por sondeo 
   await expect(page.getByText('9 canciones, unos 36 min')).toBeVisible();
   await sinViolaciones(page, 'sin conexión');
 });
+
+test('en pausa la barra de lo que suena se queda quieta, y sigue al reanudar (RF-040)', async ({ page }) => {
+  await abrir(page, '/b/demo', 'momento-b', 'normal');
+  const barra = page.getByRole('progressbar', { name: 'Avance de la canción' });
+  const valor = async () => Number(await barra.getAttribute('aria-valuenow'));
+  await expect.poll(valor, { timeout: 5000 }).toBeGreaterThan(0);
+  // El Administrador pausa desde el panel (por la API, como el backend real).
+  const panel = async (accion: 'pausa' | 'reanudacion') =>
+    page.evaluate(async (accion) => {
+      const json = { 'Content-Type': 'application/json' };
+      await fetch('/api/panel/sesion', { method: 'POST', headers: json, body: JSON.stringify({ correo: 'admin@rockola.demo', clave: 'rockola-demo' }) });
+      const ahora = await (await fetch('/api/bares/demo/ahora')).json();
+      const r = await fetch(`/api/panel/reproduccion/${ahora.reproduccion.id}/${accion}`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } });
+      if (!r.ok) throw new Error(`${accion}: ${r.status}`);
+    }, accion);
+  await panel('pausa');
+  // Quieta: dos lecturas separadas 1,5 s dan lo mismo (se espera a que llegue el cambio en vivo).
+  let enPausa = -1;
+  await expect
+    .poll(async () => {
+      const a = await valor();
+      await page.waitForTimeout(1500);
+      enPausa = await valor();
+      return enPausa - a;
+    }, { timeout: 10_000 })
+    .toBe(0);
+  await panel('reanudacion');
+  await expect.poll(valor, { timeout: 6000 }).toBeGreaterThan(enPausa);
+});

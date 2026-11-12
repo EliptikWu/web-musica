@@ -4,7 +4,7 @@ import { crearEstado } from './datos/semilla';
 import { recortar } from './almacen';
 import {
   abrirSesionManual, activarMantenimiento, ahoraSim, avanzar, bloquear, buscar, cambiarModoQr, cerrarSesionManual, construirAhora,
-  construirDestacadas, construirNoche, construirYo, desbloquear, pedirCancion, reportarPantalla, retirar, saltar, votar,
+  construirDestacadas, construirNoche, construirYo, desbloquear, pedirCancion, quitarVoto, reportarPantalla, retirar, retirarPedido, saltar, votar,
 } from './motor';
 
 const PERSONA = 'persona-0000';
@@ -279,5 +279,46 @@ describe('el almacén no crece sin límite', () => {
     expect(estado.acciones.length).toBe(400);
     expect(estado.solicitudes.filter((s) => s.estado === 'pendiente')).toHaveLength(9);
     expect(estado.solicitudes.some((s) => s.id === 's-rebelion')).toBe(true);
+  });
+});
+
+describe('quitar mi voto y retirar mi pedido (RF-060, RF-061)', () => {
+  const id = (estado: ReturnType<typeof escena>['estado'], titulo: string) =>
+    Ahora.parse(construirAhora(estado, ahoraSim(estado, REAL))).cola.find((i) => i.cancion.titulo === titulo)!.solicitud_id;
+
+  it('quitar el voto baja la canción y se puede volver a votar', () => {
+    const { estado, ahora } = escena();
+    const dtmf = id(estado, 'DtMF'); // en momento B esta persona ya votó por DtMF
+    expect(construirYo(estado, PERSONA).votos).toContain(dtmf);
+    expect(quitarVoto(estado, PERSONA, dtmf, ahora)).toMatchObject({ ok: true, cuerpo: { votos_total: 17 } });
+    expect(construirYo(estado, PERSONA).votos).not.toContain(dtmf);
+    // Otra vez: no cambia nada (idempotente).
+    expect(quitarVoto(estado, PERSONA, dtmf, ahora)).toMatchObject({ ok: true, cuerpo: { votos_total: 17 } });
+    expect(votar(estado, PERSONA, dtmf, ahora)).toMatchObject({ ok: true, cuerpo: { votos_total: 18 } });
+  });
+
+  it('el voto de tu propio pedido no se quita: se retira el pedido', () => {
+    const { estado, ahora } = escena();
+    expect(quitarVoto(estado, PERSONA, id(estado, 'Monaco'), ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+  });
+
+  it('retirar tu pedido lo saca de la cola, devuelve el cupo y queda «La retiraste tú»', () => {
+    const { estado, ahora } = escena();
+    const monaco = id(estado, 'Monaco');
+    const antes = construirYo(estado, PERSONA).pedidos_restantes;
+    const r = retirarPedido(estado, PERSONA, monaco, ahora);
+    expect(r).toMatchObject({ ok: true, cuerpo: { solicitud_id: monaco, pedidos_restantes: antes + 1 } });
+    expect(Ahora.parse(construirAhora(estado, ahora)).cola.some((i) => i.solicitud_id === monaco)).toBe(false);
+    const mio = construirYo(estado, PERSONA).solicitudes.find((s) => s.solicitud_id === monaco)!;
+    expect(mio).toMatchObject({ estado: 'retirada', motivo: null });
+    expect(retirarPedido(estado, PERSONA, monaco, ahora)).toMatchObject({ ok: true }); // idempotente
+  });
+
+  it('solo quien la pidió la retira, y no si ya suena o lo retiró el bar', () => {
+    const { estado, ahora } = escena();
+    const monaco = id(estado, 'Monaco');
+    expect(retirarPedido(estado, OTRO, monaco, ahora)).toMatchObject({ ok: false, codigo: 'sin_permiso' });
+    retirar(estado, monaco, 'Pedida por error', ADMIN, ahora);
+    expect(retirarPedido(estado, PERSONA, monaco, ahora)).toMatchObject({ ok: false, codigo: 'no_pendiente' });
   });
 });

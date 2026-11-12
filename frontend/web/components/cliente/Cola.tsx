@@ -29,9 +29,11 @@ export function Cola({ slug }: { slug: string }) {
   const ahora = useAhora(slug);
   const yo = useYo(slug);
   const instante = useAhoraServidor();
-  const { alVotar, alMover, aviso, cerrarAviso, anuncio, enviando } = useVotarConAviso(slug);
+  const { alVotar, alMover, alQuitar, alRetirar, aviso, cerrarAviso, anuncio, enviando } = useVotarConAviso(slug);
   // La canción cuyo voto se está moviendo (RF-014): abre el diálogo para elegir la otra.
   const [moviendo, setMoviendo] = useState<ItemCola | null>(null);
+  // Tu pedido que se va a retirar (RF-061): se confirma antes, porque no se deshace.
+  const [retirando, setRetirando] = useState<ItemCola | null>(null);
   const { caida } = useConexionCaida();
 
   if (codigoDe(bar.error) === 'no_encontrado') return <BarNoEncontrado />;
@@ -88,6 +90,7 @@ export function Cola({ slug }: { slug: string }) {
               ocupada={enviando === item.solicitud_id}
               onVotar={alVotar}
               onMover={setMoviendo}
+              onRetirar={setRetirando}
             />
           ))}
         </ol>
@@ -125,6 +128,19 @@ export function Cola({ slug }: { slug: string }) {
         onMover={(hacia) => {
           if (moviendo) alMover(moviendo, hacia);
           setMoviendo(null);
+        }}
+        onQuitar={() => {
+          if (moviendo) alQuitar(moviendo);
+          setMoviendo(null);
+        }}
+      />
+
+      <DialogoRetirar
+        item={retirando}
+        onCerrar={() => setRetirando(null)}
+        onRetirar={() => {
+          if (retirando) alRetirar(retirando);
+          setRetirando(null);
         }}
       />
 
@@ -200,6 +216,8 @@ function TusPedidos({ yo }: { yo: Yo }) {
 }
 
 function lineaPedido(s: MiSolicitud): string {
+  // Retirada sin motivo: la retiró este teléfono (RF-061); el bar siempre da uno (RF-041).
+  if (s.estado === 'retirada') return s.motivo ? `Retirada por el bar: ${s.motivo}` : 'La retiraste tú';
   const estado = estadoPedido(s.estado, s.puesto);
   return s.motivo ? `${estado}: ${s.motivo}` : estado;
 }
@@ -214,7 +232,19 @@ function varianteDe(s: MiSolicitud): 'tuya' | 'apagada' | 'normal' {
  * Mover el voto (RF-014, PB-50): desde «Votaste», a otra canción de la cola por la que este
  * teléfono no haya votado y que no sea suya. La primera pierde el voto y la otra lo gana.
  */
-function DialogoMoverVoto({ desde, opciones, onCerrar, onMover }: { desde: ItemCola | null; opciones: ItemCola[]; onCerrar: () => void; onMover: (hacia: ItemCola) => void }) {
+function DialogoMoverVoto({
+  desde,
+  opciones,
+  onCerrar,
+  onMover,
+  onQuitar,
+}: {
+  desde: ItemCola | null;
+  opciones: ItemCola[];
+  onCerrar: () => void;
+  onMover: (hacia: ItemCola) => void;
+  onQuitar: () => void;
+}) {
   return (
     <Dialogo abierto={desde !== null} titulo={desde ? voto.moverTitulo(desde.cancion.titulo) : ''} onCerrar={onCerrar}>
       {opciones.length === 0 ? (
@@ -235,7 +265,27 @@ function DialogoMoverVoto({ desde, opciones, onCerrar, onMover }: { desde: ItemC
         </>
       )}
       <div className="dialogo__acciones">
+        <Tecla tamano="ancha" onClick={onQuitar}>
+          {voto.quitar}
+        </Tecla>
         <Tecla onClick={onCerrar}>Cancelar</Tecla>
+      </div>
+    </Dialogo>
+  );
+}
+
+/** RF-061: confirmar antes de retirar tu pedido; se dice qué pasa con el cupo y los votos. */
+function DialogoRetirar({ item, onCerrar, onRetirar }: { item: ItemCola | null; onCerrar: () => void; onRetirar: () => void }) {
+  return (
+    <Dialogo abierto={item !== null} titulo={item ? voto.retirarTitulo(item.cancion.titulo) : ''} onCerrar={onCerrar}>
+      <p className="dialogo__texto">{voto.retirarTexto}</p>
+      <div className="dialogo__acciones">
+        <Tecla variante="cereza" tamano="ancha" onClick={onRetirar}>
+          {voto.retirar}
+        </Tecla>
+        <Tecla tamano="ancha" onClick={onCerrar}>
+          {voto.conservar}
+        </Tecla>
       </div>
     </Dialogo>
   );

@@ -1,6 +1,6 @@
 import type { Resultado } from '../motor';
 import {
-  anotarAviso, buscar, cambiarVoto, construirAhora, construirDestacadas, construirYo, pedirCancion, registrarDispositivo, votar,
+  anotarAviso, buscar, cambiarVoto, construirAhora, construirDestacadas, construirYo, pedirCancion, quitarVoto, registrarDispositivo, retirarPedido, votar,
 } from '../motor';
 import { pedidasEnElBar } from '../analitica';
 import { error, manejar, ok, type Peticion } from './comun';
@@ -51,4 +51,6 @@ export const manejadoresCliente = [
       return cambiarVoto(p.estado, d, desde, hacia, p.ahora);
     }),
   ),
+  manejar('quitarVoto', (p) => conDispositivo(p, (d) => quitarVoto(p.estado, d, p.parametros.id ?? '', p.ahora))),
+  manejar('retirarPedido', (p) => conDispositivo(p, (d) => retirarPedido(p.estado, d, p.parametros.id ?? '', p.ahora))),
 ];

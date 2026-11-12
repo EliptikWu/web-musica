@@ -144,7 +144,11 @@ class ContratoPantallaService(
         jdbc.update(
           """UPDATE public.reproduccion
                        SET fecha_inicio = CURRENT_TIMESTAMP - (? * INTERVAL '1 second'),
-                           segundos_reproducidos = GREATEST(segundos_reproducidos, ?)
+                           segundos_reproducidos = GREATEST(segundos_reproducidos, ?),
+                           -- La TV manda sobre el reloj: las pausas anteriores ya están en su
+                           -- posición. Si sigue pausada, la pausa cuenta desde ahora (RF-040).
+                           segundos_en_pausa = 0,
+                           pausada_desde = CASE WHEN pausada_desde IS NULL THEN NULL ELSE CURRENT_TIMESTAMP END
                        WHERE id_reproduccion = ? AND id_sesion = ? AND resultado = 'iniciada'""",
           posicion.coerceAtMost(fila.duracionSeg), posicion.coerceAtMost(fila.duracionSeg),
           idReproduccion, fila.sesionId,

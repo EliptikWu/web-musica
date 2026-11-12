@@ -266,6 +266,134 @@ class ContratoParticipacionService(
     return resultado
   }
 
+  /** La solicitud bloqueada con su noche, para quitar un voto o retirarla (RF-060, RF-061). */
+  private data class SolicitudBloqueada(val idSesion: Long, val fila: SolicitudParaCambio, val config: Config)
+
+  private fun solicitudConNocheBloqueada(id: Long, idBar: Long): SolicitudBloqueada {
+    val idSesion = jdbc.query(
+      """SELECT s.id_sesion FROM public.solicitud s
+               JOIN public.sesion se ON se.id_sesion = s.id_sesion
+               WHERE s.id_solicitud = ? AND se.id_establecimiento = ?""",
+      { rs, _ -> rs.getLong(1) }, id, idBar,
+    ).firstOrNull() ?: error(HttpStatus.GONE, "no_pendiente", "Esa canción ya no está en la cola")
+    val sesion = em.find(Sesion::class.java, idSesion, LockModeType.PESSIMISTIC_WRITE)
+      ?: error(HttpStatus.GONE, "no_pendiente", "Esa canción ya no está en la cola")
+    val config = comprobarServicio(sesion)
+    val fila = jdbc.query(
+      """SELECT s.id_solicitud, s.estado, s.id_dispositivo_solicitante,
+                      c.id_cancion, c.disponibilidad, c.embebible, c.youtube_video_id
+               FROM public.solicitud s JOIN public.cancion c ON c.id_cancion = s.id_cancion
+               WHERE s.id_solicitud = ? AND s.id_sesion = ?""",
+      { rs, _ -> SolicitudParaCambio(
+        rs.getLong("id_solicitud"), rs.getString("estado"),
+        rs.getLong("id_dispositivo_solicitante"), rs.getLong("id_cancion"),
+        rs.getString("disponibilidad"), rs.getBoolean("embebible"),
+        rs.getString("youtube_video_id"),
+      ) }, id, idSesion,
+    ).firstOrNull() ?: error(HttpStatus.GONE, "no_pendiente", "Esa canción ya no está en la cola")
+    return SolicitudBloqueada(idSesion, fila, config)
+  }
+
+  /**
+   * RF-060 (frontend, 2026-11-12, D14): quitar mi voto de una solicitud pendiente que pidió otro.
+   * Idempotente: sin voto activo responde igual. El voto inicial de un pedido propio no se quita
+   * (eso es retirar el pedido, RF-061).
+   */
+  @Transactional
+  fun quitarVoto(slug: String, idExterno: String, uuid: String?, claveCabecera: String?): RespuestaGuardada {
+    val idSolicitud = idPositivo(idExterno)
+    val key = clave(claveCabecera)
+    val identidad = dispositivos.identificar(slug, uuid)
+    val hashDispositivo = dispositivos.huella(uuid)
+    val huella = sha256("quitar_voto|$slug|$idSolicitud")
+    bloquearClave(identidad.establecimientoId, hashDispositivo, key)
+    repeticion(identidad.establecimientoId, hashDispositivo, key, "quitar_voto", huella)?.let { return it }
+    comprobarAviso(identidad)
+
+    val (idSesion, solicitud) = solicitudConNocheBloqueada(idSolicitud, identidad.establecimientoId)
+    if (solicitud.estado != "pendiente") error(HttpStatus.GONE, "no_pendiente", "Esa canción ya no está en la cola")
+    if (solicitud.solicitanteId == identidad.dispositivoId)
+      error(HttpStatus.BAD_REQUEST, "datos_invalidos", "El voto de tu propio pedido no se quita: retira el pedido")
+    val quitados = jdbc.update(
+      """UPDATE public.voto SET activo = FALSE, fecha_retiro = CURRENT_TIMESTAMP
+               WHERE id_solicitud = ? AND id_dispositivo = ? AND activo = TRUE""",
+      idSolicitud, identidad.dispositivoId,
+    )
+    if (quitados > 0) {
+      jdbc.update(
+        """INSERT INTO public.evento_analitico
+                 (nombre_evento, id_establecimiento, id_sesion, device_hash, youtube_video_id, origen_app, propiedades)
+                 VALUES ('quitar_voto', ?, ?, ?, ?, 'cliente', CAST(? AS jsonb))""",
+        identidad.establecimientoId, idSesion, hashDispositivo, solicitud.videoId,
+        json.writeValueAsString(mapOf("solicitud" to idSolicitud.toString())),
+      )
+    }
+    val resultado = respuesta(200, mapOf("solicitud_id" to idSolicitud.toString(), "votos_total" to totalVotos(idSolicitud)))
+    guardarClave(identidad.establecimientoId, hashDispositivo, key, "quitar_voto", huella, resultado)
+    if (quitados > 0) cambios.publicar(idSesion, "quitar_voto")
+    return resultado
+  }
+
+  /**
+   * RF-061 (frontend, 2026-11-12, D14): retirar mi pedido si todavía no suena. Pasa a `retirada`,
+   * sus votos se desactivan y el teléfono recupera el cupo (RN-01 cuenta pendiente y sonando).
+   * Solo quien la pidió; un id de otro teléfono es `sin_permiso`.
+   */
+  @Transactional
+  fun retirarPedido(slug: String, idExterno: String, uuid: String?, claveCabecera: String?): RespuestaGuardada {
+    val idSolicitud = idPositivo(idExterno)
+    val key = clave(claveCabecera)
+    val identidad = dispositivos.identificar(slug, uuid)
+    val hashDispositivo = dispositivos.huella(uuid)
+    val huella = sha256("retirar_pedido|$slug|$idSolicitud")
+    bloquearClave(identidad.establecimientoId, hashDispositivo, key)
+    repeticion(identidad.establecimientoId, hashDispositivo, key, "retirar_pedido", huella)?.let { return it }
+    comprobarAviso(identidad)
+
+    val (idSesion, solicitud, config) = solicitudConNocheBloqueada(idSolicitud, identidad.establecimientoId)
+    if (solicitud.solicitanteId != identidad.dispositivoId)
+      error(HttpStatus.FORBIDDEN, "sin_permiso", "Solo puedes retirar las canciones que pediste tú")
+    // Idempotente (contrato): si ya la retiró este teléfono (retirada sin motivo), responde igual.
+    val yaLaRetiraste = solicitud.estado == "retirada" && jdbc.queryForObject(
+      "SELECT motivo_estado IS NULL FROM public.solicitud WHERE id_solicitud = ?", Boolean::class.javaObjectType, idSolicitud,
+    ) == true
+    if (!yaLaRetiraste) retirar(idSesion, idSolicitud, solicitud, identidad, hashDispositivo)
+    val usados = jdbc.queryForObject(
+      """SELECT COUNT(*) FROM public.solicitud
+               WHERE id_sesion = ? AND id_dispositivo_solicitante = ? AND estado IN ('pendiente', 'reproduciendo')""",
+      Long::class.javaObjectType, idSesion, identidad.dispositivoId,
+    ) ?: 0L
+    val resultado = respuesta(200, mapOf(
+      "solicitud_id" to idSolicitud.toString(),
+      "pedidos_restantes" to ContratoColaCalculos.cuposRestantes(config.maximo, usados),
+    ))
+    guardarClave(identidad.establecimientoId, hashDispositivo, key, "retirar_pedido", huella, resultado)
+    if (!yaLaRetiraste) cambios.publicar(idSesion, "retirar_pedido")
+    return resultado
+  }
+
+  private fun retirar(
+    idSesion: Long, idSolicitud: Long, solicitud: SolicitudParaCambio,
+    identidad: ContratoDispositivoService.IdentidadContrato, hashDispositivo: String,
+  ) {
+    if (solicitud.estado != "pendiente") error(HttpStatus.GONE, "no_pendiente", "Esa canción ya suena o ya salió de la cola")
+    val retiradas = jdbc.update(
+      "UPDATE public.solicitud SET estado = 'retirada' WHERE id_solicitud = ? AND estado = 'pendiente'", idSolicitud,
+    )
+    if (retiradas != 1) error(HttpStatus.CONFLICT, "conflicto", "La solicitud cambió; intenta nuevamente")
+    jdbc.update(
+      """UPDATE public.voto SET activo = FALSE, fecha_retiro = CURRENT_TIMESTAMP
+               WHERE id_solicitud = ? AND activo = TRUE""", idSolicitud,
+    )
+    jdbc.update(
+      """INSERT INTO public.evento_analitico
+               (nombre_evento, id_establecimiento, id_sesion, device_hash, youtube_video_id, origen_app, propiedades)
+               VALUES ('retirar_pedido', ?, ?, ?, ?, 'cliente', CAST(? AS jsonb))""",
+      identidad.establecimientoId, idSesion, hashDispositivo, solicitud.videoId,
+      json.writeValueAsString(mapOf("solicitud" to idSolicitud.toString())),
+    )
+  }
+
   private fun idPositivo(texto: String): Long = texto.toLongOrNull()?.takeIf { it > 0L }
     ?: error(HttpStatus.BAD_REQUEST, "datos_invalidos", "Los identificadores deben ser cadenas de enteros positivos")
 

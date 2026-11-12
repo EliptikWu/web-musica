@@ -27,6 +27,7 @@ class ContratoPanelController(
   private val noches: ContratoNocheService,
   private val saltos: ContratoSaltoService,
   private val establecimientos: ContratoEstablecimientoService,
+  private val pausas: ContratoPausaService,
 ) {
   @PostMapping("/sesion")
   fun entrar(@RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Map<String, Any?>> {
@@ -60,6 +61,25 @@ class ContratoPanelController(
     @RequestHeader("Idempotency-Key", required = false) clave: String?,
   ): ResponseEntity<Void> {
     saltos.saltar(acceso.exigir(token), id, clave)
+    return ResponseEntity.noContent().build()
+  }
+
+  /** RF-040: el Operador también puede (matriz D9, doc 04). */
+  @PostMapping("/reproduccion/{id}/pausa")
+  fun pausar(
+    @PathVariable id: String,
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+  ): ResponseEntity<Void> {
+    pausas.pausar(acceso.exigir(token), id)
+    return ResponseEntity.noContent().build()
+  }
+
+  @PostMapping("/reproduccion/{id}/reanudacion")
+  fun reanudar(
+    @PathVariable id: String,
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+  ): ResponseEntity<Void> {
+    pausas.reanudar(acceso.exigir(token), id)
     return ResponseEntity.noContent().build()
   }
 

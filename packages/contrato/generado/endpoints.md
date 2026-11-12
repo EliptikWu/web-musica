@@ -18,6 +18,8 @@
 | `pedir` (idempotente) | `POST /bares/{slug}/solicitudes` | `CuerpoSolicitud` → `RespuestaSolicitud` | público | `limite_pedidos`, `ya_votaste`, `bloqueada`, `no_disponible`, `no_embebible`, `muy_larga`, `reproducida_hace_poco`, `servicio_no_disponible` | RF-009, RF-007 |
 | `votar` (idempotente) | `POST /bares/{slug}/solicitudes/{id}/votos` | `RespuestaVoto` | público | `ya_votaste`, `no_pendiente`, `servicio_no_disponible` | RF-010, RF-011, RF-012 |
 | `cambiarVoto` (idempotente) | `PUT /bares/{slug}/dispositivo/voto` | `CuerpoCambioVoto` → `RespuestaVoto` | público | `no_pendiente`, `ya_votaste`, `servicio_no_disponible` | RF-014 |
+| `quitarVoto` (idempotente) | `DELETE /bares/{slug}/solicitudes/{id}/votos` | `RespuestaVoto` | público | `no_pendiente`, `datos_invalidos`, `servicio_no_disponible` | RF-060 |
+| `retirarPedido` (idempotente) | `DELETE /bares/{slug}/solicitudes/{id}` | `RespuestaRetiroPedido` | público | `no_pendiente`, `sin_permiso`, `servicio_no_disponible` | RF-061 |
 
 ## Pantalla
 

@@ -3,7 +3,7 @@
 import type { ItemCola } from '@rockola/contrato';
 import { useState } from 'react';
 import { codigoDe } from '@/lib/api/errores';
-import { nuevaClave, useMoverVoto, useVotar } from '@/lib/api/hooks-cliente';
+import { nuevaClave, useMoverVoto, useQuitarVoto, useRetirarPedido, useVotar } from '@/lib/api/hooks-cliente';
 import { enfocarCuandoExista } from '@/lib/enfocar';
 import { voto } from '@/lib/textos/cliente';
 
@@ -16,6 +16,8 @@ export type AvisoVoto = { tipo: 'luz' | 'error' | 'info'; titulo: string; meta: 
 export function useVotarConAviso(slug: string) {
   const votar = useVotar(slug);
   const moverVoto = useMoverVoto(slug);
+  const quitarVoto = useQuitarVoto(slug);
+  const retirarPedido = useRetirarPedido(slug);
   const [aviso, setAviso] = useState<AvisoVoto>(null);
   const [anuncio, setAnuncio] = useState('');
   const [enviando, setEnviando] = useState<string | null>(null);
@@ -73,5 +75,61 @@ export function useVotarConAviso(slug: string) {
     );
   }
 
-  return { alVotar, alMover, aviso, cerrarAviso: () => setAviso(null), anuncio, enviando };
+  /** Quita el voto (RF-060); «Votaste» vuelve a ser «+1» y el foco queda en ella. */
+  function alQuitar(item: ItemCola) {
+    if (enviando) {
+      setAviso({ tipo: 'info', ...voto.enCamino });
+      return;
+    }
+    const titulo = item.cancion.titulo;
+    setAviso(null);
+    setEnviando(item.solicitud_id);
+    setAnuncio(`Ya no votas por ${titulo}`);
+    enfocarCuandoExista(`[data-solicitud="${item.solicitud_id}"] button`);
+    quitarVoto.mutate(
+      { solicitudId: item.solicitud_id, clave: nuevaClave() },
+      {
+        onSuccess: () => setAviso({ tipo: 'luz', ...voto.quitado(titulo) }),
+        onError: (error) => {
+          const codigo = codigoDe(error);
+          setAnuncio('');
+          if (codigo === 'no_pendiente') setAviso({ tipo: 'info', ...voto.yaNoEsta(titulo) });
+          else if (codigo === 'servicio_no_disponible') setAviso({ tipo: 'info', ...voto.cerrado });
+          else setAviso({ tipo: 'error', ...voto.noQuitado(titulo) });
+        },
+        onSettled: () => setEnviando(null),
+      },
+    );
+  }
+
+  /** Retira el pedido (RF-061); la fila desaparece y el aviso dice que ya se puede pedir otra. */
+  function alRetirar(item: ItemCola) {
+    if (enviando) {
+      setAviso({ tipo: 'info', ...voto.enCamino });
+      return;
+    }
+    const titulo = item.cancion.titulo;
+    setAviso(null);
+    setEnviando(item.solicitud_id);
+    setAnuncio(`${titulo} salió de la cola`);
+    // La fila desaparece con su tecla: el foco pasa a la siguiente canción, o al aviso (WCAG 2.4.3).
+    const siguiente = document.querySelector(`[data-solicitud="${item.solicitud_id}"]`)?.nextElementSibling?.getAttribute('data-solicitud');
+    enfocarCuandoExista(siguiente ? `[data-solicitud="${siguiente}"] button` : '.aviso button');
+    retirarPedido.mutate(
+      { solicitudId: item.solicitud_id, clave: nuevaClave() },
+      {
+        onSuccess: () => setAviso({ tipo: 'luz', ...voto.retirado(titulo) }),
+        onError: (error) => {
+          const codigo = codigoDe(error);
+          setAnuncio('');
+          if (codigo === 'no_pendiente') setAviso({ tipo: 'info', ...voto.yaNoSeRetira(titulo) });
+          else if (codigo === 'servicio_no_disponible') setAviso({ tipo: 'info', ...voto.cerrado });
+          else setAviso({ tipo: 'error', ...voto.noRetirado(titulo) });
+        },
+        onSettled: () => setEnviando(null),
+      },
+    );
+  }
+
+  return { alVotar, alMover, alQuitar, alRetirar, aviso, cerrarAviso: () => setAviso(null), anuncio, enviando };
 }

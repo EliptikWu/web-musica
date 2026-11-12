@@ -15,15 +15,17 @@ type Props = {
   puedeVotar: boolean;
   ocupada: boolean;
   onVotar: (item: ItemCola) => void;
-  /** Con esto, «Votaste» se pulsa para mover el voto a otra canción (RF-014). */
+  /** Con esto, «Votaste» se pulsa para mover o quitar el voto (RF-014, RF-060). */
   onMover?: (item: ItemCola) => void;
+  /** Con esto, «Tuya» se pulsa para retirar el pedido (RF-061). */
+  onRetirar?: (item: ItemCola) => void;
 };
 
 /**
  * Una canción de la cola con su tecla (doc 05): «+1» para votar, «Votaste» hundida, «Tuya»
  * ámbar. Los tres estados se distinguen por texto y forma, no solo por color (WCAG 1.4.1).
  */
-export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar, onMover }: Props) {
+export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar, onMover, onRetirar }: Props) {
   const { titulo } = item.cancion;
   return (
     <li className="fila" data-solicitud={item.solicitud_id}>
@@ -35,7 +37,11 @@ export function FilaCancion({ item, tecla, artista, puedeVotar, ocupada, onVotar
         variante={tecla === 'tuya' ? 'tuya' : 'normal'}
         miniatura={item.cancion.miniatura_url}
       />
-      {tecla === 'tuya' ? (
+      {tecla === 'tuya' && puedeVotar && onRetirar ? (
+        <Tecla variante="tuya" data-tecla-fija="" aria-label={voto.retirarEtiqueta(titulo)} aria-haspopup="dialog" ocupada={ocupada} onClick={() => onRetirar(item)}>
+          Tuya
+        </Tecla>
+      ) : tecla === 'tuya' ? (
         <TeclaFija variante="tuya">Tuya</TeclaFija>
       ) : tecla === 'votaste' && puedeVotar && onMover ? (
         // Sigue hundida (ya votaste); al pulsarla se elige a qué otra canción pasa el voto.

@@ -128,6 +128,9 @@ class ContratoEstadoService(
     )
     return mapOf("destacadas" to filas
       .filter { it.estado != "reproduciendo" || it.solicitudId == actualId }
+      // Las tres más votadas, como el prototipo: con todas, la bienvenida crecía con la noche y
+      // había que deslizar para llegar a «Entrar y votar» (corrección del 2026-11-12).
+      .take(3)
       .map { fila ->
         // El contrato solo tiene tres contextos. No se presentan solicitudes descartadas.
         val contexto = when {
@@ -245,7 +248,8 @@ class ContratoEstadoService(
       "votos" to votos,
       "inicio" to inicio,
       "posicion_seg" to actual.segundosTranscurridos,
-      "estado" to "sonando", // El modelo actual no almacena pausa del reproductor.
+      // RF-040: con la pausa del panel la TV detiene el video y la barra de avance se queda quieta.
+      "estado" to if (actual.pausada) "pausada" else "sonando",
     )
   }
 

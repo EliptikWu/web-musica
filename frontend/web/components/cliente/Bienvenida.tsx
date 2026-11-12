@@ -98,7 +98,8 @@ export function Bienvenida({ slug }: { slug: string }) {
         {destacadas.data ? (
           destacadas.data.destacadas.length > 0 ? (
             <ol className="filas">
-              {destacadas.data.destacadas.map((d, i) => {
+              {/* Las tres primeras aunque la API mande más: la tecla «Entrar y votar» queda a la vista. */}
+              {destacadas.data.destacadas.slice(0, 3).map((d, i) => {
                 const contexto = d.contexto === 'sonando' ? 'suena ahora' : d.contexto === 'sono' && d.hora ? `sonó a las ${formatoHora(d.hora, zona)}` : 'en la cola';
                 return (
                   <TarjetaTitulo
@@ -125,13 +126,16 @@ export function Bienvenida({ slug }: { slug: string }) {
       </section>
 
       <div className="mt-auto pt-8 text-center">
-        <p className="secundario mb-4 text-[14px] leading-[1.45]">
+        <p className="secundario text-[14px] leading-[1.45]">
           {T.privacidadBreve}{' '}
           {/* Enlace dentro de la frase: el relleno con margen negativo le da 44 px de toque sin mover el texto. */}
           <Link href={`/b/${slug}/politica-de-datos`} className="-my-[15px] inline-block py-[15px] font-semibold text-crema underline underline-offset-[3px]">
             {T.politica}
           </Link>
         </p>
+      </div>
+      {/* Fija abajo: en un teléfono bajo no hay que deslizar para entrar a votar (corrección del 2026-11-12). */}
+      <div className="accion-fija">
         <Link href={`/b/${slug}/buscar`} className={claseTecla('cereza', 'grande')}>
           {T.entrar}
         </Link>

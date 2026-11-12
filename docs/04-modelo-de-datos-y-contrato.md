@@ -38,7 +38,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | `Reproduccion` | `id`, `cancion`, `origen` (`solicitud` \| `lista_casa`), `solicitud_id`, `votos`, `inicio`, `posicion_seg`, `estado` (`sonando` \| `pausada`) | El avance se calcula con `posicion_seg` y el reloj del servidor |
 | `ItemCola` | `solicitud_id`, `cancion`, `votos_total`, `fecha_solicitud`, `puesto`, `puesto_anterior`, `espera_seg` | Ya ordenada (RN-05). `puesto_anterior` alimenta «Subió 2 puestos» igual en todas las pantallas. `espera_seg`: espera estimada en `servidor_ahora`, lo que le falta a lo que suena más lo que duran las de delante; el cliente le descuenta lo que avanza lo que suena (RF-018, ADR-20) |
 | `Ahora` | `version`, `servidor_ahora`, `servicio`, `reproduccion`, `cola[]`, `lista_casa` | La foto que se envía por tiempo real |
-| `MiSolicitud` | `solicitud_id`, `cancion`, `estado`, `fecha_solicitud`, `votos_total`, `puesto`, `motivo` | Para «Tus pedidos» (RF-013) |
+| `MiSolicitud` | `solicitud_id`, `cancion`, `estado`, `fecha_solicitud`, `votos_total`, `puesto`, `motivo` | Para «Tus pedidos» (RF-013). `retirada` sin `motivo` = la retiró ese teléfono (RF-061); el bar siempre da motivo (RF-041) |
 | `Yo` (teléfono) | `pedidos_maximos`, `pedidos_restantes`, `solicitudes[]`, `votos[]` (ids), `aviso_visto_en` | |
 | `UsuarioPanel` | `id`, `nombre`, `correo`, `rol`, `estado`, `debe_cambiar_clave`, `ultimo_acceso` | Nunca contraseñas ni hashes |
 | `YoPanel` | `usuario`, `establecimiento` (`slug`, `nombre`, `zona_horaria`) | La zona formatea todas las horas del panel |
@@ -118,7 +118,7 @@ origen. El detalle de cuerpos y respuestas está en `generado/endpoints.md`.
 | `GET /qr/{token}` | Resolver el QR al `slug` del bar (`410 qr_reemplazado` si se regeneró) | 001, 035 |
 | `GET /bares/{slug}` | Datos públicos del bar y su horario | 001, 003 |
 | `GET /bares/{slug}/ahora` | Foto actual: servicio, lo que suena, cola | 003, 015–018 |
-| `GET /bares/{slug}/destacadas` | «Lo más votado de la noche» | 015 |
+| `GET /bares/{slug}/destacadas` | «Lo más votado de la noche»: **las tres primeras** (con más, la bienvenida obligaba a deslizar; corrección del 2026-11-12) | 015 |
 | `POST /bares/{slug}/dispositivo` | Registrar el teléfono (`tipo` por ancho) y devolver `Yo` | 002 |
 | `GET /bares/{slug}/dispositivo` | `Yo`: cupo, mis solicitudes, mis votos | 011, 013 |
 | `POST /bares/{slug}/dispositivo/aviso` | Registrar que vio el aviso de datos | 004 |
@@ -126,6 +126,8 @@ origen. El detalle de cuerpos y respuestas está en `generado/endpoints.md`.
 | `POST /bares/{slug}/solicitudes` | Pedir (`{ video_id }`); si ya está, cuenta como voto (RN-02) | 009 |
 | `POST /bares/{slug}/solicitudes/{id}/votos` | Votar | 010–012 |
 | `PUT /bares/{slug}/dispositivo/voto` | Mover un voto (`{ desde, hacia }`): las dos en espera, la de origen votada y no propia, la de destino sin votar. Errores: `no_pendiente`, `ya_votaste`, `datos_invalidos`, `servicio_no_disponible`. El backend lo registra como evento de cambio de voto (RF-046) | 014 |
+| `DELETE /bares/{slug}/solicitudes/{id}/votos` | Quitar mi voto de una en espera que pidió otro. Idempotente. Errores: `no_pendiente`, `datos_invalidos` (es tu propio pedido), `servicio_no_disponible`. Evento `quitar_voto` | 060 |
+| `DELETE /bares/{slug}/solicitudes/{id}` | Retirar mi pedido si no suena: queda `retirada` **sin motivo**, sus votos se desactivan y vuelve el cupo; responde `{ solicitud_id, pedidos_restantes }`. Idempotente. Errores: `sin_permiso` (no es tuyo), `no_pendiente`, `servicio_no_disponible`. Evento `retirar_pedido` | 061 |
 | `GET /bares/{slug}/eventos` | Tiempo real (SSE) | 017 |
 
 ### Pantalla del bar
@@ -287,3 +289,11 @@ resincroniza al reconectar.
       Administrador y solo su bar; valida con los límites del contrato y anota
       `editar_establecimiento` en `accion_admin`. **`TBD`:** si `accion_admin.tipo` tiene un
       CHECK en la base real, tiene que admitir `editar_establecimiento`; si no, el PATCH falla.
+15. Corrección del 2026-11-12, **hecha por el equipo de frontend** (D14, mismo método que el
+    punto 14): pausa de la reproducción (RF-040). El backend no guardaba la pausa y siempre
+    informaba `sonando`, así que la barra del teléfono y de la TV seguía corriendo. Migración
+    `V3__pausa_reproduccion.sql` (`reproduccion.pausada_desde`, `segundos_en_pausa`), el reloj
+    en `ReproduccionReloj`, `estado: pausada` en `Reproduccion` y
+    `POST /panel/reproduccion/{id}/pausa` y `/reanudacion` (`ContratoPausaService`). Cuando la
+    TV reporta su posición, la pausa acumulada vuelve a cero. También: `destacadas` devuelve
+    tres, y `DELETE` de voto y de solicitud (RF-060, RF-061).

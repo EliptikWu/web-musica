@@ -118,6 +118,53 @@ export function useVotar(slug: string) {
   });
 }
 
+/** Quitar mi voto (RF-060): la canción baja al instante; si falla, se pregunta al servidor. */
+export function useQuitarVoto(slug: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ solicitudId, clave }: VariablesVoto) => pedir('quitarVoto', { parametros: { slug, id: solicitudId }, idempotencia: clave }),
+    retry: reintentarSoloRed,
+    onMutate: async ({ solicitudId }) => {
+      await Promise.all([qc.cancelQueries({ queryKey: claves.ahora(slug) }), qc.cancelQueries({ queryKey: claves.yo(slug) })]);
+      const antes = { ahora: qc.getQueryData<Ahora>(claves.ahora(slug)), yo: qc.getQueryData<Yo>(claves.yo(slug)) };
+      const restar = <T extends { solicitud_id: string; votos_total: number }>(i: T): T => (i.solicitud_id === solicitudId ? { ...i, votos_total: Math.max(0, i.votos_total - 1) } : i);
+      qc.setQueryData<Ahora>(claves.ahora(slug), (a) => (a ? { ...a, cola: renumerar(a.cola.map(restar)) } : a));
+      qc.setQueryData<Yo>(claves.yo(slug), (y) => (y ? { ...y, votos: y.votos.filter((id) => id !== solicitudId) } : y));
+      qc.setQueriesData<Busqueda>({ queryKey: ['busqueda', slug] }, (b) => (b ? { ...b, en_cola: b.en_cola.map(restar) } : b));
+      return antes;
+    },
+    onError: (_error, _variables, antes) => {
+      // Como al votar: se deshace solo si no llegó nada más nuevo; si llegó, se pregunta al servidor.
+      const ahora = qc.getQueryData<Ahora>(claves.ahora(slug));
+      if (antes?.ahora && ahora && ahora.version === antes.ahora.version) qc.setQueryData(claves.ahora(slug), antes.ahora);
+      else void qc.invalidateQueries({ queryKey: claves.ahora(slug) });
+      if (antes?.yo) qc.setQueryData(claves.yo(slug), antes.yo);
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: claves.yo(slug) });
+      void qc.invalidateQueries({ queryKey: ['busqueda', slug] });
+    },
+  });
+}
+
+/** Retirar mi pedido (RF-061): sale de la cola al instante y vuelve el cupo. */
+export function useRetirarPedido(slug: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ solicitudId, clave }: VariablesVoto) => pedir('retirarPedido', { parametros: { slug, id: solicitudId }, idempotencia: clave }),
+    retry: reintentarSoloRed,
+    onMutate: async ({ solicitudId }) => {
+      await qc.cancelQueries({ queryKey: claves.ahora(slug) });
+      qc.setQueryData<Ahora>(claves.ahora(slug), (a) => (a ? { ...a, cola: renumerar(a.cola.filter((i) => i.solicitud_id !== solicitudId)) } : a));
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: claves.ahora(slug) });
+      void qc.invalidateQueries({ queryKey: claves.yo(slug) });
+      void qc.invalidateQueries({ queryKey: ['busqueda', slug] });
+    },
+  });
+}
+
 /** Mover un voto (RF-014): la cola se reordena al instante; si falla, se pregunta al servidor. */
 export function useMoverVoto(slug: string) {
   const qc = useQueryClient();

@@ -24,6 +24,15 @@ export const RespuestaVoto = z
   .meta({ id: 'RespuestaVoto' });
 export type RespuestaVoto = z.infer<typeof RespuestaVoto>;
 
+/** Retirar mi pedido (RF-061): sale de la cola y el teléfono recupera ese pedido. */
+export const RespuestaRetiroPedido = z
+  .object({
+    solicitud_id: Id,
+    pedidos_restantes: z.int().nonnegative(),
+  })
+  .meta({ id: 'RespuestaRetiroPedido' });
+export type RespuestaRetiroPedido = z.infer<typeof RespuestaRetiroPedido>;
+
 /** Mover un voto de una solicitud a otra en un solo paso (RF-014, Could). */
 export const CuerpoCambioVoto = z.object({ desde: Id, hacia: Id }).meta({ id: 'CuerpoCambioVoto' });
 export type CuerpoCambioVoto = z.infer<typeof CuerpoCambioVoto>;

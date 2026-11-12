@@ -500,6 +500,37 @@ export function cambiarVoto(estado: EstadoSim, dispositivo: string, desde: strin
   return bien({ solicitud_id: destino.id, votos_total: destino.votos.length });
 }
 
+/** RF-060: quitar mi voto de una canción pendiente que pidió otro. Se puede volver a votar. */
+export function quitarVoto(estado: EstadoSim, dispositivo: string, solicitudId: string, ahora: number): Resultado<RespuestaVoto> {
+  if (!aceptaPedidos(estado, ahora)) return mal(423, 'servicio_no_disponible', 'Ahora no se puede votar');
+  const s = deLaSesion(estado).find((x) => x.id === solicitudId);
+  if (!s || s.estado !== 'pendiente') return mal(410, 'no_pendiente', 'Esa canción ya no está en la cola');
+  if (s.dispositivo === dispositivo) return mal(400, 'datos_invalidos', 'El voto de tu propio pedido no se quita: retira el pedido');
+  // Idempotente: quitar un voto que ya no está responde igual (RNF-008).
+  if (s.votos.includes(dispositivo)) {
+    s.votos = s.votos.filter((d) => d !== dispositivo);
+    tocar(estado);
+  }
+  return bien({ solicitud_id: s.id, votos_total: s.votos.length });
+}
+
+/** RF-061: retirar mi pedido si no suena todavía. Recupera el cupo; sus votos se pierden. */
+export function retirarPedido(estado: EstadoSim, dispositivo: string, solicitudId: string, ahora: number): Resultado<{ solicitud_id: string; pedidos_restantes: number }> {
+  if (!aceptaPedidos(estado, ahora)) return mal(423, 'servicio_no_disponible', 'Ahora no se pueden retirar pedidos');
+  const s = deLaSesion(estado).find((x) => x.id === solicitudId);
+  if (!s) return mal(410, 'no_pendiente', 'Esa canción ya no está en la cola');
+  if (s.dispositivo !== dispositivo) return mal(403, 'sin_permiso', 'Solo puedes retirar las canciones que pediste tú');
+  // Idempotente: retirarla otra vez responde igual.
+  if (s.estado === 'pendiente') {
+    s.estado = 'retirada';
+    s.motivo = null; // Sin motivo: la retiró quien la pidió (el bar siempre da uno, RF-041).
+    tocar(estado);
+  } else if (s.estado !== 'retirada' || s.motivo !== null) {
+    return mal(410, 'no_pendiente', 'Esa canción ya suena o ya salió de la cola');
+  }
+  return bien({ solicitud_id: s.id, pedidos_restantes: Math.max(0, estado.bar.pedidos_maximos - cupoUsado(estado, dispositivo)) });
+}
+
 // ── La pantalla del bar reporta (RF-007, RF-019) ─────────────────────────────
 
 export function reportarPantalla(estado: EstadoSim, reproduccionId: string, tipo: 'inicio' | 'fin' | 'error', ahora: number, codigoYoutube: number | null): Resultado<null> {

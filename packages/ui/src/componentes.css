@@ -278,6 +278,13 @@
   /* AÑADIDO: aviso de error (cereza) y de información (madera), sin la luz. */
   .aviso--error { background: var(--cereza); color: var(--crema); box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .6); }
   .aviso--info { background: var(--madera-clara); color: var(--crema); box-shadow: inset 0 0 0 1px var(--borde); }
+  /* AÑADIDO (corrección del 2026-11-12): la acción principal de la bienvenida queda fija abajo
+     sobre un degradado hacia el fondo, para no deslizar en un teléfono bajo. Vale en todo tema. */
+  .accion-fija {
+    position: sticky; bottom: 0; z-index: 2;
+    margin: 0 -16px -24px; padding: 18px 16px calc(16px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent, var(--nogal) 32%);
+  }
   /* AÑADIDO (RF-059): la conexión caída arriba del teléfono; con clase propia para que cada tema le dé su color. */
   .banner-conexion { background: var(--cereza); color: var(--crema); }
   .banner-conexion__punto { background: var(--crema); opacity: .7; }
