@@ -3,7 +3,7 @@ package com.proyectoN.rokolaBackend.tiemporeal
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 
-/** Publicar DENTRO de la transaccion; emitir por WebSocket solo DESPUES del commit. */
+/** Publicar DENTRO de la transaccion; SSE y la reproduccion automatica escuchan DESPUES del commit. */
 data class CambioColaEvent(val sesionId: Long, val tipo: String)
 
 @Component

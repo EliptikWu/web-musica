@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 
 /**
  * Adaptador de lectura al contrato del frontend para QR y bar público.
- * No reemplaza AccesoController, QrRedirectController ni EstablecimientoController.
+ * El acceso QR legado se mantiene hasta migrar las URLs físicas; ya no existe el listado REST antiguo.
  * Se usan mapas con llaves literales para no cambiar el JSON de las APIs anteriores.
  */
 @RestController

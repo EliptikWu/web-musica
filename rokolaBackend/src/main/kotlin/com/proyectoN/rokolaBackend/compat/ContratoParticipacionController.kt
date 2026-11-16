@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-/** Rutas contractuales; NO reemplaza SolicitudCreacionController ni VotoController legacy. */
+/** Rutas contractuales; NO reemplaza antiguo controlador de solicitudes ni antiguo controlador de votos legacy. */
 @RestController
 @RequestMapping("/api/bares/{slug}/solicitudes")
 class ContratoParticipacionController(private val servicio: ContratoParticipacionService) {
