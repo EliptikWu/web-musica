@@ -27,7 +27,7 @@ class CambioPanelPublisher(private val publisher: ApplicationEventPublisher) {
 }
 
 /**
- * Adaptador de CambioColaEvent -> SSE contractual. Conserva WebSocket antiguo.
+ * Adaptador de CambioColaEvent -> SSE contractual, transporte usado por web y Android.
  * PMV monoinstancia. La sincronización por bar garantiza que la primera emisión sea 'ahora'.
  */
 @Component
