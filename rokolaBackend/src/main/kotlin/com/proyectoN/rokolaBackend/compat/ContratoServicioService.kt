@@ -73,28 +73,68 @@ class ContratoServicioService(
       "UPDATE public.configuracion_servicio SET estado_manual = 'mantenimiento', fecha_modificacion = CURRENT_TIMESTAMP WHERE id_establecimiento = ?",
       p.barId,
     )
-    var expirados = 0
-    if (sesion != null) {
-      jdbc.query("SELECT 1 FROM public.sesion WHERE id_sesion = ? FOR UPDATE", { _, _ -> }, sesion)
-      jdbc.query(
-        "SELECT id_reproduccion FROM public.reproduccion WHERE id_sesion = ? AND resultado = 'iniciada'",
-        { rs, _ -> rs.getLong(1) }, sesion,
-      ).firstOrNull()?.let { gestion.finalizar(sesion, it, FinalizarReproduccionRequest("saltada")) }
-      expirados = jdbc.update(
-        "UPDATE public.solicitud SET estado = 'expirada', motivo_estado = 'Mantenimiento' WHERE id_sesion = ? AND estado = 'pendiente'",
-        sesion,
-      )
-      jdbc.update(
-        "UPDATE public.sesion SET estado = 'cerrada', fecha_cierre = GREATEST(fecha_apertura, CURRENT_TIMESTAMP) WHERE id_sesion = ?",
-        sesion,
-      )
-    }
-    bitacora.anotar(
-      p, "mantenimiento", "sesion", sesion, "Noche",
-      if (expirados == 1) "1 pedido pendiente expiró" else "$expirados pedidos pendientes expiraron",
-    )
+    val expirados = sesion?.let { cerrarNoche(it, "Mantenimiento") } ?: 0
+    bitacora.anotar(p, "mantenimiento", "sesion", sesion, "Noche", textoExpirados(expirados))
     avisar(p, sesion)
   }
+
+  /**
+   * `POST /panel/sesiones` (RF-037, Administrador): abrir la noche a mano. Con una abierta, 409.
+   * Si el bar estaba en mantenimiento, sale de él (como la simulación).
+   */
+  @Transactional
+  fun abrirNoche(p: ContratoPanelAcceso.Personal, cuerpo: Map<String, Any?>?) {
+    val datos = cuerpo ?: emptyMap()
+    ContratoCuerpo.exigirCampos(datos, setOf("tipo_evento"))
+    val tipoEvento = ContratoCuerpo.texto(datos, "tipo_evento", max = 60, obligatorio = true)!!
+    val anterior = bloquearConfiguracion(p.barId)
+    if (sesionAbierta(p.barId) != null) ContratoCuerpo.conflicto("Ya hay una noche abierta")
+    if (anterior == "mantenimiento") {
+      jdbc.update(
+        "UPDATE public.configuracion_servicio SET estado_manual = 'disponible', fecha_modificacion = CURRENT_TIMESTAMP WHERE id_establecimiento = ?",
+        p.barId,
+      )
+    }
+    val sesion = jdbc.queryForObject(
+      "INSERT INTO public.sesion (id_establecimiento, estado, tipo_evento) VALUES (?, 'abierta', ?) RETURNING id_sesion",
+      Long::class.javaObjectType, p.barId, tipoEvento,
+    )!!
+    bitacora.anotar(p, "abrir_sesion", "sesion", sesion, "Noche", "manual")
+    avisar(p, sesion)
+  }
+
+  /**
+   * `POST /panel/sesiones/actual/cierre` (RF-037, Administrador): cerrar la noche a mano. Sin una
+   * abierta, 409. Corta lo que suena y expira lo pendiente; el modo del QR no cambia.
+   */
+  @Transactional
+  fun cerrarNoche(p: ContratoPanelAcceso.Personal) {
+    bloquearConfiguracion(p.barId)
+    val sesion = sesionAbierta(p.barId) ?: ContratoCuerpo.conflicto("No hay una noche abierta")
+    val expirados = cerrarNoche(sesion, "Noche cerrada")
+    bitacora.anotar(p, "cerrar_sesion", "sesion", sesion, "Noche", textoExpirados(expirados))
+    avisar(p, sesion)
+  }
+
+  /** Corta lo que suena, expira los pedidos pendientes y cierra la noche. Devuelve cuántos expiraron. */
+  private fun cerrarNoche(sesion: Long, motivo: String): Int {
+    jdbc.query("SELECT 1 FROM public.sesion WHERE id_sesion = ? FOR UPDATE", { _, _ -> }, sesion)
+    jdbc.query(
+      "SELECT id_reproduccion FROM public.reproduccion WHERE id_sesion = ? AND resultado = 'iniciada'",
+      { rs, _ -> rs.getLong(1) }, sesion,
+    ).firstOrNull()?.let { gestion.finalizar(sesion, it, FinalizarReproduccionRequest("saltada")) }
+    val expirados = jdbc.update(
+      "UPDATE public.solicitud SET estado = 'expirada', motivo_estado = ? WHERE id_sesion = ? AND estado = 'pendiente'",
+      motivo, sesion,
+    )
+    jdbc.update(
+      "UPDATE public.sesion SET estado = 'cerrada', fecha_cierre = GREATEST(fecha_apertura, CURRENT_TIMESTAMP) WHERE id_sesion = ?",
+      sesion,
+    )
+    return expirados
+  }
+
+  private fun textoExpirados(n: Int) = if (n == 1) "1 pedido pendiente expiró" else "$n pedidos pendientes expiraron"
 
   /** El modo actual, con la fila bloqueada: dos cambios a la vez no se cruzan. */
   private fun bloquearConfiguracion(idBar: Long): String = jdbc.query(

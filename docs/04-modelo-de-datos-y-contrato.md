@@ -319,8 +319,7 @@ resincroniza al reconectar.
       se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
     - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
       72 bytes (lo que usa bcrypt) *(propuesto)*.
-    - Siguen en el 404 «aún no existe»: abrir y cerrar la noche a mano, retirar con motivo, QR
-      del panel, eventos y analítica.
+    - Siguen en el 404 «aún no existe»: retirar con motivo, QR del panel y analítica.
     - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
       YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
       usuario ni limita los intentos con la clave actual.
@@ -341,3 +340,17 @@ resincroniza al reconectar.
       conoce.
     - Cambio del contrato: `cambiarServicio` y `bitacora` agregan `datos_invalidos` a sus errores
       (un `modo_qr` desconocido, o una fecha, tipo o cursor mal formados); `generado/` regenerado.
+19. Abrir y cerrar la noche a mano y calendario de eventos, **hechos por el equipo de frontend
+    el 2026-11-21** (D14): `POST /panel/sesiones`, `POST /panel/sesiones/actual/cierre` y
+    `/panel/eventos` (`ContratoServicioService`, `ContratoEventosService`). Para que lo revise el
+    backend:
+    - Cerrar la noche corta lo que suena, expira lo pendiente (motivo «Noche cerrada») y no
+      cambia el modo del QR. Abrirla con una abierta es 409; si el bar estaba en mantenimiento,
+      abrirla lo saca de él.
+    - `servicio.estado` sin noche abierta: fuera del horario ahora es `fuera_de_horario` (con
+      `proxima_apertura`), como la simulación; antes era siempre `en_pausa`. Dentro del horario
+      sigue `en_pausa` (`ContratoEstadoService`).
+    - `evento_calendario` guarda día y horas en la zona del bar: si la hora de fin es menor, el
+      evento termina al día siguiente. Por eso un evento dura menos de 24 h *(propuesto)*.
+      `tipo` guarda el `tipo_evento` del contrato. Una noche no se liga todavía a su evento
+      (`sesion.id_evento_calendario`).

@@ -209,8 +209,10 @@ class ContratoEstadoService(
     val estado = when {
       modo == "mantenimiento" -> "mantenimiento"
       modo == "pausado" -> "en_pausa"
-      idSesion == null -> "en_pausa" // Sin noche abierta no se pueden aceptar pedidos.
+      // Fuera del horario manda el horario, haya o no noche: así el teléfono ve la próxima
+      // apertura y el panel ofrece «Abrir la noche» (como la simulación).
       vigente == null -> "fuera_de_horario"
+      idSesion == null -> "en_pausa" // En horario y sin noche abierta no se pueden aceptar pedidos.
       else -> "abierto"
     }
     val modoQr = if (modo == "pausado") "pausado" else "automatico"

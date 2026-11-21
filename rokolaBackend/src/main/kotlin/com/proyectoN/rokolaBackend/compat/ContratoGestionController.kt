@@ -31,7 +31,44 @@ class ContratoGestionController(
   private val listas: ContratoListasService,
   private val servicio: ContratoServicioService,
   private val bitacora: ContratoBitacora,
+  private val eventos: ContratoEventosService,
 ) {
+  // ── La noche (RF-037) ──────────────────────────────────────────────────────
+
+  @PostMapping("/sesiones")
+  fun abrirNoche(@CookieValue(COOKIE, required = false) token: String?, @RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Void> {
+    servicio.abrirNoche(admin(token), cuerpo)
+    return sinContenido()
+  }
+
+  @PostMapping("/sesiones/actual/cierre")
+  fun cerrarNoche(@CookieValue(COOKIE, required = false) token: String?): ResponseEntity<Void> {
+    servicio.cerrarNoche(admin(token))
+    return sinContenido()
+  }
+
+  // ── Calendario de eventos (RF-045) ─────────────────────────────────────────
+
+  @GetMapping("/eventos")
+  fun eventos(@CookieValue(COOKIE, required = false) token: String?) = ok(eventos.listar(admin(token)))
+
+  @PostMapping("/eventos")
+  fun crearEvento(@CookieValue(COOKIE, required = false) token: String?, @RequestBody(required = false) cuerpo: Map<String, Any?>?) =
+    creado(eventos.crear(admin(token), cuerpo))
+
+  @PatchMapping("/eventos/{id}")
+  fun editarEvento(
+    @CookieValue(COOKIE, required = false) token: String?,
+    @PathVariable id: String,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ) = ok(eventos.editar(admin(token), id, cuerpo))
+
+  @DeleteMapping("/eventos/{id}")
+  fun eliminarEvento(@CookieValue(COOKIE, required = false) token: String?, @PathVariable id: String): ResponseEntity<Void> {
+    eventos.eliminar(admin(token), id)
+    return sinContenido()
+  }
+
   // ── Servicio y mantenimiento (RF-036, RF-038, RF-039) ──────────────────────
 
   @PutMapping("/servicio")
