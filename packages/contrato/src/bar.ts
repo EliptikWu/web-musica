@@ -41,6 +41,10 @@ export type Servicio = z.infer<typeof Servicio>;
 export const Tema = z.enum(['rockola', 'vidrio', 'afiche']).meta({ id: 'Tema' });
 export type Tema = z.infer<typeof Tema>;
 
+/** RF-065: a dónde lleva el QR del bar. El código impreso no cambia. */
+export const DestinoQr = z.enum(['web', 'app']).meta({ id: 'DestinoQr' });
+export type DestinoQr = z.infer<typeof DestinoQr>;
+
 /** Lo público de un establecimiento (RF-001, RF-003). */
 export const Bar = z
   .object({

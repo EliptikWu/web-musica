@@ -22,14 +22,15 @@ class ContratoQrBarController(
   private val jdbc: JdbcTemplate,
   private val tokens: TokenSeguro,
   private val dispositivos: ContratoDispositivoService,
+  private val app: DescargaApp,
 ) {
-  private data class QrRow(val slug: String, val barActivo: Boolean, val vigente: Boolean)
+  private data class QrRow(val slug: String, val barActivo: Boolean, val vigente: Boolean, val destino: String?)
 
   @GetMapping("/qr/{token}")
   fun resolverQr(
     @PathVariable token: String,
     @RequestHeader(value = "X-Rockola-Dispositivo", required = false) uuid: String?,
-  ): Map<String, String> {
+  ): Map<String, Any?> {
     // OpenAPI exige UUID para todas las rutas del cliente, incluso las lecturas.
     // Se valida su sintaxis sin crear ni devolver un registro de dispositivo.
     dispositivos.huella(uuid)
@@ -38,13 +39,13 @@ class ContratoQrBarController(
     }
     val qr = jdbc.query(
       """
-            SELECT e.slug, e.activo AS bar_activo,
+            SELECT e.slug, e.activo AS bar_activo, e.destino_qr,
                    (q.activo AND q.fecha_revocacion IS NULL) AS vigente
             FROM public.codigo_qr q
             JOIN public.establecimiento e ON e.id_establecimiento = q.id_establecimiento
             WHERE q.token_hash = ?
             """.trimIndent(),
-      { rs, _ -> QrRow(rs.getString("slug"), rs.getBoolean("bar_activo"), rs.getBoolean("vigente")) },
+      { rs, _ -> QrRow(rs.getString("slug"), rs.getBoolean("bar_activo"), rs.getBoolean("vigente"), rs.getString("destino_qr")) },
       tokens.huellaQr(token),
     ).firstOrNull() ?: throw ContratoApiException(
       HttpStatus.NOT_FOUND, "no_encontrado", "Código QR no encontrado",
@@ -55,7 +56,9 @@ class ContratoQrBarController(
     if (!qr.vigente) {
       throw ContratoApiException(HttpStatus.GONE, "qr_reemplazado", "Este QR fue reemplazado")
     }
-    return mapOf("slug" to qr.slug)
+    // RF-065: sin instalador publicado, el QR sigue llevando a la web.
+    val destino = app.destinoEfectivo(qr.destino)
+    return mapOf("slug" to qr.slug, "destino" to destino, "apk_url" to app.url?.takeIf { destino == "app" })
   }
 
   private data class BarRow(

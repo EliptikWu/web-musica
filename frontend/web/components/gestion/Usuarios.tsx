@@ -93,7 +93,7 @@ export function Usuarios() {
                         {u.correo}. {u.ultimo_acceso ? conPunto(`Último ingreso: ${fechaYHora(u.ultimo_acceso, yo.establecimiento.zona_horaria)}`) : 'Todavía no ha entrado.'}
                       </p>
                     </div>
-                    <div className="lista-gestion__acciones">
+                    <div className="lista-gestion__acciones lista-gestion__acciones--columnas">
                       <Tecla tamano="chica" aria-label={`Editar a ${u.nombre}`} onClick={() => setEdicion({ tipo: 'editar', usuario: u })}>
                         Editar
                       </Tecla>

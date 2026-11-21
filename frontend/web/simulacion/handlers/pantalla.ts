@@ -20,7 +20,7 @@ const pedirCodigoPantalla = http.post(`/api${endpoints.pedirCodigoPantalla.ruta.
 });
 
 export const manejadoresPantalla = [
-  manejar('qrPublico', ({ estado }) => ok({ url: `${location.origin}/q/${estado.qr.token}` })),
+  manejar('qrPublico', ({ estado }) => ok({ url: `${location.origin}/q/${estado.qr.token}`, destino: estado.qr.destino ?? 'web' })),
   manejar('vinculoPantalla', ({ estado, ahora, tokenPantalla }) => ok(vinculoDe(estado, tokenPantalla, ahora))),
   pedirCodigoPantalla,
   manejar('reportarInicio', ({ estado, ahora, parametros }) => reportarPantalla(estado, parametros.id ?? '', 'inicio', ahora, null)),

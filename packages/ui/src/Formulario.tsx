@@ -69,7 +69,7 @@ export function Selector({ etiqueta, children, ...resto }: { etiqueta: string; c
  * Una opción de `GrupoTeclas`. Con `figura` (una vista previa, decorativa) y `detalle` (una
  * frase que la describe) el grupo se dibuja en columnas: figura, tecla y detalle (RF-059).
  */
-export type Opcion<V extends string> = { valor: V; texto: string; figura?: ReactNode; detalle?: string };
+export type Opcion<V extends string> = { valor: V; texto: string; figura?: ReactNode; detalle?: string; deshabilitada?: boolean };
 
 /** Opciones excluyentes como teclas: la elegida queda hundida. Es un grupo de radios de verdad. */
 export function GrupoTeclas<V extends string>({
@@ -100,6 +100,7 @@ export function GrupoTeclas<V extends string>({
             name={nombre}
             value={o.valor}
             checked={valor === o.valor}
+            disabled={o.deshabilitada}
             onChange={() => onCambio(o.valor)}
             aria-describedby={o.detalle ? `${id}-${o.valor}` : undefined}
           />

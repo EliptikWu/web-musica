@@ -75,7 +75,8 @@
 | `establecimiento` | `GET /panel/establecimiento` | `Establecimiento` | administrador | `no_autenticado`, `sin_permiso` | RF-034 |
 | `editarEstablecimiento` | `PATCH /panel/establecimiento` | `CambioEstablecimiento` → `Establecimiento` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-034 |
 | `qrEstablecimiento` | `GET /panel/establecimiento/qr` | `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso` | RF-035 |
-| `regenerarQr` | `POST /panel/establecimiento/qr/regeneracion` | `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso` | RF-035 |
+| `regenerarQr` | `POST /panel/establecimiento/qr/regeneracion` | `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso`, `conflicto` | RF-035 |
+| `destinoQr` | `PUT /panel/establecimiento/qr/destino` | `CuerpoDestinoQr` → `QrEstablecimiento` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `conflicto` | RF-065 |
 | `pantallas` | `GET /panel/pantallas` | `ListaPantallas` | administrador | `no_autenticado`, `sin_permiso` | RF-058 |
 | `vincularPantalla` | `POST /panel/pantallas` | `CuerpoVincularPantalla` → `PantallaVinculada` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-058 |
 | `desvincularPantalla` | `DELETE /panel/pantallas/{id}` | 204 | administrador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-058 |

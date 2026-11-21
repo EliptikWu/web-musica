@@ -1,17 +1,27 @@
 package com.proyectoN.rokolaBackend.acceso
 
+import com.proyectoN.rokolaBackend.compat.DescargaApp
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriUtils
 
 /** Página mínima generada desde el BACKEND. Al abrir el QR hace POST automáticamente. */
 @RestController
-class QrRedirectController(private val acceso: AccesoService) {
+class QrRedirectController(private val acceso: AccesoService, private val app: DescargaApp) {
   @GetMapping("/q/{token}", produces = [MediaType.TEXT_HTML_VALUE])
   fun abrir(@PathVariable token: String): ResponseEntity<String> {
+    // RF-065: un QR impreso con la dirección del backend también pasa por la web, que aplica el destino.
+    app.webUrl?.let { web ->
+      return ResponseEntity.status(HttpStatus.FOUND)
+        .header(HttpHeaders.LOCATION, "$web/q/${UriUtils.encodePathSegment(token, Charsets.UTF_8)}")
+        .header(HttpHeaders.CACHE_CONTROL, "no-store")
+        .build()
+    }
     val establecimiento = acceso.resolverQr(token) // Valida QR activo; GET no inserta datos.
     val nombreSeguro = escaparHtml(establecimiento.nombre)
     val html = """

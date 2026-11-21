@@ -42,6 +42,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D15 | 2026-11-20 | Este equipo hace también la capa de Big Data del Entregable 6: pipeline con Spark, rutas de analítica en el backend, tablero con datos reales y un cubo OLAP en el sistema Rockola cuyas celdas son los KPI del entregable (RF-063, ADR-27) | Usuario |
 | D16 | 2026-11-21 | Resuelve «Alta de establecimientos»: un superadmin crea los bares y sus cuentas desde `/plataforma` (RF-064, ADR-29). Sin registro público | Usuario |
 | D17 | 2026-11-21 | Reemplaza la parte de D13 sobre Android: la app también muestra **Vidrio** y **Afiche**, según el `tema` del bar (RF-059, ADR-25) | Usuario |
+| D18 | 2026-11-21 | Cada bar elige si su QR abre la web o ofrece descargar la app, con un interruptor y sin reimprimir (RF-065, ADR-30) | Usuario |
 
 ## Decisiones abiertas
 

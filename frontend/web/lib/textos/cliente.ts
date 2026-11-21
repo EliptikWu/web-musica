@@ -225,4 +225,10 @@ export const conexion = {
 export const qr = {
   reemplazado: { titulo: 'Este QR ya no está en uso', detalle: 'El bar cambió su código. Escanea el QR que está ahora en tu mesa.' },
   abriendo: 'Abriendo la rockola del bar…',
+  app: {
+    titulo: 'Pide tu música con la app',
+    detalle: 'Descárgala para pedir y votar canciones. Android te pedirá permiso para instalarla.',
+    descargar: 'Descargar la app',
+    web: 'Seguir en la web',
+  },
 };

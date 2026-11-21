@@ -61,7 +61,7 @@ export function Listas() {
                           {l.activa ? `, ${l.modo_rotacion === 'secuencial' ? 'en orden' : 'al azar'}` : ''}. {conPunto(`Cambiada el ${fechaYHora(l.actualizada_en, zona)}`)}
                         </p>
                       </div>
-                      <div className="lista-gestion__acciones">
+                      <div className="lista-gestion__acciones lista-gestion__acciones--columnas">
                         <Link href={`/panel/listas/${l.id}`} className={claseTecla('normal', 'chica')} aria-label={`Editar ${l.nombre}`}>
                           Editar
                         </Link>

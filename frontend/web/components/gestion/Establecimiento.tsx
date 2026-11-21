@@ -1,8 +1,8 @@
 'use client';
 
-import type { Establecimiento as DatosBar, Tema } from '@rockola/contrato';
+import type { DestinoQr, Establecimiento as DatosBar, QrEstablecimiento, Tema } from '@rockola/contrato';
 import { Campo, claseTecla, GrupoTeclas, Icono, LuzEstado, type Opcion, Selector, Tecla } from '@rockola/ui';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import { useRef, useState } from 'react';
@@ -50,7 +50,7 @@ export function Establecimiento() {
     <PaginaGestion titulo="Bar y QR" nota="Los datos del establecimiento, las reglas de los pedidos, el código QR de las mesas y las pantallas que ponen la música.">
       <div className="gestion-rejilla gestion-rejilla--dos">
         <Cargando consulta={bar}>{() => <FormularioBar key={claveDatos(bar.data!)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
-        <Cargando consulta={qr}>{() => <PlacaQrGestion url={qr.data!.url} generado={qr.data!.generado_en} />}</Cargando>
+        <Cargando consulta={qr}>{() => <PlacaQrGestion qr={qr.data!} />}</Cargando>
       </div>
       {bar.data ? <ElegirTema key={bar.data.tema} bar={bar.data} guardar={guardarTema} aviso={avisoTema} setAviso={setAvisoTema} /> : null}
       <Pantallas />
@@ -138,7 +138,7 @@ function FormularioBar({
         <Campo etiqueta="Sin repetir (min)" ayuda="Después de sonar, nadie la puede pedir durante este tiempo." type="number" min={0} max={600} value={datos.ventana_no_repeticion_min} onChange={poner('ventana_no_repeticion_min')} error={errores.ventana} />
       </div>
       {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
-      <Tecla type="submit" variante="cereza" tamano="ancha" className="self-start" ocupada={guardar.isPending}>
+      <Tecla type="submit" variante="cereza" tamano="ancha" className="mt-auto self-start" ocupada={guardar.isPending}>
         Guardar datos
       </Tecla>
     </form>
@@ -217,7 +217,88 @@ function ElegirTema({
   );
 }
 
-function PlacaQrGestion({ url, generado }: { url: string; generado: string }) {
+/** Un bar sin QR, o con uno cuya dirección no quedó guardada: no se puede dibujar y hay que generarlo. */
+function SinQr({ qr }: { qr: QrEstablecimiento }) {
+  const generar = useAccionGestion('regenerarQr', [claves.panel.qr, ['qr-publico']]);
+  const [confirmar, setConfirmar] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <section className="caja flex flex-col gap-4" aria-labelledby="t-qr">
+      <div className="caja__cabeza mb-0!">
+        <h2 id="t-qr">Código QR de las mesas</h2>
+      </div>
+      <ElegirDestino qr={qr} />
+      <p className="text-crema-2">Este bar todavía no tiene un QR que se pueda mostrar. Si ya hay uno impreso, sigue funcionando; genera otro solo si necesitas imprimirlo.</p>
+      {error ? <Aviso tipo="error" titulo={error} /> : null}
+      <Tecla variante="cereza" tamano="ancha" className="self-start" onClick={() => setConfirmar(true)}>
+        Generar QR
+      </Tecla>
+      <DialogoConfirmar
+        abierto={confirmar}
+        titulo="¿Generar el código QR?"
+        texto="Si ya hay un QR impreso en las mesas, dejará de funcionar y tendrás que imprimir el nuevo."
+        confirmar="Generar QR"
+        ocupado={generar.isPending}
+        onCerrar={() => setConfirmar(false)}
+        onConfirmar={() => generar.mutate({}, { onError: (e) => setError(mensajeDeError(e, { conflicto: 'Falta configurar la dirección pública del QR.' })), onSettled: () => setConfirmar(false) })}
+      />
+    </section>
+  );
+}
+
+const NOTA_DESTINO: Record<DestinoQr, string> = {
+  web: 'Abre la rockola en el navegador, sin instalar nada.',
+  app: 'En Android ofrece descargar la app o seguir en la web. En iPhone abre la web.',
+};
+
+/** A dónde lleva el QR (RF-065). Se guarda al tocar y el código impreso sigue sirviendo. */
+function ElegirDestino({ qr }: { qr: QrEstablecimiento }) {
+  const consultas = useQueryClient();
+  const cambiar = useAccionGestion('destinoQr', [claves.panel.qr, ['qr-publico']]);
+  const [elegido, setElegido] = useState<DestinoQr | null>(null);
+  const [aviso, setAviso] = useState<Mensaje | null>(null);
+  const valor = elegido ?? qr.destino;
+  return (
+    <div className="qr-destino">
+      <GrupoTeclas
+        leyenda="Al escanear el QR"
+        nombre="destino-qr"
+        valor={valor}
+        opciones={[
+          { valor: 'web', texto: 'Abrir la web' },
+          { valor: 'app', texto: 'Descargar la app', deshabilitada: !qr.apk_disponible },
+        ]}
+        onCambio={(destino) => {
+          if (cambiar.isPending || destino === qr.destino) return;
+          setAviso(null);
+          setElegido(destino);
+          cambiar.mutate(
+            { cuerpo: { destino } },
+            {
+              onSuccess: (nuevo) => {
+                // La respuesta ya es el estado real: el interruptor no depende de que la recarga funcione.
+                consultas.setQueryData(claves.panel.qr, nuevo);
+                setAviso({ tipo: 'luz', texto: destino === 'app' ? 'Listo: el QR ahora ofrece la app.' : 'Listo: el QR ahora abre la web.' });
+              },
+              onError: (e) => setAviso({ tipo: 'error', texto: mensajeDeError(e, { conflicto: 'Falta publicar el instalador de la app.' }) }),
+              onSettled: () => setElegido(null),
+            },
+          );
+        }}
+      />
+      <p className="qr-destino__nota">
+        {NOTA_DESTINO[valor]} {qr.apk_disponible ? 'No hay que reimprimir el QR.' : 'Para ofrecer la app, primero hay que publicar su instalador.'}
+      </p>
+      {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
+    </div>
+  );
+}
+
+function PlacaQrGestion({ qr }: { qr: QrEstablecimiento }) {
+  return qr.url && qr.generado_en ? <QrDibujado qr={qr} url={qr.url} generado={qr.generado_en} /> : <SinQr qr={qr} />;
+}
+
+function QrDibujado({ qr, url, generado }: { qr: QrEstablecimiento; url: string; generado: string }) {
   const zona = useYoDelPanel().establecimiento.zona_horaria;
   const regenerar = useAccionGestion('regenerarQr', [claves.panel.qr, ['qr-publico']]);
   const [confirmar, setConfirmar] = useState(false);
@@ -237,24 +318,25 @@ function PlacaQrGestion({ url, generado }: { url: string; generado: string }) {
   }
 
   return (
-    <section className="caja flex flex-col gap-4 self-start" aria-labelledby="t-qr">
+    <section className="caja flex flex-col gap-4" aria-labelledby="t-qr">
       <div className="caja__cabeza mb-0!">
         <h2 id="t-qr">Código QR de las mesas</h2>
         <p>
           Generado el {fechaYHora(generado, zona)}
         </p>
       </div>
+      <ElegirDestino qr={qr} />
       <div className="qr-grande">
         <div className="qr-grande__codigo" ref={svg}>
           <QRCodeSVG value={url} size={172} level="M" marginSize={0} fgColor={colorDeToken('--qr-tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="secundario text-[14px]">Lleva a</p>
+        <div className="qr-grande__info">
+          <p className="secundario text-[14px]">Dirección del QR</p>
           <p className="qr-grande__url">{url.replace(/^https?:\/\//, '')}</p>
         </div>
       </div>
       {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
-      <div className="flex flex-wrap gap-3">
+      <div className="qr-acciones">
         <Tecla tamano="ancha" onClick={descargar}>
           <Icono nombre="descargar" />
           Descargar
@@ -307,10 +389,12 @@ export function QrParaImprimir() {
       </div>
       {qr.isError || bar.isError ? (
         <Cargando consulta={qr.isError ? qr : bar}>{() => null}</Cargando>
-      ) : qr.data && bar.data ? (
+      ) : qr.data && !qr.data.url ? (
+        <Aviso tipo="info" titulo="Todavía no hay un QR para imprimir" meta="Genéralo en Bar y QR." />
+      ) : qr.data?.url && bar.data ? (
         <div className="ventana mx-auto flex flex-col items-center gap-4 px-8 py-8">
           <h1 className="placa text-[34px]">Escanea y vota</h1>
-          <p className="text-[18px] text-tinta-2">Pide la música de {bar.data.nombre} desde tu teléfono. Sin descargas ni registro.</p>
+          <p className="text-[18px] text-tinta-2">Pide la música de {bar.data.nombre} desde tu teléfono.</p>
           <div className="qr-grande__codigo h-[300px]! w-[300px]!">
             <QRCodeSVG value={qr.data.url} size={276} level="M" marginSize={0} fgColor={colorDeToken('--qr-tinta', 'black')} bgColor={colorDeToken('--qr-fondo', 'white')} title="Código QR del bar" />
           </div>

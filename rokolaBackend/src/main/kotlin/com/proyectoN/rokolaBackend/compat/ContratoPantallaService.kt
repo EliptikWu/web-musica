@@ -24,6 +24,7 @@ import java.util.UUID
  */
 @Service
 class ContratoPantallaService(
+    private val app: DescargaApp,
     private val jdbc: JdbcTemplate,
     private val em: EntityManager,
     private val gestion: ReproduccionGestionService,
@@ -62,7 +63,10 @@ class ContratoPantallaService(
             throw fallo(HttpStatus.NOT_FOUND, "no_encontrado",
                 "La URL del QR vigente no está disponible. Registra la URL original o regenera el QR desde el panel")
         }
-        return mapOf("url" to url)
+        val destino = jdbc.queryForObject(
+            "SELECT destino_qr FROM public.establecimiento WHERE id_establecimiento = ?", String::class.java, bar,
+        )
+        return mapOf("url" to url, "destino" to app.destinoEfectivo(destino))
     }
 
     /** Misma clave + mismos datos -> 204 sin efectos nuevos; errores NO se almacenan. */

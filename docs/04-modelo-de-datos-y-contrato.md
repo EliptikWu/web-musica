@@ -320,7 +320,7 @@ resincroniza al reconectar.
       se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
     - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
       72 bytes (lo que usa bcrypt) *(propuesto)*.
-    - Siguen en el 404 «aún no existe»: retirar con motivo, QR del panel y analítica.
+    - Sigue en el 404 «aún no existe»: retirar con motivo. El QR del panel se hizo en el punto 25.
     - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
       YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
       usuario ni limita los intentos con la clave actual.
@@ -414,3 +414,13 @@ resincroniza al reconectar.
     - Si una clave temporal se pierde, la plataforma da otra: cierra las sesiones de esa cuenta.
     - Durante el bloqueo (5 fallos, 15 min) todo intento responde igual, con clave buena o mala.
     - **`TBD`:** desactivar bares y editar cuentas desde la plataforma.
+25. QR del panel y su destino (RF-035, RF-065, ADR-30), **hechos por el equipo de frontend el
+    2026-11-21** (D18): `GET /panel/establecimiento/qr`, `POST …/regeneracion` y `PUT …/destino`, con
+    `establecimiento.destino_qr` (V11).
+    - Solo se guarda la huella del token: un QR sin `url_publica` no se puede dibujar y responde
+      `url: null`. Su destino se puede cambiar igual; generar otro invalida el impreso.
+    - Con `ROKOLA_WEB_URL`, el `/q/{token}` del backend redirige a la web, que aplica el destino.
+      Si se retira el instalador, al arrancar los bares en `app` vuelven a `web`.
+    - **`TBD`:** publicar el APK firmado y definir `ROKOLA_APK_URL` y `ROKOLA_WEB_URL`.
+    - **`TBD`:** el dominio de la app y `/.well-known/assetlinks.json`, para que el QR abra la app
+      ya instalada sin pasar por la pantalla de descarga.

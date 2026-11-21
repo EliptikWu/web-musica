@@ -1027,6 +1027,17 @@
           "rol"
         ]
       },
+      "CuerpoDestinoQr": {
+        "type": "object",
+        "properties": {
+          "destino": {
+            "$ref": "#/components/schemas/DestinoQr"
+          }
+        },
+        "required": [
+          "destino"
+        ]
+      },
       "CuerpoDispositivo": {
         "type": "object",
         "properties": {
@@ -1307,6 +1318,13 @@
           "votos",
           "contexto",
           "hora"
+        ]
+      },
+      "DestinoQr": {
+        "type": "string",
+        "enum": [
+          "web",
+          "app"
         ]
       },
       "DiagnosticoAnalitica": {
@@ -2593,20 +2611,42 @@
         "type": "object",
         "properties": {
           "url": {
+            "nullable": true,
+            "description": "null: el bar no tiene un QR que se pueda dibujar y hay que generarlo",
             "type": "string",
             "format": "uri"
           },
           "token": {
+            "nullable": true,
             "type": "string"
           },
           "generado_en": {
-            "$ref": "#/components/schemas/Fecha"
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Fecha"
+              }
+            ]
+          },
+          "destino": {
+            "description": "RF-065: lo que pasa de verdad al escanear",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DestinoQr"
+              }
+            ]
+          },
+          "apk_disponible": {
+            "type": "boolean",
+            "description": "Si hay un instalador publicado para elegir `app`"
           }
         },
         "required": [
           "url",
           "token",
-          "generado_en"
+          "generado_en",
+          "destino",
+          "apk_disponible"
         ]
       },
       "QrPublico": {
@@ -2615,10 +2655,19 @@
           "url": {
             "type": "string",
             "format": "uri"
+          },
+          "destino": {
+            "default": "web",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DestinoQr"
+              }
+            ]
           }
         },
         "required": [
-          "url"
+          "url",
+          "destino"
         ]
       },
       "Recomendacion": {
@@ -2763,10 +2812,28 @@
         "properties": {
           "slug": {
             "type": "string"
+          },
+          "destino": {
+            "default": "web",
+            "description": "RF-065: `app` ofrece descargar la app",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DestinoQr"
+              }
+            ]
+          },
+          "apk_url": {
+            "default": null,
+            "description": "Solo con destino `app`",
+            "nullable": true,
+            "type": "string",
+            "format": "uri"
           }
         },
         "required": [
-          "slug"
+          "slug",
+          "destino",
+          "apk_url"
         ]
       },
       "RespuestaDestacadas": {
@@ -7193,6 +7260,94 @@
           },
           "403": {
             "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/establecimiento/qr/destino": {
+      "put": {
+        "operationId": "destinoQr",
+        "summary": "Elegir si el QR lleva a la web o a descargar la app",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-065. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoDestinoQr"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QrEstablecimiento"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
             "content": {
               "application/json": {
                 "schema": {

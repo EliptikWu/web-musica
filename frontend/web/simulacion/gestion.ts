@@ -106,12 +106,23 @@ export function editarEstablecimiento(estado: EstadoSim, cambios: Partial<Estado
 }
 
 export function qrAContrato(estado: EstadoSim, origen: string) {
-  return { url: `${origen}/q/${estado.qr.token}`, token: estado.qr.token, generado_en: iso(estado.qr.generado_en) };
+  return { url: `${origen}/q/${estado.qr.token}`, token: estado.qr.token, generado_en: iso(estado.qr.generado_en), destino: estado.qr.destino ?? 'web', apk_disponible: true };
+}
+
+/** Dirección de ejemplo: la simulación no publica un instalador de verdad (RF-065). */
+export const APK_DE_EJEMPLO = 'https://rockola.invalid/rockola.apk';
+
+export function cambiarDestinoQr(estado: EstadoSim, destino: 'web' | 'app', origen: string, quien: Personal, ahora: number) {
+  if ((estado.qr.destino ?? 'web') !== destino) {
+    estado.qr.destino = destino;
+    anotar(estado, ahora, quien, 'editar_establecimiento', { tipo: 'establecimiento', nombre: estado.bar.nombre, detalle: null }, destino === 'app' ? 'El QR ofrece descargar la app' : 'El QR abre la web');
+  }
+  return bien(qrAContrato(estado, origen));
 }
 
 export function regenerarQr(estado: EstadoSim, origen: string, quien: Personal, ahora: number) {
   estado.qr.anteriores.push(estado.qr.token);
-  estado.qr = { token: `demo-qr-${estado.qr.anteriores.length + 1}`, generado_en: ahora, anteriores: estado.qr.anteriores };
+  estado.qr = { token: `demo-qr-${estado.qr.anteriores.length + 1}`, generado_en: ahora, anteriores: estado.qr.anteriores, destino: estado.qr.destino };
   anotar(estado, ahora, quien, 'regenerar_qr', { tipo: 'establecimiento', nombre: estado.bar.nombre, detalle: null });
   return bien(qrAContrato(estado, origen));
 }

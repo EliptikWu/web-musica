@@ -7,7 +7,7 @@ import { type CodigoError, SinContenido } from './comunes.ts';
 import { CuerpoDispositivo, Yo } from './dispositivo.ts';
 import {
   BusquedaPanel, CambioBloqueo, CambioEstablecimiento, CambioUsuario, ClaveTemporal, CuerpoActivacion, CuerpoBloqueo,
-  CuerpoCambioClave, CuerpoCancionLista, CuerpoEntrar, CuerpoEvento, CuerpoHorario, CuerpoLista, CuerpoOrden, CuerpoRetiro,
+  CuerpoCambioClave, CuerpoCancionLista, CuerpoDestinoQr, CuerpoEntrar, CuerpoEvento, CuerpoHorario, CuerpoLista, CuerpoOrden, CuerpoRetiro,
   CuerpoServicio, CuerpoSesion, CuerpoVolumen, CuerpoUsuario, Establecimiento, EventoBar, Horario, ListaBloqueos, ListaCasaDetalle,
   ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, type Rol, UsuarioCreado, UsuarioPanel,
   YoPanel, Bloqueo,
@@ -122,7 +122,8 @@ export const endpoints = {
   establecimiento: definir({ metodo: 'GET', ruta: '/panel/establecimiento', resumen: 'Datos del establecimiento', superficie: 'panel', rf: ['RF-034'], respuesta: Establecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   editarEstablecimiento: definir({ metodo: 'PATCH', ruta: '/panel/establecimiento', resumen: 'Editar el establecimiento', superficie: 'panel', rf: ['RF-034'], cuerpo: CambioEstablecimiento, respuesta: Establecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   qrEstablecimiento: definir({ metodo: 'GET', ruta: '/panel/establecimiento/qr', resumen: 'QR vigente', superficie: 'panel', rf: ['RF-035'], respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
-  regenerarQr: definir({ metodo: 'POST', ruta: '/panel/establecimiento/qr/regeneracion', resumen: 'Regenerar el QR (el anterior deja de funcionar)', superficie: 'panel', rf: ['RF-035'], respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  regenerarQr: definir({ metodo: 'POST', ruta: '/panel/establecimiento/qr/regeneracion', resumen: 'Regenerar el QR (el anterior deja de funcionar)', superficie: 'panel', rf: ['RF-035'], respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'conflicto'] }),
+  destinoQr: definir({ metodo: 'PUT', ruta: '/panel/establecimiento/qr/destino', resumen: 'Elegir si el QR lleva a la web o a descargar la app', superficie: 'panel', rf: ['RF-065'], cuerpo: CuerpoDestinoQr, respuesta: QrEstablecimiento, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'conflicto'] }),
   pantallas: definir({ metodo: 'GET', ruta: '/panel/pantallas', resumen: 'Pantallas vinculadas', superficie: 'panel', rf: ['RF-058'], respuesta: ListaPantallas, estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   vincularPantalla: definir({ metodo: 'POST', ruta: '/panel/pantallas', resumen: 'Vincular la pantalla que muestra el código', superficie: 'panel', rf: ['RF-058'], cuerpo: CuerpoVincularPantalla, respuesta: PantallaVinculada, estado: 201, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
   desvincularPantalla: definir({ metodo: 'DELETE', ruta: '/panel/pantallas/{id}', resumen: 'Desvincular una pantalla (deja de poder reportar)', superficie: 'panel', rf: ['RF-058'], respuesta: SinContenido, estado: 204, rol: 'administrador', errores: [...PANEL_ERR, 'no_encontrado'] }),

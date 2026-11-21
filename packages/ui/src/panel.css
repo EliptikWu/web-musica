@@ -60,7 +60,7 @@
   .volumen__mandos { display: flex; align-items: center; gap: 10px; }
   .volumen__mandos input[type="range"] { flex: 1; min-width: 0; height: 44px; accent-color: var(--crema); cursor: pointer; }
   .volumen__valor { flex: none; width: 4.5em; text-align: right; font-size: 18px; }
-  .actual__acciones .tecla { width: 132px; }
+  .actual__acciones .tecla { width: 152px; }
   @container (max-width: 560px) {
     .actual { flex-direction: column; align-items: stretch; }
     .actual__acciones { flex-direction: row; flex-wrap: wrap; }
@@ -199,6 +199,8 @@
     border-radius: var(--radio-dia); font-size: 14px; font-weight: 600; color: var(--crema-2); text-decoration: none;
     background: var(--hueco); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
   }
+  /* Con espacio, todas las secciones a la vista; en el teléfono se desliza. */
+  @media (min-width: 768px) { .panel-subnav { flex-wrap: wrap; overflow: visible; } }
   .panel-subnav a svg { width: 18px; height: 18px; }
   .panel-subnav a:hover { color: var(--crema); }
   .panel-subnav a[aria-current="page"] {
@@ -221,21 +223,38 @@
   .lista-gestion__titulo { font-size: 16px; font-weight: 700; }
   .lista-gestion__meta { font-size: 14px; color: var(--crema-2); margin-top: 2px; overflow-wrap: anywhere; }
   .lista-gestion__acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+  /* Filas con distinto número de teclas: cada acción queda en su columna. */
+  @media (min-width: 640px) {
+    .lista-gestion__acciones--columnas { display: grid; grid-template-columns: repeat(3, 7.5rem); }
+    .lista-gestion__acciones--columnas > * { width: 100%; }
+  }
   .etiqueta { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--radio-insignia); font-size: 12px; font-weight: 700; background: var(--hueco); color: var(--crema-2); vertical-align: 2px; margin-left: 6px; }
   .etiqueta--luz { background: var(--ambar); color: var(--tinta); }
   .etiqueta--cereza { background: var(--cereza); color: var(--crema); }
 
   .formulario-fila { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  /* Las entradas de una fila quedan a la misma altura aunque una ayuda ocupe más líneas. */
+  @supports (grid-template-rows: subgrid) {
+    .formulario-fila { row-gap: 0; margin-bottom: -14px; }
+    .caja.formulario-fila { margin-bottom: 0; padding-bottom: 2px; }
+    .formulario-fila > .campo { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; padding-bottom: 14px; }
+    .formulario-fila > .campo > .campo__etiqueta { grid-row: 1; }
+    .formulario-fila > .campo > .campo__ayuda { grid-row: 2; margin-top: 6px; }
+    .formulario-fila > .campo > .campo__entrada { grid-row: 3; margin-top: 6px; }
+    .formulario-fila > .campo > .campo__error { grid-row: 4; margin-top: 6px; }
+  }
   .campo__entrada--hora { max-width: 9rem; }
   /* AÑADIDO (RF-058): el código que muestra la TV, con el mismo ancho condensado de sus teclas. */
   .campo__entrada--codigo { max-width: 12rem; font-stretch: 75%; font-weight: 800; font-size: 24px; letter-spacing: .18em; text-transform: uppercase; }
-  select.campo__entrada { appearance: auto; }
+  /* El navegador suma unos 4 px dentro del select: así su texto alinea con el de los demás campos. */
+  select.campo__entrada { appearance: auto; padding-inline-start: 10px; }
 
   /* Editor del horario: un día por fila. */
   .horario-dias { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-  .horario-dia { display: grid; grid-template-columns: 9rem 1fr; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radio-tecla); background: var(--hueco); }
+  .horario-dia { display: grid; grid-template-columns: 9rem 1fr; align-items: center; gap: 12px; min-height: 68px; padding: 10px 12px; border-radius: var(--radio-tecla); background: var(--hueco); }
   .horario-dia__horas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .horario-dia__horas .campo { flex-direction: row; align-items: center; gap: 8px; }
+  .horario-dia__horas .campo__etiqueta { min-width: 3rem; }
   .interruptor { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 700; cursor: pointer; }
   .interruptor input { width: 22px; height: 22px; accent-color: var(--ambar); cursor: pointer; }
   @media (max-width: 560px) { .horario-dia { grid-template-columns: 1fr; } }
@@ -256,7 +275,20 @@
   .qr-grande { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
   .qr-grande__codigo { flex: none; width: 196px; height: 196px; padding: 12px; background: var(--qr-fondo); border-radius: var(--radio-tecla); box-shadow: 0 0 0 4px rgba(0, 0, 0, .25); }
   .qr-grande__codigo svg { width: 100%; height: 100%; display: block; }
+  .qr-grande__info { flex: 1 1 11rem; min-width: 0; }
   .qr-grande__url { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+  .qr-destino { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radio-tecla); background: var(--hueco); }
+  .qr-destino .grupo-teclas label { flex: 1 1 8rem; }
+  .qr-destino .grupo-teclas .tecla { width: 100%; }
+  .qr-destino__nota { font-size: 14px; color: var(--crema-2); }
+  .qr-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: auto; }
+  .qr-acciones > * { width: 100%; }
+  .qr-acciones > :last-child { grid-column: 1 / -1; }
+  @media (min-width: 640px) and (max-width: 1099px) {
+    .qr-acciones { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .qr-acciones > :last-child { grid-column: auto; }
+  }
+  .grupo-teclas input:disabled ~ .tecla { opacity: .55; cursor: not-allowed; }
 
   /* El manual: pasos numerados (sí son una secuencia) con su captura. */
   .manual-seccion { scroll-margin-top: 16px; }

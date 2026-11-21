@@ -1,4 +1,5 @@
 import type { Resultado } from '../motor';
+import { APK_DE_EJEMPLO } from '../gestion';
 import {
   anotarAviso, buscar, cambiarVoto, construirAhora, construirDestacadas, construirYo, pedirCancion, quitarVoto, registrarDispositivo, retirarPedido, votar,
 } from '../motor';
@@ -14,7 +15,10 @@ function conDispositivo<T>(p: Peticion, fn: (dispositivo: string) => Resultado<T
 
 export const manejadoresCliente = [
   manejar('resolverQr', ({ estado, parametros }) => {
-    if (parametros.token === estado.qr.token) return ok({ slug: estado.bar.slug });
+    if (parametros.token === estado.qr.token) {
+      const destino = estado.qr.destino ?? 'web';
+      return ok({ slug: estado.bar.slug, destino, apk_url: destino === 'app' ? APK_DE_EJEMPLO : null });
+    }
     if (estado.qr.anteriores.includes(parametros.token ?? '')) return error(410, 'qr_reemplazado', 'Este QR ya no está en uso');
     return error(404, 'no_encontrado', 'Ese QR no existe');
   }),

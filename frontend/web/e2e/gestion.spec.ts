@@ -154,6 +154,43 @@ test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', a
   expect(pedidas).toEqual([]);
 });
 
+test('destino del QR: el mismo código abre la web o, en Android, ofrece la app (RF-065)', async ({ page, browser }) => {
+  await entrar(page);
+  await page.goto('/panel/establecimiento');
+  const qr = page.getByRole('region', { name: 'Código QR de las mesas' });
+  const url = (await qr.locator('.qr-grande__url').textContent())!;
+  await expect(qr.getByRole('radio', { name: 'Abrir la web' })).toBeChecked();
+  await sinViolaciones(page, 'destino del QR');
+  await qr.getByRole('radio', { name: 'Descargar la app' }).check();
+  await expect(qr.getByText('Listo: el QR ahora ofrece la app.')).toBeVisible();
+  await expect(qr.locator('.qr-grande__url')).toHaveText(url);
+  const estado = await page.evaluate(() => localStorage.getItem('rockola.sim.v1'));
+  const ruta = url.slice(url.indexOf('/q/'));
+
+  for (const [agente, ofrece] of [
+    ['Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/131.0 Mobile Safari/537.36', true],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1', false],
+  ] as const) {
+    const contexto = await browser.newContext({ userAgent: agente, viewport: { width: 360, height: 760 }, baseURL: new URL(page.url()).origin });
+    await contexto.addInitScript((e) => { if (e && !localStorage.getItem('rockola.sim.v1')) localStorage.setItem('rockola.sim.v1', e); }, estado);
+    const telefono = await contexto.newPage();
+    await telefono.goto('/');
+    await telefono.waitForFunction(() => Boolean(navigator.serviceWorker?.controller), undefined, { timeout: 15_000 });
+    await telefono.goto(ruta);
+    if (ofrece) {
+      await expect(telefono.getByRole('heading', { name: 'Pide tu música con la app' })).toBeVisible();
+      await expect(telefono.getByRole('link', { name: 'Descargar la app' })).toHaveAttribute('href', /\.apk$/);
+      await sinViolaciones(telefono, 'descargar la app');
+      await telefono.getByRole('link', { name: 'Seguir en la web' }).click();
+    }
+    await expect(telefono).toHaveURL(/\/b\/demo/);
+    await contexto.close();
+  }
+
+  await qr.getByRole('radio', { name: 'Abrir la web' }).check();
+  await expect(qr.getByText('Listo: el QR ahora abre la web.')).toBeVisible();
+});
+
 test('diseño de la rockola: el Administrador lo elige y el teléfono lo toma (RF-059)', async ({ page }) => {
   await entrar(page);
   await page.goto('/panel/establecimiento');

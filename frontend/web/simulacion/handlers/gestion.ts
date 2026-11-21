@@ -1,7 +1,7 @@
 import type { CambioEstablecimiento, CuerpoEvento, Franja } from '@rockola/contrato';
 import type { z } from 'zod';
 import {
-  activarLista, agregarALista, bitacora, buscarCatalogo, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEstablecimiento,
+  activarLista, agregarALista, bitacora, buscarCatalogo, cambiarDestinoQr, cambiarEstadoUsuario, crearEvento, crearLista, crearUsuario, editarEstablecimiento,
   editarEvento, editarUsuario, eliminarEvento, eliminarLista, establecimientoAContrato, guardarHorario, listaDetalle, listaResumen,
   desvincularPantalla, listarEventos, listarPantallas, listarUsuarios, ordenarLista, qrAContrato, quitarDeLista, regenerarQr, renombrarLista,
   restablecerClave, vincularPantalla,
@@ -53,6 +53,7 @@ export const manejadoresGestion = [
   manejar('editarEstablecimiento', (p) => editarEstablecimiento(p.estado, cuerpo<z.infer<typeof CambioEstablecimiento>>(p), quien(p), p.ahora)),
   manejar('qrEstablecimiento', ({ estado }) => ok(qrAContrato(estado, location.origin))),
   manejar('regenerarQr', (p) => regenerarQr(p.estado, location.origin, quien(p), p.ahora)),
+  manejar('destinoQr', (p) => cambiarDestinoQr(p.estado, cuerpo<{ destino: 'web' | 'app' }>(p).destino, location.origin, quien(p), p.ahora)),
 
   // Pantallas del bar (RF-058)
   manejar('pantallas', ({ estado }) => listarPantallas(estado)),

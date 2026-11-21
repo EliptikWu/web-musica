@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Duration
@@ -251,7 +252,12 @@ class ContratoPlataformaService(
          VALUES (?, 'disponible', 3, 600, 60)""",
       idBar,
     )
-    qr.crearParaEstablecimiento(idBar)
+    try {
+      qr.crearParaEstablecimiento(idBar)
+    } catch (e: ResponseStatusException) {
+      if (e.statusCode != HttpStatus.SERVICE_UNAVAILABLE) throw e
+      throw ContratoApiException(HttpStatus.INTERNAL_SERVER_ERROR, "error_interno", "Falta configurar la dirección pública del QR")
+    }
     val (fila, clave) = insertarCuenta(idBar, nombreAdmin, correoAdmin, "administrador")
     return mapOf("bar" to bar(idBar, slug, nombre, zona, true, listOf(fila)), "clave_temporal" to clave)
   }

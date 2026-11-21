@@ -153,7 +153,7 @@ export function PantallaBar({ slug }: { slug: string }) {
             <LuzEstado encendida={!apagada && !caida}>{caida ? conexion.luz : luzServicio(estado)}</LuzEstado>
           </div>
           <LadoDerecho foto={foto} bar={bar.data} avance={avance} />
-          <PlacaQr url={qr.data?.url ?? null} />
+          <PlacaQr url={qr.data?.url ?? null} conApp={qr.data?.destino === 'app'} />
         </section>
       </div>
 
@@ -235,7 +235,7 @@ function FilaTv({ item, espera }: { item: ItemCola; espera: number }) {
   );
 }
 
-function PlacaQr({ url }: { url: string | null }) {
+function PlacaQr({ url, conApp }: { url: string | null; conApp: boolean }) {
   return (
     <div className="qr-tv">
       <div className="qr-tv__placa">
@@ -246,7 +246,7 @@ function PlacaQr({ url }: { url: string | null }) {
         </div>
         <div>
           <h2 className="placa">{TV.escaneaYVota}</h2>
-          <p>{TV.sinDescargas}</p>
+          {conApp ? null : <p>{TV.sinDescargas}</p>}
           {url ? <p className="qr-tv__enlace">{url.replace(/^https?:\/\//, '')}</p> : null}
         </div>
       </div>

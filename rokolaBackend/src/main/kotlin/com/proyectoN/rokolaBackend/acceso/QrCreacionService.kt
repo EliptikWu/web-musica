@@ -71,7 +71,7 @@ class QrCreacionService(
     if (baseUrl.isBlank()) {
       throw ResponseStatusException(
         HttpStatus.SERVICE_UNAVAILABLE,
-        "Configura ROKOLA_QR_BASE_URL con la IP Wi-Fi del computador (http://IP:8080)",
+        "Configura ROKOLA_QR_BASE_URL con la dirección pública de la web",
       )
     }
     val uri = try { URI.create(baseUrl.trim()) } catch (_: IllegalArgumentException) {

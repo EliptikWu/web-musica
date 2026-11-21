@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Franja, Servicio, Tema } from './bar.ts';
+import { DestinoQr, Franja, Servicio, Tema } from './bar.ts';
 import { Cancion } from './cancion.ts';
 import { ItemCola, Reproduccion, Volumen } from './cola.ts';
 import { Fecha, Id, Segundos, Slug } from './comunes.ts';
@@ -219,7 +219,17 @@ export const Establecimiento = z
 export type Establecimiento = z.infer<typeof Establecimiento>;
 // `tema` sin valor por defecto: un PATCH que no lo trae no debe devolver el bar a Rockola.
 export const CambioEstablecimiento = Establecimiento.omit({ id: true, slug: true, estado: true }).extend({ tema: Tema }).partial().meta({ id: 'CambioEstablecimiento' });
-export const QrEstablecimiento = z.object({ url: z.url(), token: z.string(), generado_en: Fecha }).meta({ id: 'QrEstablecimiento' });
+export const QrEstablecimiento = z
+  .object({
+    url: z.url().nullable().describe('null: el bar no tiene un QR que se pueda dibujar y hay que generarlo'),
+    token: z.string().nullable(),
+    generado_en: Fecha.nullable(),
+    destino: DestinoQr.describe('RF-065: lo que pasa de verdad al escanear'),
+    apk_disponible: z.boolean().describe('Si hay un instalador publicado para elegir `app`'),
+  })
+  .meta({ id: 'QrEstablecimiento' });
+export type QrEstablecimiento = z.infer<typeof QrEstablecimiento>;
+export const CuerpoDestinoQr = z.object({ destino: DestinoQr }).meta({ id: 'CuerpoDestinoQr' });
 
 // ── Calendario de eventos (RF-045) ────────────────────────────────────────────
 

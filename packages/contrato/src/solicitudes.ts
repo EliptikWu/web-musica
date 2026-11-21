@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DestinoQr } from './bar.ts';
 import { Id, Segundos } from './comunes.ts';
 
 export const CuerpoSolicitud = z.object({ video_id: z.string().min(1) }).meta({ id: 'CuerpoSolicitud' });
@@ -37,5 +38,11 @@ export type RespuestaRetiroPedido = z.infer<typeof RespuestaRetiroPedido>;
 export const CuerpoCambioVoto = z.object({ desde: Id, hacia: Id }).meta({ id: 'CuerpoCambioVoto' });
 export type CuerpoCambioVoto = z.infer<typeof CuerpoCambioVoto>;
 
-export const ResolucionQr = z.object({ slug: z.string() }).meta({ id: 'ResolucionQr' });
-export const QrPublico = z.object({ url: z.url() }).meta({ id: 'QrPublico' });
+export const ResolucionQr = z
+  .object({
+    slug: z.string(),
+    destino: DestinoQr.default('web').describe('RF-065: `app` ofrece descargar la app'),
+    apk_url: z.url().nullable().default(null).describe('Solo con destino `app`'),
+  })
+  .meta({ id: 'ResolucionQr' });
+export const QrPublico = z.object({ url: z.url(), destino: DestinoQr.default('web') }).meta({ id: 'QrPublico' });

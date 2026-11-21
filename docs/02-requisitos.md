@@ -158,6 +158,13 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-054 | Retroalimentación de hallazgos a la operación | Could | PB-49 | 5 | F+B |
 | RF-063 | Cubo de participación (OLAP) en el tablero | Should | PB-45, PB-47, PB-48 | 15 | F+B |
 | RF-064 | Plataforma: crear bares y sus cuentas (nuevo, 2026-11-21) | Must | — | 24 | F+B |
+| RF-065 | Destino del QR: web o descargar la app (nuevo, 2026-11-21) | Should | — | 26 | F+B |
+
+**RF-065 — Destino del QR.** Añadido el 2026-11-21 (D18). El Administrador elige con un interruptor si
+el QR de su bar abre la web o ofrece descargar la app. Cambia sin reimprimir: el código es el mismo.
+Con «app», Android ve la descarga y la opción de seguir en la web; iPhone y computador siguen en
+la web. Sin instalador publicado (`ROKOLA_APK_URL` y `ROKOLA_WEB_URL`), la opción no se puede elegir y el
+QR abre la web.
 
 **RF-064 — Plataforma (superadmin).** Añadido el 2026-11-21 (D16). Quien administra Rockola entra
 en `/plataforma`, ve todos los bares con sus cuentas, crea un bar con su primer Administrador y
