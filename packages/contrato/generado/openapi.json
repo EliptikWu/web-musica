@@ -455,6 +455,100 @@
           "no_disponible"
         ]
       },
+      "CeldaCubo": {
+        "type": "object",
+        "properties": {
+          "genero": {
+            "type": "string",
+            "description": "`*`: todos"
+          },
+          "franja": {
+            "type": "string",
+            "description": "`*`: todas"
+          },
+          "tercero": {
+            "type": "string",
+            "description": "Día o tipo de evento; `*`: todos"
+          },
+          "solicitudes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "votos": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "telefonos": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Usuarios únicos de la celda"
+          },
+          "no_sonaron": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "espera_promedio_seg": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            ]
+          },
+          "espera_maxima_seg": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Segundos"
+              }
+            ]
+          },
+          "pedidos_seg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "lista_casa_seg": {
+            "type": "number",
+            "minimum": 0
+          },
+          "popular": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "cancion": {
+                "$ref": "#/components/schemas/Cancion"
+              },
+              "votos": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "solicitudes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "cancion",
+              "votos",
+              "solicitudes"
+            ]
+          }
+        },
+        "required": [
+          "genero",
+          "franja",
+          "tercero",
+          "solicitudes",
+          "votos",
+          "telefonos",
+          "no_sonaron",
+          "espera_promedio_seg",
+          "espera_maxima_seg",
+          "pedidos_seg",
+          "lista_casa_seg",
+          "popular"
+        ]
+      },
       "ClaveTemporal": {
         "type": "object",
         "properties": {
@@ -576,6 +670,62 @@
           "datos",
           "agrupar",
           "grupos"
+        ]
+      },
+      "CuboAnalitica": {
+        "type": "object",
+        "properties": {
+          "datos": {
+            "$ref": "#/components/schemas/OrigenDatos"
+          },
+          "eje": {
+            "type": "string",
+            "enum": [
+              "dia",
+              "evento"
+            ],
+            "description": "Qué es el tercer eje"
+          },
+          "miembros": {
+            "type": "object",
+            "properties": {
+              "genero": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "franja": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "tercero": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "genero",
+              "franja",
+              "tercero"
+            ]
+          },
+          "celdas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CeldaCubo"
+            }
+          }
+        },
+        "required": [
+          "datos",
+          "eje",
+          "miembros",
+          "celdas"
         ]
       },
       "CuerpoActivacion": {
@@ -2029,7 +2179,8 @@
             "description": "`ejemplo`: datos inventados de la simulación; la interfaz lo rotula"
           },
           "actualizado_en": {
-            "description": "Última carga del pipeline",
+            "nullable": true,
+            "description": "Última carga del pipeline; `null` si todavía no ha corrido",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Fecha"
@@ -7951,6 +8102,73 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ListaRecomendaciones"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/analitica/cubo": {
+      "get": {
+        "operationId": "cuboAnalitica",
+        "summary": "Cubo de KPI por género, franja y día o tipo de evento",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-063. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "eje",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuboAnalitica"
                 }
               }
             }

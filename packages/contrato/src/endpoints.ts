@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ComparacionAnalitica, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
+import { ComparacionAnalitica, CuboAnalitica, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
 import { Bar } from './bar.ts';
 import { Busqueda } from './busqueda.ts';
 import { Ahora, Destacada } from './cola.ts';
@@ -140,6 +140,7 @@ export const endpoints = {
   guardarUmbrales: definir({ metodo: 'PUT', ruta: '/panel/analitica/umbrales', resumen: 'Cambiar los umbrales del diagnóstico', superficie: 'panel', rf: ['RF-052'], cuerpo: UmbralesAnalitica, respuesta: UmbralesAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   compararAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/comparacion', resumen: 'Indicadores por noche, día de la semana o tipo de evento', superficie: 'panel', rf: ['RF-053'], consulta: z.object({ agrupar: z.enum(['noche', 'dia', 'evento']), noches: z.string().optional().describe('IDs separados por coma (con agrupar=noche)'), desde: z.string().optional(), hasta: z.string().optional() }), respuesta: ComparacionAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   recomendacionesAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/recomendaciones', resumen: 'Recomendaciones para la operación (no se aplican solas)', superficie: 'panel', rf: ['RF-054'], consulta: FiltroAnalitica, respuesta: ListaRecomendaciones, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
+  cuboAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/cubo', resumen: 'Cubo de KPI por género, franja y día o tipo de evento', superficie: 'panel', rf: ['RF-063'], consulta: z.object({ eje: z.enum(['dia', 'evento']).optional() }), respuesta: CuboAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
 } as const satisfies Record<string, Endpoint>;
 
 export type Endpoints = typeof endpoints;

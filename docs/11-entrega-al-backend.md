@@ -104,11 +104,11 @@ hace la línea base sobre una base que ya tiene tablas.
 | 2026-11-12 | Pausa de lo que suena (RF-040), quitar mi voto (RF-060), retirar mi pedido (RF-061) y top 3 en `destacadas` | `db/migration/V3__pausa_reproduccion.sql`, `reproduccion/ReproduccionReloj.kt`, `reproduccion/ReproduccionConsultaRepository.kt`, `compat/ContratoPausaService.kt`, `compat/ContratoParticipacionService.kt` y su controlador, `compat/ContratoEstadoService.kt`, `compat/ContratoPantallaService.kt`, `config/SecurityConfig.kt` | Que `accion_admin.tipo` admita `pausar_reproduccion` y `reanudar_reproduccion`, y `evento_analitico.nombre_evento` los eventos `quitar_voto` y `retirar_pedido`. Se cambió `ReproduccionConsultaRepository`, que usa también el flujo antiguo |
 | 2026-11-12 | Volumen de la pantalla desde el panel (RF-062) | `db/migration/V4__volumen_pantalla.sql`, `compat/ContratoVolumenService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoEstadoService.kt`, `compat/ContratoNocheService.kt` | Que `accion_admin.tipo` admita `cambiar_volumen`. El volumen sale en la misma consulta del bar de `ahora`; un evento `volumen` no despierta la reproducción automática (`ReproduccionAutomaticaService`) |
 | 2026-11-12 | Rapidez de la búsqueda: consultas en lote, la foto de la cola solo si coincide, caché de 6 h (`youtube.cache.horas`) | `compat/ContratoBusquedaService.kt`, `youtube/YoutubeCacheRepository.kt` | Confirmar las 6 h *(propuesto)* frente a la cuota de YouTube; el autocompletado sigue en 30 min. Medición en el doc 07 |
+| 2026-11-20 | Capa de Big Data (D15, ADR-27): pipeline con PySpark, modelo `analitica`, las 9 rutas del tablero y el cubo de KPI (RF-063) | `pipeline/`, `db/migration/V5__modelo_analitico.sql`, `compat/ContratoAnaliticaService.kt`, `compat/ContratoAnaliticaController.kt`, `compat/ContratoError.kt` | Que `cancion.categoria` traiga el género, quién programa el pipeline al cerrar la noche y dónde se guarda `ROCKOLA_SEUDONIMO_CLAVE`. Doc 04, pendiente 17 |
 
 ## Lo que el frontend no hace
 
 - Llamar a YouTube: la búsqueda pasa por el backend (cuota, caché y claves, RF-008, PB-54).
-- El pipeline de analítica (RF-047, RF-048) ni los agregados del tablero (ADR-18).
 - Sonido del local (PB-52) y respaldo de las más votadas (PB-53): no tienen pantalla.
 - Registrar los eventos de uso (RF-046), incluido el cambio de voto.
 

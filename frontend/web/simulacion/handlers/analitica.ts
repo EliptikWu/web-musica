@@ -1,5 +1,5 @@
 import type { UmbralesAnalitica } from '@rockola/contrato';
-import { comparar, diagnostico, type Filtro, nochesDeEjemplo, origenDatos, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from '../analitica';
+import { comparar, cubo, diagnostico, type Filtro, nochesDeEjemplo, origenDatos, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from '../analitica';
 import { anotar } from '../gestion';
 import { error, manejar, ok, type Peticion } from './comun';
 
@@ -55,4 +55,9 @@ export const manejadoresAnalitica = [
   manejar('recomendacionesAnalitica', (p) =>
     conNoches(p, (todas, elegidas) => ({ datos: origenDatos(todas, elegidas), recomendaciones: recomendaciones(p.estado, elegidas, p.ahora) })),
   ),
+  manejar('cuboAnalitica', (p) => {
+    const eje = p.consulta.get('eje') ?? 'dia';
+    if (eje !== 'dia' && eje !== 'evento') return error(400, 'datos_invalidos', 'El tercer eje es día o evento');
+    return ok(cubo(nochesDeEjemplo(p.estado), eje));
+  }),
 ];

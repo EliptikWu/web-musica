@@ -39,6 +39,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D12 | 2026-11-10 | La app Android entra al repositorio en `frontend/movil`, y la web pasa a `frontend/web` (ADR-24) | Usuario |
 | D13 | 2026-11-11 | Reemplaza a D2. Se implementan también **Vidrio** y **Afiche**, fieles a sus prototipos, y el Administrador elige el de su bar (RF-059, ADR-25). El diseño cambia el teléfono y la TV; el panel sigue en Rockola. La app Android, por ahora, sigue en Rockola | Usuario |
 | D14 | 2026-11-12 | El equipo de frontend hace en `rokolaBackend/` lo que el frontend necesita y el backend no tiene (empezando por `tema` y la edición del establecimiento), con su prueba y anotado en el doc 11 y el doc 04 para que el equipo de backend lo revise. La base de Railway está apagada: se prueba contra un esquema reconstruido del código | Usuario |
+| D15 | 2026-11-20 | Este equipo hace también la capa de Big Data del Entregable 6: pipeline con Spark, rutas de analítica en el backend, tablero con datos reales y un cubo OLAP en el sistema Rockola cuyas celdas son los KPI del entregable (RF-063, ADR-27) | Usuario |
 
 ## Decisiones abiertas
 

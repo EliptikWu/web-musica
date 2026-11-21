@@ -1,8 +1,8 @@
-import type {
-  CausaNoSono, ComparacionAnalitica, DiagnosticoAnalitica, NocheAnalitica, OrigenDatos, ParticipacionAnalitica, Recomendacion, ResumenAnalitica,
-  UmbralesAnalitica,
+import {
+  type CausaNoSono, type CeldaCubo, type ComparacionAnalitica, type CuboAnalitica, type DiagnosticoAnalitica, type NocheAnalitica, type OrigenDatos,
+  type ParticipacionAnalitica, type Recomendacion, type ResumenAnalitica, TODOS_CUBO, type UmbralesAnalitica,
 } from '@rockola/contrato';
-import { localAIso } from '../lib/formato';
+import { localAIso, nombreGenero } from '../lib/formato';
 import { CATALOGO, LISTA_SALSA_Y_TROPICAL } from './datos/catalogo';
 import { aContrato, bloqueoVigente } from './motor';
 import type { CancionSim, EstadoSim } from './tipos';
@@ -32,7 +32,7 @@ type SolicitudA = {
   estado: 'sono' | Causa;
   inicio: number | null;
 };
-type ReproduccionA = { inicio: number; video_id: string; origen: 'solicitud' | 'lista_casa'; votos: number };
+type ReproduccionA = { inicio: number; video_id: string; origen: 'solicitud' | 'lista_casa'; votos: number; segundos: number };
 export type NocheA = {
   noche: NocheAnalitica;
   /** La zona del bar: las fechas y las horas del tablero son las de allá. */
@@ -157,8 +157,8 @@ function generarNoche(fecha: string, evento: NocheAnalitica['evento'], ventana: 
     const listas = pendientes.filter((s) => s.pedida <= t);
     if (listas.length === 0) {
       const c = CASA[indiceCasa++ % CASA.length]!;
-      reproducciones.push({ inicio: t, video_id: c.video_id, origen: 'lista_casa', votos: 0 });
       const dura = Math.min(c.duracion_seg * 1000, ventana.fin - t);
+      reproducciones.push({ inicio: t, video_id: c.video_id, origen: 'lista_casa', votos: 0, segundos: Math.round(dura / 1000) });
       casa_seg += Math.round(dura / 1000);
       t += c.duracion_seg * 1000;
       continue;
@@ -178,9 +178,10 @@ function generarNoche(fecha: string, evento: NocheAnalitica['evento'], ventana: 
     const omitida = r.numero() < 0.035;
     s.inicio = t;
     s.estado = omitida ? 'omitida' : 'sono';
-    reproducciones.push({ inicio: t, video_id: s.video_id, origen: 'solicitud', votos: s.votos.length });
     const dura = omitida ? 40 : c.duracion_seg;
-    pedidos_seg += Math.min(dura, Math.round((ventana.fin - t) / 1000));
+    const sonados = Math.min(dura, Math.round((ventana.fin - t) / 1000));
+    reproducciones.push({ inicio: t, video_id: s.video_id, origen: 'solicitud', votos: s.votos.length, segundos: sonados });
+    pedidos_seg += sonados;
     t += dura * 1000;
   }
   for (const s of pendientes) {
@@ -460,6 +461,117 @@ function etiquetaNoche(n: NocheA): string {
   const { dia, mes } = enZona(n.inicio, n.zona);
   const nombre = DIAS[n.noche.dia_semana]!.slice(0, 3).toLowerCase();
   return `${nombre} ${dia} ${['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][mes - 1]}`;
+}
+
+// ── RF-063: el cubo de KPI (las mismas reglas que el pipeline de Spark) ────
+
+const FRANJAS_CUBO = ['Antes de las 9', '9 a 11 p. m.', '11 p. m. a 1 a. m.', 'Después de la 1'];
+const DIAS_CUBO = ['Jueves', 'Viernes', 'Sábado', 'Otros días'];
+
+function franjaCubo(hora: number): string {
+  if (hora === 21 || hora === 22) return FRANJAS_CUBO[1]!;
+  if (hora === 23 || hora === 0) return FRANJAS_CUBO[2]!;
+  if (hora >= 1 && hora <= 5) return FRANJAS_CUBO[3]!;
+  return FRANJAS_CUBO[0]!;
+}
+
+const diaCubo = (dia: number) => (dia === 4 ? 'Jueves' : dia === 5 ? 'Viernes' : dia === 6 ? 'Sábado' : 'Otros días');
+
+/** Los `n` con más peso; el resto va a «Otros» para que el cubo se pueda leer. */
+function principales(pesos: Map<string, number>, n: number): Set<string> {
+  return new Set([...pesos.entries()].sort(([a, x], [b, y]) => y - x || a.localeCompare(b)).slice(0, n).map(([k]) => k));
+}
+
+type Acumulado = {
+  solicitudes: number; votos: number; telefonos: Set<string>; no_sonaron: number; espera: number; esperas: number; maxima: number | null;
+  pedidos_seg: number; lista_casa_seg: number; canciones: Map<string, { votos: number; solicitudes: number }>;
+};
+
+export function cubo(todas: NocheA[], eje: 'dia' | 'evento'): CuboAnalitica {
+  const generoDe = (video: string) => nombreGenero(CATALOGO[video]!.genero === 'sin_clasificar' ? null : CATALOGO[video]!.genero);
+  const tipoDe = (n: NocheA) => n.noche.evento?.tipo_evento ?? 'normal';
+  const pesosGenero = new Map<string, number>();
+  for (const n of todas) for (const s of n.solicitudes) pesosGenero.set(generoDe(s.video_id), (pesosGenero.get(generoDe(s.video_id)) ?? 0) + 1);
+  const generos = principales(pesosGenero, 3);
+  const pesosEvento = new Map<string, number>();
+  for (const n of todas) pesosEvento.set(tipoDe(n), (pesosEvento.get(tipoDe(n)) ?? 0) + 1);
+  const eventos = principales(pesosEvento, 3);
+  const NOMBRE_TIPO: Record<string, string> = { normal: 'Normal', karaoke: 'Karaoke', partido: 'Partido', tematica: 'Temática', otro: 'Otro' };
+  const generoCubo = (video: string) => (generos.has(generoDe(video)) ? generoDe(video) : 'Otros');
+  const terceroDe = (n: NocheA) => (eje === 'dia' ? diaCubo(n.noche.dia_semana) : eventos.has(tipoDe(n)) ? NOMBRE_TIPO[tipoDe(n)]! : 'Otros');
+
+  // Cada hecho entra en sus 8 celdas (cada eje, con su valor o con «Todos»): nada se suma después.
+  const celdas = new Map<string, { g: string; f: string; t: string; a: Acumulado }>();
+  const tocar = (g: string, f: string, t: string, aplicar: (a: Acumulado) => void) => {
+    for (const gg of [g, TODOS_CUBO]) for (const ff of [f, TODOS_CUBO]) for (const tt of [t, TODOS_CUBO]) {
+      const clave = `${gg}|${ff}|${tt}`;
+      let c = celdas.get(clave);
+      if (!c) {
+        c = { g: gg, f: ff, t: tt, a: { solicitudes: 0, votos: 0, telefonos: new Set(), no_sonaron: 0, espera: 0, esperas: 0, maxima: null, pedidos_seg: 0, lista_casa_seg: 0, canciones: new Map() } };
+        celdas.set(clave, c);
+      }
+      aplicar(c.a);
+    }
+  };
+  const deCancion = (a: Acumulado, video: string) => {
+    let x = a.canciones.get(video);
+    if (!x) a.canciones.set(video, (x = { votos: 0, solicitudes: 0 }));
+    return x;
+  };
+  for (const n of todas) {
+    const t = terceroDe(n);
+    for (const s of n.solicitudes) {
+      const g = generoCubo(s.video_id);
+      tocar(g, franjaCubo(horaLocal(s.pedida, n.zona)), t, (a) => {
+        a.solicitudes += 1;
+        a.telefonos.add(s.dispositivo);
+        deCancion(a, s.video_id).solicitudes += 1;
+        if (s.estado !== 'sono') a.no_sonaron += 1;
+        if (s.inicio !== null) {
+          const espera = Math.max(0, Math.round((s.inicio - s.pedida) / 1000));
+          a.espera += espera;
+          a.esperas += 1;
+          a.maxima = Math.max(a.maxima ?? 0, espera);
+        }
+      });
+      for (const v of s.votos) {
+        tocar(g, franjaCubo(horaLocal(v.en, n.zona)), t, (a) => {
+          a.votos += 1;
+          a.telefonos.add(v.dispositivo);
+          deCancion(a, s.video_id).votos += 1;
+        });
+      }
+    }
+    for (const r of n.reproducciones) {
+      tocar(generoCubo(r.video_id), franjaCubo(horaLocal(r.inicio, n.zona)), t, (a) => {
+        if (r.origen === 'solicitud') a.pedidos_seg += r.segundos;
+        else a.lista_casa_seg += r.segundos;
+      });
+    }
+  }
+
+  const salida: CeldaCubo[] = [...celdas.values()].map(({ g, f, t, a }) => {
+    const top = [...a.canciones.entries()].sort(([x, p], [y, q]) => q.votos - p.votos || q.solicitudes - p.solicitudes || x.localeCompare(y))[0];
+    return {
+      genero: g, franja: f, tercero: t, solicitudes: a.solicitudes, votos: a.votos, telefonos: a.telefonos.size, no_sonaron: a.no_sonaron,
+      espera_promedio_seg: a.esperas > 0 ? Math.round(a.espera / a.esperas) : null, espera_maxima_seg: a.maxima,
+      pedidos_seg: a.pedidos_seg, lista_casa_seg: a.lista_casa_seg,
+      popular: top ? { cancion: contrato(top[0]), votos: top[1].votos, solicitudes: top[1].solicitudes } : null,
+    };
+  });
+  const presentes = (clave: 'genero' | 'franja' | 'tercero') => new Set(salida.map((c) => c[clave]).filter((m) => m !== TODOS_CUBO));
+  const otrosAlFinal = (a: string, b: string) => Number(a.startsWith('Otros')) - Number(b.startsWith('Otros'));
+  const peso = (clave: 'genero' | 'tercero', m: string) => salida.find((c) => c[clave] === m && [c.genero, c.franja, c.tercero].filter((x) => x === TODOS_CUBO).length === 2)?.solicitudes ?? 0;
+  return {
+    datos: origenDatos(todas, todas),
+    eje,
+    miembros: {
+      genero: [...presentes('genero')].sort((a, b) => otrosAlFinal(a, b) || peso('genero', b) - peso('genero', a)),
+      franja: FRANJAS_CUBO.filter((f) => presentes('franja').has(f)),
+      tercero: eje === 'dia' ? DIAS_CUBO.filter((d) => presentes('tercero').has(d)) : [...presentes('tercero')].sort((a, b) => otrosAlFinal(a, b) || peso('tercero', b) - peso('tercero', a)),
+    },
+    celdas: salida,
+  };
 }
 
 // ── RF-054 ─────────────────────────────────────────────────────────────────

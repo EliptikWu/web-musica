@@ -13,7 +13,7 @@ import { TipoEvento } from './panel.ts';
 export const OrigenDatos = z
   .object({
     origen: z.enum(['registrado', 'ejemplo']).describe('`ejemplo`: datos inventados de la simulación; la interfaz lo rotula'),
-    actualizado_en: Fecha.describe('Última carga del pipeline'),
+    actualizado_en: Fecha.nullable().describe('Última carga del pipeline; `null` si todavía no ha corrido'),
     noches: z.int().nonnegative().describe('Noches que entran en el cálculo'),
     desde: Fecha.nullable().describe('Inicio de la primera noche'),
     hasta: Fecha.nullable().describe('Inicio de la última noche (su fecha es la de la noche)'),
@@ -139,3 +139,38 @@ export const Recomendacion = z
 export type Recomendacion = z.infer<typeof Recomendacion>;
 
 export const ListaRecomendaciones = z.object({ datos: OrigenDatos, recomendaciones: z.array(Recomendacion) }).meta({ id: 'ListaRecomendaciones' });
+
+/** El miembro «Todos» de cada eje del cubo. */
+export const TODOS_CUBO = '*';
+
+/**
+ * RF-063: una celda del cubo con los KPI del Entregable 6. Usuarios únicos, esperas y canción
+ * más popular se calculan desde los hechos en cada celda: no se obtienen sumando otras.
+ */
+export const CeldaCubo = z
+  .object({
+    genero: z.string().describe('`*`: todos'),
+    franja: z.string().describe('`*`: todas'),
+    tercero: z.string().describe('Día o tipo de evento; `*`: todos'),
+    solicitudes: z.int().nonnegative(),
+    votos: z.int().nonnegative(),
+    telefonos: z.int().nonnegative().describe('Usuarios únicos de la celda'),
+    no_sonaron: z.int().nonnegative(),
+    espera_promedio_seg: Segundos.nullable(),
+    espera_maxima_seg: Segundos.nullable(),
+    pedidos_seg: z.number().nonnegative(),
+    lista_casa_seg: z.number().nonnegative(),
+    popular: z.object({ cancion: Cancion, votos: z.int().nonnegative(), solicitudes: z.int().nonnegative() }).nullable(),
+  })
+  .meta({ id: 'CeldaCubo' });
+export type CeldaCubo = z.infer<typeof CeldaCubo>;
+
+export const CuboAnalitica = z
+  .object({
+    datos: OrigenDatos,
+    eje: z.enum(['dia', 'evento']).describe('Qué es el tercer eje'),
+    miembros: z.object({ genero: z.array(z.string()), franja: z.array(z.string()), tercero: z.array(z.string()) }),
+    celdas: z.array(CeldaCubo),
+  })
+  .meta({ id: 'CuboAnalitica' });
+export type CuboAnalitica = z.infer<typeof CuboAnalitica>;

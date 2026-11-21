@@ -92,6 +92,7 @@
 | `guardarUmbrales` | `PUT /panel/analitica/umbrales` | `UmbralesAnalitica` → `UmbralesAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-052 |
 | `compararAnalitica` | `GET /panel/analitica/comparacion?agrupar&noches&desde&hasta` | `ComparacionAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-053 |
 | `recomendacionesAnalitica` | `GET /panel/analitica/recomendaciones?noche&desde&hasta&dia_semana` | `ListaRecomendaciones` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-054 |
+| `cuboAnalitica` | `GET /panel/analitica/cubo?eje` | `CuboAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-063 |
 
 ## Tiempo real
 

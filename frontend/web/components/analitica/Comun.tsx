@@ -92,6 +92,7 @@ export function useNoches() {
 
 const PARTES = [
   { href: '/panel/analitica', texto: 'Resumen' },
+  { href: '/panel/analitica/cubo', texto: 'Cubo' },
   { href: '/panel/analitica/participacion', texto: 'Participación' },
   { href: '/panel/analitica/diagnostico', texto: 'Diagnóstico' },
   { href: '/panel/analitica/comparar', texto: 'Comparar' },
@@ -106,7 +107,8 @@ export function MarcoAnalitica({ children }: { children: ReactNode }) {
   const sinDia = new URLSearchParams(query);
   sinDia.delete('dia');
   const enlace = (href: string) => {
-    if (href === '/panel/analitica/comparar') return href;
+    // El cubo mira todas las noches cargadas: no lleva filtro.
+    if (href === '/panel/analitica/comparar' || href === '/panel/analitica/cubo') return href;
     const q = href === '/panel/analitica/participacion' ? query : sinDia.toString();
     return q ? `${href}?${q}` : href;
   };
@@ -138,7 +140,7 @@ export function OrigenDeLosDatos({ datos }: { datos: OrigenDatos }) {
       {datos.origen === 'ejemplo' ? <span className="etiqueta">Datos de ejemplo</span> : null}
       <span>{rango}</span>
       <span>
-        {conPunto(`Última carga: ${fechaYHora(datos.actualizado_en, zona)}`)} La noche en curso entra cuando se cierra.
+        {datos.actualizado_en ? conPunto(`Última carga: ${fechaYHora(datos.actualizado_en, zona)}`) : 'Todavía no se han cargado datos.'} La noche en curso entra cuando se cierra.
       </span>
     </p>
   );

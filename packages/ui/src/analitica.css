@@ -90,4 +90,100 @@
   .seleccion-noches { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 4px 12px; max-height: 15rem; overflow-y: auto; margin: 0; padding: 4px; }
   .seleccion-noches label { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
   .seleccion-noches input { width: 20px; height: 20px; accent-color: var(--ambar); }
+
+  /* ── Cubo de KPI (AÑADIDO, RF-063) ─────────────────────────────────────────────
+     El mecanismo de la rockola: cubitos de madera que se encienden en ámbar según el KPI.
+     Los totales son de papel, como las tarjetas de título: se distinguen sin depender del
+     color. La posición y el brillo llegan por variables (--x, --y, --z, --brillo). */
+  .cubo-mando { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; margin-top: 14px; }
+  /* Los KPI son las teclas del cubo: el elegido queda hundido, como «Votaste». */
+  .cubo-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.25rem, 1fr)); gap: 8px; margin-top: 10px; }
+  .cubo-kpi {
+    display: flex; flex-direction: column; gap: 4px; min-height: 92px; padding: 10px 12px; border: 0; border-radius: var(--radio-tecla);
+    font: inherit; text-align: left; color: var(--crema); background: var(--hueco); box-shadow: inset 0 0 0 1px var(--borde); cursor: pointer;
+  }
+  .cubo-kpi > span { font-size: 14px; line-height: 1.25; color: var(--crema-2); }
+  .cubo-kpi > b { font-size: 28px; font-weight: 800; font-stretch: 75%; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--ambar-claro); }
+  .cubo-kpi > .cubo-kpi__texto { font-size: 20px; }
+  .cubo-kpi small { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; font-stretch: 100%; color: var(--crema-2); }
+  .cubo-kpi[aria-pressed='true'] { background: var(--tecla-cara-hundida); box-shadow: inset 0 2px 3px var(--tecla-canto); }
+  .cubo-kpi[aria-pressed='true'] > span, .cubo-kpi[aria-pressed='true'] > b, .cubo-kpi[aria-pressed='true'] small { color: var(--tinta); }
+  .cubo-kpi:focus-visible, .cubo-miembro:focus-visible, .cubo-vistas button:focus-visible { outline: 2px solid var(--ambar-claro); outline-offset: 2px; }
+  .cubo-lab { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 16px; margin-top: 14px; }
+  @media (max-width: 1000px) { .cubo-lab { grid-template-columns: minmax(0, 1fr); } }
+  .cubo-escena-caja { display: flex; flex-direction: column; min-width: 0; padding: 0; overflow: hidden; }
+
+  .cubo-escena {
+    --lado: clamp(34px, 8.6cqi, 56px); --paso: calc(var(--lado) * 1.1);
+    position: relative; display: grid; place-items: center; height: clamp(370px, 54cqi, 540px); overflow: hidden;
+    container-type: inline-size; perspective: 1500px; touch-action: none; cursor: grab; user-select: none;
+    background: var(--nogal-hondo);
+  }
+  .cubo-escena:active { cursor: grabbing; }
+  .cubo-escena:focus-visible { outline: 2px solid var(--ambar-claro); outline-offset: -3px; }
+  .cubo { position: relative; width: 0; height: 0; transform-style: preserve-3d; transform: var(--giro, rotateX(-24deg) rotateY(-36deg)); }
+  .cubito {
+    position: absolute; width: var(--lado); height: var(--lado); margin: calc(var(--lado) / -2) 0 0 calc(var(--lado) / -2);
+    transform-style: preserve-3d;
+    transform: translate3d(calc(var(--x) * var(--paso)), calc(var(--y) * var(--paso)), calc(var(--z) * var(--paso)));
+    transition: transform var(--reordenar) ease-out;
+  }
+  .cubito > i {
+    position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; backface-visibility: hidden;
+    font-style: normal; font-size: calc(var(--lado) * .25); font-weight: 700; font-stretch: 75%; font-variant-numeric: tabular-nums;
+    color: var(--crema); box-shadow: inset 0 0 0 1px var(--borde);
+    background: color-mix(in srgb, var(--dato) calc(var(--brillo) * 100%), var(--madera-clara));
+    transition: opacity var(--reordenar) ease-out;
+  }
+  .cubito[data-encendido] > i { color: var(--tinta); }
+  .cubito[data-total] > i { color: var(--tinta); background: var(--papel-sombra); }
+  .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--ambar-claro); }
+  .cubito[data-total][data-activo] > i { background: var(--papel); box-shadow: inset 0 0 0 2px var(--tinta); }
+  .cubito[data-apagado] > i { opacity: .1; }
+  .cubito > i:nth-child(1) { transform: translateZ(calc(var(--lado) / 2)); }
+  .cubito > i:nth-child(2) { transform: rotateY(180deg) translateZ(calc(var(--lado) / 2)); }
+  .cubito > i:nth-child(3) { transform: rotateY(90deg) translateZ(calc(var(--lado) / 2)); }
+  .cubito > i:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--lado) / 2)); }
+  .cubito > i:nth-child(5) { transform: rotateX(90deg) translateZ(calc(var(--lado) / 2)); }
+  .cubito > i:nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--lado) / 2)); }
+  /* Rótulos de los miembros en tres aristas; en una caja angosta no caben y los dicen los botones. */
+  .cubo-rotulo {
+    position: absolute; white-space: nowrap; pointer-events: none; font-size: 12px; font-weight: 600; font-stretch: 75%; color: var(--crema-2);
+  }
+  .cubo-rotulo--g { transform: translate3d(calc(-100% - var(--borde-x) * var(--paso) - var(--lado) * .62), calc(var(--y) * var(--paso) - 50%), calc(var(--borde-z) * var(--paso) + var(--lado) / 2)); }
+  .cubo-rotulo--f { transform: translate3d(calc(var(--x) * var(--paso) - 50%), calc(var(--borde-y) * var(--paso) + var(--lado) * .6), calc(var(--borde-z) * var(--paso) + var(--lado) / 2)) rotateZ(-24deg); }
+  .cubo-rotulo--t { transform: translate3d(calc(var(--borde-x) * var(--paso) + var(--lado) * .62), calc(var(--borde-y) * var(--paso) + var(--lado) * .34), calc(var(--z) * var(--paso))) rotateY(90deg); }
+  @container (max-width: 620px) { .cubo-rotulo { display: none; } }
+  .cubo-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 10px 14px; border-top: 1px solid var(--borde); }
+  .cubo-lectura { flex: 1 1 16rem; min-height: 2.6em; font-size: 14px; color: var(--crema-2); }
+  .cubo-vistas { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cubo-vistas button {
+    min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radio-tecla); font: inherit; font-size: 14px; font-weight: 600;
+    color: var(--crema); background: transparent; box-shadow: inset 0 0 0 1px var(--borde); cursor: pointer;
+  }
+  .cubo-controles { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .cubo-eje { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .cubo-eje legend { padding: 0; margin-bottom: 6px; font-size: 14px; font-weight: 700; color: var(--crema-2); }
+  .cubo-eje > div { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cubo-miembro {
+    min-height: 44px; padding: 0 12px; border: 0; border-radius: var(--radio-tecla); font: inherit; font-size: 15px; font-weight: 600; font-stretch: 75%;
+    color: var(--crema); background: var(--hueco); box-shadow: inset 0 0 0 1px var(--borde); cursor: pointer;
+  }
+  .cubo-miembro[aria-pressed='true'] { color: var(--tinta); background: var(--tecla-cara-hundida); box-shadow: inset 0 2px 3px var(--tecla-canto); }
+  .cubo-operaciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; border-top: 1px solid var(--borde); }
+  .cubo-operaciones .tecla { width: 100%; white-space: nowrap; }
+  .cubo-separar { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
+  .cubo-separar input { width: 20px; height: 20px; accent-color: var(--ambar); }
+  .cubo-tabla-caja { container-type: inline-size; }
+  .cubo-tabla-marco { overflow-x: auto; margin-top: 8px; }
+  .cubo-tabla-marco:focus-visible { outline: 2px solid var(--ambar-claro); outline-offset: 2px; }
+  .cubo-tabla th { white-space: nowrap; }
+  .cubo-tabla th[scope='row'] { position: sticky; left: 0; z-index: 1; color: var(--crema); background: var(--madera); }
+  .cubo-tabla .cubo-calor { color: var(--crema); background: color-mix(in srgb, var(--dato) calc(var(--brillo) * 100%), var(--madera)); }
+  .cubo-tabla .cubo-calor[data-encendido] { color: var(--tinta); }
+  .cubo-tabla .cubo-total { font-weight: 700; color: var(--tinta); background: var(--papel-sombra); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cubito, .cubito > i { transition: none; }
+  }
 }

@@ -179,6 +179,7 @@ códigos pide una misma IP por minuto*)*.
 | `GET/PUT /panel/analitica/umbrales` | Umbrales del diagnóstico (`votos_minimos`, `concentracion_pct`, `participacion_minima`); el cambio queda en la bitácora (`editar_umbrales`) | 052 |
 | `GET /panel/analitica/comparacion?agrupar=noche\|dia\|evento&noches=…\|desde&hasta` | Indicadores en promedio por noche, por noche, día de la semana o tipo de evento; lo planeado (lista de la casa) frente a lo pedido | 053 |
 | `GET /panel/analitica/recomendaciones?…` | Sugerencias con el dato en que se basan y la sección donde se decide; **nunca se aplican solas** | 054 |
+| `GET /panel/analitica/cubo?eje=dia\|evento` | Cubo de KPI por género, franja y día o tipo de evento. Cada celda trae solicitudes, votos, usuarios únicos, no sonaron, espera promedio y máxima, segundos de pedidos y de lista de la casa, y la canción más popular. `*` es el miembro «Todos» | 063 |
 
 **Tablero analítico** *(propuesto)*. Todas sus respuestas traen `datos: OrigenDatos`
 (`origen` `registrado` o `ejemplo`, `actualizado_en`, `noches`, `desde`, `hasta`), que la
@@ -303,3 +304,16 @@ resincroniza al reconectar.
     migración `V4__volumen_pantalla.sql` (`configuracion_servicio.volumen`, 80 por defecto,
     CHECK 0–100), `volumen` en `ahora` y `noche`, y `PUT /panel/volumen`
     (`ContratoVolumenService`). Se avisa a la TV por el canal en vivo de la noche abierta.
+17. Capa analítica (RF-047 a RF-054, RF-063, ADR-27), **hecha por el equipo de frontend el
+    2026-11-20** (D15) y probada solo con el esquema reconstruido y noches de ejemplo:
+    - Migración `V5__modelo_analitico.sql` (esquemas `analitica` y `analitica_stg`), pipeline
+      en `rokolaBackend/pipeline/` y las 9 rutas de `/panel/analitica/*`.
+    - **`TBD`:** el género sale de `cancion.categoria`; hay que confirmar que el backend la
+      llena con un género y no con «Música». Si no, todo queda «Sin clasificar» (punto 3).
+    - **`TBD`:** quién programa el pipeline al cerrar cada noche. Hoy se ejecuta a mano.
+    - **`TBD`:** los nombres reales de `evento_analitico.fecha_evento` y de las columnas marcadas
+      como supuesto en el esquema reconstruido.
+    - `actualizado_en` de `OrigenDatos` pasa a admitir `null`: todavía no ha corrido ninguna carga.
+18. La tabla `pantalla_vinculo` y la columna `codigo_qr.url_publica` las usa el código, pero
+    ninguna migración ni el esquema reconstruido las crean (visto el 2026-11-20): en una base
+    nueva dan 500 `GET /panel/pantallas` y `GET /bares/{slug}/qr-publico`.

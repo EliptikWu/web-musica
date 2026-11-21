@@ -156,6 +156,20 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-052 | Analítica diagnóstica | Must | PB-46 | 5 | F+B |
 | RF-053 | Indicadores comparativos | Should | PB-48 | 5 | F+B |
 | RF-054 | Retroalimentación de hallazgos a la operación | Could | PB-49 | 5 | F+B |
+| RF-063 | Cubo de participación (OLAP) en el tablero | Should | PB-45, PB-47, PB-48 | 15 | F+B |
+
+**RF-063 — Cubo de participación.** Añadido el 2026-11-20 (D15) para el Entregable 6 de la guía
+del seminario. El Administrador explora en un cubo 3D **los KPI del entregable** por género,
+franja horaria y día de la semana o tipo de evento: total de solicitudes, votos, canción más
+popular, usuarios únicos, espera promedio y máxima, cumplimiento de la lista por defecto (parte
+del tiempo que sonó la lista de la casa) y solicitudes que no sonaron. Se elige qué KPI ilumina
+el cubo.
+
+- Permite las operaciones slice, dice, roll-up, drill-down y pivot, y cada una muestra la tabla
+  resultante. Todo lo que hace el cubo se puede hacer también con teclado y con la tabla.
+- Los agregados los calcula Spark con `cube`. Los KPI no aditivos (usuarios únicos, espera,
+  cumplimiento y canción más popular) **no se suman**: cada subtotal se calcula desde los hechos.
+- Muestra el origen y la fecha de los datos (RNF-015) y solo lo ve el Administrador.
 
 ### Módulo 9. Funcionalidades opcionales
 
