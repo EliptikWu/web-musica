@@ -303,3 +303,24 @@ resincroniza al reconectar.
     migración `V4__volumen_pantalla.sql` (`configuracion_servicio.volumen`, 80 por defecto,
     CHECK 0–100), `volumen` en `ahora` y `noche`, y `PUT /panel/volumen`
     (`ContratoVolumenService`). Se avisa a la TV por el canal en vivo de la noche abierta.
+17. Gestión del panel, **hecha por el equipo de frontend el 2026-11-21** (D14): horario,
+    usuarios y `PUT /panel/yo/clave`, bloqueos, listas de la casa y `GET /panel/busqueda`, con
+    las reglas de la simulación (doc 11 tiene los archivos). Migración
+    `V5__gestion_panel.sql`, **ya aplicada en Railway**. Para que lo revise el backend:
+    - `TBD`: que `accion_admin.tipo` admita `editar_horario`, `crear_usuario`,
+      `editar_usuario`, `desactivar_usuario`, `reactivar_usuario`, `restablecer_clave`,
+      `bloquear`, `extender_bloqueo`, `desbloquear`, `editar_lista` y `activar_lista`.
+    - El nombre de un usuario o de una lista va en `accion_admin.detalle->>'objetivo_nombre'`:
+      la bitácora lo muestra aunque después se renombre o se borre.
+    - «Hasta el fin de la noche» no tiene columna propia en el modelo original: `fecha_fin` es el
+      cierre de la franja vigente (o 12 h sin franja, *propuesto*) y `bloqueo_contenido.duracion`
+      (V5) guarda lo elegido.
+    - `crearUsuario` no es idempotente en el servidor (la respuesta lleva la clave temporal y no
+      se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
+    - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
+      72 bytes (lo que usa bcrypt) *(propuesto)*.
+    - Siguen en el 404 «aún no existe»: sesiones a mano, servicio y mantenimiento, retirar con
+      motivo, QR del panel, bitácora completa, eventos y analítica.
+    - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
+      YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
+      usuario ni limita los intentos con la clave actual.

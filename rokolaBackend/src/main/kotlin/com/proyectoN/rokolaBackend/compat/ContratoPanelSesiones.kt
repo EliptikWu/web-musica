@@ -53,6 +53,11 @@ class ContratoPanelSesiones(
     if (!token.isNullOrBlank() && token.length <= 100) sesiones.remove(huella(token))
   }
 
+  /** Cierra todas las sesiones de un usuario (al desactivarlo o restablecer su clave, RF-025/026). */
+  fun cerrarDeUsuario(usuarioId: Long) {
+    sesiones.entries.removeIf { it.value.usuarioId == usuarioId }
+  }
+
   fun cookie(token: String): ResponseCookie = base(token).maxAge(DURACION_MAXIMA).build()
 
   fun cookieBorrada(): ResponseCookie = base("").maxAge(Duration.ZERO).build()
