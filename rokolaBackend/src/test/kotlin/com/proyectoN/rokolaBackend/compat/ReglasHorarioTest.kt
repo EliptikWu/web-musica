@@ -1,12 +1,9 @@
 package com.proyectoN.rokolaBackend.compat
 
 import java.time.LocalTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
 
 /** RF-036: las reglas del horario, las mismas de `frontend/web/lib/reglas/horario.ts`. */
 class ReglasHorarioTest {
@@ -59,18 +56,5 @@ class ReglasHorarioTest {
   @Test
   fun `un horario vacío es válido (el bar no abre por horario)`() {
     assertEquals(0, ReglasHorario.leer(mapOf("franjas" to emptyList<Any>())).size)
-  }
-
-  @Test
-  fun `el cierre es el fin de la franja vigente, también después de medianoche`() {
-    val zona = ZoneId.of("America/Bogota")
-    val franjas = leer(franja(5, "20:00", "02:00"))
-    // Sábado 21 de noviembre de 2026 a la 1:15 a. m.: sigue la franja del viernes.
-    val sabado = ZonedDateTime.of(2026, 11, 21, 1, 15, 0, 0, zona)
-    assertEquals(ZonedDateTime.of(2026, 11, 21, 2, 0, 0, 0, zona), ReglasHorario.cierre(franjas, sabado))
-    // Viernes a las 21:30 cierra a las 2:00 del sábado.
-    assertEquals(ZonedDateTime.of(2026, 11, 21, 2, 0, 0, 0, zona), ReglasHorario.cierre(franjas, sabado.minusHours(3).minusMinutes(45)))
-    // Sábado a las 2:00 ya cerró.
-    assertNull(ReglasHorario.cierre(franjas, sabado.plusMinutes(45)))
   }
 }

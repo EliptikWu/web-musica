@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Gestión del panel (doc 04, «Panel»): horario, usuarios y clave propia, bloqueos, listas de la
- * casa y la búsqueda para armarlas. El rol mínimo de cada ruta es el del contrato
+ * Gestión del panel (doc 04, «Panel»): servicio y mantenimiento, bitácora, horario, usuarios y
+ * clave propia, bloqueos, listas de la casa y la búsqueda para armarlas. El rol mínimo de cada ruta es el del contrato
  * (`packages/contrato/src/endpoints.ts`) y lo decide el servidor: la interfaz solo oculta.
  * Lo que aún no existe sigue en `ContratoPanelController.pendiente` (404 del contrato).
  */
@@ -29,7 +29,72 @@ class ContratoGestionController(
   private val usuarios: ContratoUsuariosService,
   private val bloqueos: ContratoBloqueosService,
   private val listas: ContratoListasService,
+  private val servicio: ContratoServicioService,
+  private val bitacora: ContratoBitacora,
+  private val eventos: ContratoEventosService,
 ) {
+  // ── La noche (RF-037) ──────────────────────────────────────────────────────
+
+  @PostMapping("/sesiones")
+  fun abrirNoche(@CookieValue(COOKIE, required = false) token: String?, @RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Void> {
+    servicio.abrirNoche(admin(token), cuerpo)
+    return sinContenido()
+  }
+
+  @PostMapping("/sesiones/actual/cierre")
+  fun cerrarNoche(@CookieValue(COOKIE, required = false) token: String?): ResponseEntity<Void> {
+    servicio.cerrarNoche(admin(token))
+    return sinContenido()
+  }
+
+  // ── Calendario de eventos (RF-045) ─────────────────────────────────────────
+
+  @GetMapping("/eventos")
+  fun eventos(@CookieValue(COOKIE, required = false) token: String?) = ok(eventos.listar(admin(token)))
+
+  @PostMapping("/eventos")
+  fun crearEvento(@CookieValue(COOKIE, required = false) token: String?, @RequestBody(required = false) cuerpo: Map<String, Any?>?) =
+    creado(eventos.crear(admin(token), cuerpo))
+
+  @PatchMapping("/eventos/{id}")
+  fun editarEvento(
+    @CookieValue(COOKIE, required = false) token: String?,
+    @PathVariable id: String,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ) = ok(eventos.editar(admin(token), id, cuerpo))
+
+  @DeleteMapping("/eventos/{id}")
+  fun eliminarEvento(@CookieValue(COOKIE, required = false) token: String?, @PathVariable id: String): ResponseEntity<Void> {
+    eventos.eliminar(admin(token), id)
+    return sinContenido()
+  }
+
+  // ── Servicio y mantenimiento (RF-036, RF-038, RF-039) ──────────────────────
+
+  @PutMapping("/servicio")
+  fun cambiarServicio(@CookieValue(COOKIE, required = false) token: String?, @RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Void> {
+    servicio.cambiar(acceso.exigir(token), cuerpo)
+    return sinContenido()
+  }
+
+  @PostMapping("/servicio/mantenimiento")
+  fun mantenimiento(@CookieValue(COOKIE, required = false) token: String?): ResponseEntity<Void> {
+    servicio.mantenimiento(admin(token))
+    return sinContenido()
+  }
+
+  // ── Bitácora (RF-044) ──────────────────────────────────────────────────────
+
+  @GetMapping("/bitacora")
+  fun bitacora(
+    @CookieValue(COOKIE, required = false) token: String?,
+    @RequestParam(required = false) desde: String?,
+    @RequestParam(required = false) hasta: String?,
+    @RequestParam(required = false) usuario: String?,
+    @RequestParam(required = false) tipo: String?,
+    @RequestParam(required = false) cursor: String?,
+  ) = ok(bitacora.pagina(admin(token).barId, desde, hasta, usuario, tipo, cursor))
+
   // ── Horario (RF-036) ───────────────────────────────────────────────────────
 
   @GetMapping("/horario")

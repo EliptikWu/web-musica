@@ -320,12 +320,54 @@ resincroniza al reconectar.
       se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
     - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
       72 bytes (lo que usa bcrypt) *(propuesto)*.
-    - Siguen en el 404 «aún no existe»: retirar con
-      motivo, QR del panel, bitácora completa, eventos y analítica.
+    - Siguen en el 404 «aún no existe»: retirar con motivo, QR del panel y analítica.
     - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
       YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
       usuario ni limita los intentos con la clave actual.
-18. Capa analítica (RF-047 a RF-054, RF-063, ADR-27), **hecha por el equipo de frontend el
+18. Servicio, mantenimiento y bitácora, **hechos por el equipo de frontend el 2026-11-21** (D14):
+    `PUT /panel/servicio`, `POST /panel/servicio/mantenimiento` y `GET /panel/bitacora`
+    (`ContratoServicioService`, `ContratoBitacora`). Para que lo revise el backend:
+    - **El backend no abre ni cierra noches solo**: ningún código escribe en `sesion`. Por eso
+      «Reanudar solicitudes» abre una noche si no hay ninguna (bitácora `abrir_sesion`, detalle
+      «al reanudar»); si no, salir de mantenimiento dejaría el bar sin poder recibir canciones.
+      `TBD`: la apertura y el cierre automáticos por horario (RF-037).
+    - Mantenimiento, como la simulación: corta lo que suena (`saltada`), expira los pedidos
+      pendientes (`expirada`, motivo «Mantenimiento») y cierra la noche. El modo queda en
+      `configuracion_servicio.estado_manual`.
+    - `TBD`: `forzado_activo` no abre fuera del horario. `estado_manual` solo admite
+      `disponible`, `pausado` y `mantenimiento`, y hoy se trata como `automatico`.
+    - La bitácora va de 25 en 25 con un cursor que es el id de la última acción, y filtra por
+      fechas, persona (`sistema` = sin persona) y tipo. Solo muestra los tipos que el contrato
+      conoce.
+    - Cambio del contrato: `cambiarServicio` y `bitacora` agregan `datos_invalidos` a sus errores
+      (un `modo_qr` desconocido, o una fecha, tipo o cursor mal formados); `generado/` regenerado.
+19. Abrir y cerrar la noche a mano y calendario de eventos, **hechos por el equipo de frontend
+    el 2026-11-21** (D14): `POST /panel/sesiones`, `POST /panel/sesiones/actual/cierre` y
+    `/panel/eventos` (`ContratoServicioService`, `ContratoEventosService`). Para que lo revise el
+    backend:
+    - Cerrar la noche corta lo que suena, expira lo pendiente (motivo «Noche cerrada») y no
+      cambia el modo del QR. Abrirla con una abierta es 409; si el bar estaba en mantenimiento,
+      abrirla lo saca de él.
+    - `servicio.estado` sin noche abierta: fuera del horario ahora es `fuera_de_horario` (con
+      `proxima_apertura`), como la simulación; antes era siempre `en_pausa`. Dentro del horario
+      sigue `en_pausa` (`ContratoEstadoService`).
+    - `evento_calendario` guarda día y horas en la zona del bar: si la hora de fin es menor, el
+      evento termina al día siguiente. Por eso un evento dura menos de 24 h *(propuesto)*.
+      `tipo` guarda el `tipo_evento` del contrato.
+20. Eventos que cambian el horario y noches ligadas a su evento, **hechos por el equipo de
+    frontend el 2026-11-21** (D14), a pedido del usuario. Para que lo revise el backend:
+    - **Un evento suma horas al horario y nunca quita** (decisión del usuario, 2026-11-21): si
+      cae dentro del horario de siempre no cambia nada; si empieza antes o termina después, el bar
+      abre antes o cierra más tarde ese día. Las ventanas que se pisan se unen. Lo calcula `HorarioEfectivoService` (paquete
+      `acceso`), que usan `ahora` (estado, `hasta` y `proxima_apertura`), pedir y la
+      reproducción automática (`HorarioActivoService` ahora delega en él) y «hasta el fin de la
+      noche» de los bloqueos. `GET /bares/{slug}` sigue mandando el horario semanal sin eventos.
+    - **Cada noche se liga al evento de hoy**: el de la ventana abierta ahora (aunque el evento
+      empiece más tarde esa noche) o, si no hay, el próximo que empieza hoy (fecha del bar)
+      *(propuesto)*. La noche toma su `tipo_evento` aunque se abra
+      como «normal». Al crear, editar o eliminar un evento se religa la noche abierta; si deja
+      de haber evento hoy, vuelve a «normal». Un tipo puesto a mano sin evento se respeta.
+21. Capa analítica (RF-047 a RF-054, RF-063, ADR-27), **hecha por el equipo de frontend el
     2026-11-20** (D15) y probada solo con el esquema reconstruido y noches de ejemplo:
     - Migración `V6__modelo_analitico.sql` (esquemas `analitica` y `analitica_stg`), pipeline
       en `rokolaBackend/pipeline/` y las 9 rutas de `/panel/analitica/*`.
@@ -335,18 +377,20 @@ resincroniza al reconectar.
     - **`TBD`:** los nombres reales de `evento_analitico.fecha_evento` y de las columnas marcadas
       como supuesto en el esquema reconstruido.
     - `actualizado_en` de `OrigenDatos` pasa a admitir `null`: todavía no ha corrido ninguna carga.
-19. ~~`pantalla_vinculo` y `codigo_qr.url_publica` sin migración~~ Resuelto el 2026-11-21 con
+22. ~~`pantalla_vinculo` y `codigo_qr.url_publica` sin migración~~ Resuelto el 2026-11-21 con
     `V7__pantalla_y_noche_manual.sql`, con `IF NOT EXISTS` por si la base real ya las tiene.
     **`TBD`:** comparar sus columnas con las de Railway cuando vuelva a estar disponible.
-20. La noche y el servicio (RF-036 a RF-039, RN-09), **hechos por el equipo de frontend el
-    2026-11-21** (D14): `POST /panel/sesiones`, `POST /panel/sesiones/actual/cierre`,
-    `PUT /panel/servicio` y `POST /panel/servicio/mantenimiento` (`ContratoSesionesService`).
-    - Un ciclo cada 15 s abre la noche al entrar en una franja y la cierra al salir. Si hay un
-      evento del calendario vigente, la noche queda asociada a él.
+23. La noche por horario (RF-036 a RF-039, RN-09), **hecha por el equipo de frontend el
+    2026-11-21** (D14). La migración V8 cita este punto como «pendiente 20». Se unió con los
+    puntos 18 y 19 en una sola implementación (`ContratoServicioService`, rutas en
+    `ContratoGestionController`). Esto reemplaza lo que esos puntos dicen de que el backend no
+    abre noches solo y de que `forzado_activo` no abre fuera del horario.
+    - Un ciclo cada 15 s abre la noche al entrar en una franja y la cierra al salir. La ventana es
+      la del horario efectivo (franjas más eventos, punto 20).
     - `configuracion_servicio.forzado_abierto` (V8): atiende fuera del horario hasta que la
       cierren (`modo_qr: forzado_activo`). Pausar y reanudar no le quita lo forzado.
     - `sin_apertura_hasta` (V8): cerrada a mano dentro de una franja, no se reabre sola hasta
-      que esa franja y las que sigan pegadas terminen. `sesion.origen` (V8) dice cómo se abrió.
+      que termine esa ventana del horario efectivo. `sesion.origen` (V8) dice cómo se abrió.
     - Forzar la apertura, quitarla (cierra la noche) y salir de mantenimiento son solo del
       Administrador (D9).
     - Al cerrar, lo que suena queda `saltada` con los segundos que alcanzó y lo pendiente pasa a
@@ -354,6 +398,8 @@ resincroniza al reconectar.
       descartaban esa foto y no se enteraban del cierre).
     - **`TBD`:** que `accion_admin.tipo` admita `abrir_sesion`, `cerrar_sesion`,
       `pausar_solicitudes`, `reanudar_solicitudes`, `forzar_apertura` y `mantenimiento`; que
-      `accion_admin.id_usuario` admita `NULL` (lo que hace el horario, sin persona); y los nombres
-      de `evento_calendario.fecha_inicio` y `fecha_fin`, supuestos en el esquema reconstruido. Si
-      fallan, la noche igual se abre, pero sin asociarse al evento.
+      `accion_admin.id_usuario` admita `NULL` (lo que hace el horario, sin persona); . Las columnas
+      de `evento_calendario` (`fecha`, `hora_inicio`, `hora_fin`, `tipo`, `descripcion`) las asegura
+      `V9`, sin cambiar nada si ya existen.
+    - Con una ventana abierta, la noche toma solo el evento de esa ventana. Un tipo elegido a mano
+      y distinto del evento se respeta, y un evento ya empezado no se desliga al editar el calendario.

@@ -21,7 +21,7 @@ CERRADAS = "s.estado = 'cerrada' AND s.fecha_cierre IS NOT NULL"
 CONSULTAS = {
     "sesiones": f"""
         SELECT s.id_sesion, s.id_establecimiento, s.fecha_apertura, s.fecha_cierre, s.tipo_evento,
-               s.id_evento_calendario, ev.nombre AS evento_nombre, ev.tipo_evento AS evento_tipo,
+               s.id_evento_calendario, ev.nombre AS evento_nombre, ev.tipo AS evento_tipo,
                e.zona_horaria
         FROM public.sesion s
         JOIN public.establecimiento e ON e.id_establecimiento = s.id_establecimiento

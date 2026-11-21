@@ -30,7 +30,6 @@ class ContratoPanelController(
   private val establecimientos: ContratoEstablecimientoService,
   private val pausas: ContratoPausaService,
   private val volumenes: ContratoVolumenService,
-  private val sesionesNoche: ContratoSesionesService,
 ) {
   @PostMapping("/sesion")
   fun entrar(@RequestBody(required = false) cuerpo: Map<String, Any?>?): ResponseEntity<Map<String, Any?>> {
@@ -56,39 +55,6 @@ class ContratoPanelController(
   @GetMapping("/noche")
   fun noche(@CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?): ResponseEntity<Map<String, Any?>> =
     sinCache(noches.noche(acceso.exigir(token)))
-
-  /** RF-037: abrir y cerrar la noche es solo del Administrador (matriz D9, doc 04). */
-  @PostMapping("/sesiones")
-  fun abrirNoche(
-    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
-    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
-  ): ResponseEntity<Void> {
-    sesionesNoche.abrir(acceso.exigir(token, rolMinimo = "administrador"), cuerpo)
-    return ResponseEntity.noContent().build()
-  }
-
-  @PostMapping("/sesiones/actual/cierre")
-  fun cerrarNoche(@CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?): ResponseEntity<Void> {
-    sesionesNoche.cerrar(acceso.exigir(token, rolMinimo = "administrador"))
-    return ResponseEntity.noContent().build()
-  }
-
-  /** RF-039: el Operador pausa y reanuda; forzar y salir de mantenimiento lo decide el servicio. */
-  @PutMapping("/servicio")
-  fun cambiarServicio(
-    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
-    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
-  ): ResponseEntity<Void> {
-    sesionesNoche.cambiarServicio(acceso.exigir(token), cuerpo)
-    return ResponseEntity.noContent().build()
-  }
-
-  /** RF-038: solo el Administrador (matriz D9, doc 04). */
-  @PostMapping("/servicio/mantenimiento")
-  fun mantenimiento(@CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?): ResponseEntity<Void> {
-    sesionesNoche.mantenimiento(acceso.exigir(token, rolMinimo = "administrador"))
-    return ResponseEntity.noContent().build()
-  }
 
   @PostMapping("/reproduccion/{id}/salto")
   fun saltar(
