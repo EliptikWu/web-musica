@@ -374,8 +374,9 @@ resincroniza al reconectar.
     - **`TBD`:** el género sale de `cancion.categoria`; hay que confirmar que el backend la
       llena con un género y no con «Música». Si no, todo queda «Sin clasificar» (punto 3).
     - **`TBD`:** quién programa el pipeline al cerrar cada noche. Hoy se ejecuta a mano.
-    - **`TBD`:** los nombres reales de `evento_analitico.fecha_evento` y de las columnas marcadas
-      como supuesto en el esquema reconstruido.
+    - La fecha de `evento_analitico` es `timestamp_utc` (comprobado en Railway el 2026-11-21).
+      **`TBD`:** las demás columnas marcadas como supuesto en el esquema reconstruido.
+    - La noche 1 se excluye con `--excluir 1`: quedó abierta del 11 al 21 de noviembre.
     - `actualizado_en` de `OrigenDatos` pasa a admitir `null`: todavía no ha corrido ninguna carga.
 22. ~~`pantalla_vinculo` y `codigo_qr.url_publica` sin migración~~ Resuelto el 2026-11-21 con
     `V7__pantalla_y_noche_manual.sql`, con `IF NOT EXISTS` por si la base real ya las tiene.

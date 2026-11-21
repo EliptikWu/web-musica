@@ -27,6 +27,11 @@ class Pipeline(unittest.TestCase):
         self.assertNotIn("abc", a[0].s)
         self.assertIsNone(a[1].s)
 
+    def test_excluir_noches_agrega_el_filtro_solo_si_hay(self):
+        self.assertEqual(ingesta.sin_excluidas("SELECT 1 WHERE x", frozenset()), "SELECT 1 WHERE x")
+        self.assertEqual(ingesta.sin_excluidas("SELECT 1 WHERE x", frozenset({7, 2})),
+                         "SELECT 1 WHERE x AND s.id_sesion NOT IN (2,7)")
+
     def test_filtrar_quita_duplicados_y_cuenta_cada_motivo(self):
         df = self.spark.createDataFrame([(1, 5), (1, 5), (2, -1), (3, None)], ["id", "x"])
         limpio, rechazos = limpieza.filtrar(df, "id", [("negativo", F.col("x") >= 0)])

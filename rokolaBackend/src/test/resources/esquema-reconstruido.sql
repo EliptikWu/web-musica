@@ -350,7 +350,7 @@ CREATE TABLE public.evento_analitico (
     youtube_video_id   VARCHAR(30),           -- supuesto: misma longitud que cancion.youtube_video_id
     origen_app         VARCHAR(20),           -- supuesto: longitud
     propiedades        JSONB,                 -- se inserta con CAST(? AS jsonb)
-    fecha_evento       TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP  -- supuesto: nombre de la columna; el INSERT no la da
+    timestamp_utc      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP  -- nombre comprobado en Railway; el INSERT no la da
 );
 -- nombre_evento: literal visto 'cambio_voto'. origen_app: literal visto 'cliente'.
 

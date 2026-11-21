@@ -25,6 +25,10 @@ bash rokolaBackend/pipeline/ejecutar.sh                # todas las noches cerrad
 bash rokolaBackend/pipeline/ejecutar.sh --sesion 123   # vuelve a ingerir una noche
 ```
 
+Para dejar una noche fuera del análisis sin tocar la base, se repite `--excluir <id>` en **cada**
+ejecución. En producción va `--excluir 1`: la noche 1 quedó abierta del 11 al 21 de noviembre de
+2026 y su duración distorsiona los KPI de tiempo.
+
 Repetir una ejecución no duplica nada: el modelo se reemplaza en una sola transacción. Si la
 auditoría no aprueba, la transacción se revierte y el modelo anterior queda intacto.
 

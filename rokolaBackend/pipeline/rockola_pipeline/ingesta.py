@@ -50,7 +50,7 @@ CONSULTAS = {
         WHERE {CERRADAS}""",
     "eventos": f"""
         SELECT ea.id_evento, ea.id_sesion, ea.id_establecimiento, ea.nombre_evento, ea.device_hash,
-               ea.fecha_evento
+               ea.timestamp_utc AS fecha_evento
         FROM public.evento_analitico ea
         JOIN public.sesion s ON s.id_sesion = ea.id_sesion
         WHERE {CERRADAS}""",
@@ -78,9 +78,17 @@ def _leer(spark: SparkSession, cfg: Config, consulta: str) -> DataFrame:
     return spark.read.jdbc(cfg.jdbc_url, f"({consulta}) AS fuente", properties=cfg.propiedades)
 
 
-def _noches_a_ingerir(spark: SparkSession, cfg: Config, sesion: int) -> list[int]:
+def sin_excluidas(consulta: str, excluir: frozenset[int]) -> str:
+    """Deja fuera del análisis las noches indicadas, sin tocar la base operativa."""
+    if not excluir:
+        return consulta
+    return f"{consulta} AND s.id_sesion NOT IN ({','.join(str(int(n)) for n in sorted(excluir))})"
+
+
+def _noches_a_ingerir(spark: SparkSession, cfg: Config, sesion: int, excluir: frozenset[int]) -> list[int]:
     """La noche pedida y las cerradas que bronce todavía no tiene: el modelo siempre va completo."""
-    cerradas = {int(f.id_sesion) for f in _leer(spark, cfg, f"SELECT s.id_sesion FROM public.sesion s WHERE {CERRADAS}").collect()}
+    consulta = sin_excluidas(f"SELECT s.id_sesion FROM public.sesion s WHERE {CERRADAS}", excluir)
+    cerradas = {int(f.id_sesion) for f in _leer(spark, cfg, consulta).collect()}
     if int(sesion) not in cerradas:
         raise SystemExit(f"La noche {int(sesion)} no existe o no está cerrada")
     carpeta = f"{cfg.datos}/bronce/sesiones"
@@ -88,15 +96,20 @@ def _noches_a_ingerir(spark: SparkSession, cfg: Config, sesion: int) -> list[int
     return sorted({int(sesion)} | (cerradas - presentes))
 
 
-def ingerir(spark: SparkSession, cfg: Config, sesion: int | None = None) -> dict[str, int]:
+def ingerir(spark: SparkSession, cfg: Config, sesion: int | None = None,
+            excluir: frozenset[int] = frozenset()) -> dict[str, int]:
     """Escribe bronce. Con `sesion` reemplaza esa noche y trae las cerradas que aún no estén."""
     seudonimo = seudonimizador(cfg.clave_seudonimo)
-    objetivo = _noches_a_ingerir(spark, cfg, sesion) if sesion is not None else None
+    objetivo = _noches_a_ingerir(spark, cfg, sesion, excluir) if sesion is not None else None
     modo_particion = "dynamic" if objetivo is not None else "static"
     spark.conf.set("spark.sql.sources.partitionOverwriteMode", modo_particion)
     leidos: dict[str, int] = {}
 
     for nombre, consulta in CONSULTAS.items():
+        consulta = sin_excluidas(consulta, excluir)
+        # Una noche excluida después de haber entrado tampoco se queda en bronce.
+        for noche in excluir:
+            shutil.rmtree(f"{cfg.datos}/bronce/{nombre}/id_sesion={int(noche)}", ignore_errors=True)
         if objetivo is not None:
             lista = ",".join(str(n) for n in objetivo)
             consulta = f"{consulta} AND s.id_sesion IN ({lista})"
