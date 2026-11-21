@@ -319,8 +319,25 @@ resincroniza al reconectar.
       se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
     - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
       72 bytes (lo que usa bcrypt) *(propuesto)*.
-    - Siguen en el 404 «aún no existe»: sesiones a mano, servicio y mantenimiento, retirar con
-      motivo, QR del panel, bitácora completa, eventos y analítica.
+    - Siguen en el 404 «aún no existe»: abrir y cerrar la noche a mano, retirar con motivo, QR
+      del panel, eventos y analítica.
     - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
       YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
       usuario ni limita los intentos con la clave actual.
+18. Servicio, mantenimiento y bitácora, **hechos por el equipo de frontend el 2026-11-21** (D14):
+    `PUT /panel/servicio`, `POST /panel/servicio/mantenimiento` y `GET /panel/bitacora`
+    (`ContratoServicioService`, `ContratoBitacora`). Para que lo revise el backend:
+    - **El backend no abre ni cierra noches solo**: ningún código escribe en `sesion`. Por eso
+      «Reanudar solicitudes» abre una noche si no hay ninguna (bitácora `abrir_sesion`, detalle
+      «al reanudar»); si no, salir de mantenimiento dejaría el bar sin poder recibir canciones.
+      `TBD`: la apertura y el cierre automáticos por horario (RF-037).
+    - Mantenimiento, como la simulación: corta lo que suena (`saltada`), expira los pedidos
+      pendientes (`expirada`, motivo «Mantenimiento») y cierra la noche. El modo queda en
+      `configuracion_servicio.estado_manual`.
+    - `TBD`: `forzado_activo` no abre fuera del horario. `estado_manual` solo admite
+      `disponible`, `pausado` y `mantenimiento`, y hoy se trata como `automatico`.
+    - La bitácora va de 25 en 25 con un cursor que es el id de la última acción, y filtra por
+      fechas, persona (`sistema` = sin persona) y tipo. Solo muestra los tipos que el contrato
+      conoce.
+    - Cambio del contrato: `cambiarServicio` y `bitacora` agregan `datos_invalidos` a sus errores
+      (un `modo_qr` desconocido, o una fecha, tipo o cursor mal formados); `generado/` regenerado.

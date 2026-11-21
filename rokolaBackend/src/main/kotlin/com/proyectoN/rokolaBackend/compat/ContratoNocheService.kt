@@ -15,21 +15,10 @@ import java.time.format.DateTimeFormatter
 class ContratoNocheService(
   private val jdbc: JdbcTemplate,
   private val estados: ContratoEstadoService,
+  private val bitacora: ContratoBitacora,
 ) {
   private data class SesionFila(val id: Long, val apertura: OffsetDateTime, val tipoEvento: String?)
   private data class Pedido(val hash: String, val fecha: OffsetDateTime)
-
-  private val tiposAccion = setOf(
-    "saltar", "bloquear", "desbloquear", "extender_bloqueo", "retirar",
-    "pausar_solicitudes", "reanudar_solicitudes", "forzar_apertura",
-    "pausar_reproduccion", "reanudar_reproduccion", "cambiar_volumen",
-    "mantenimiento", "abrir_sesion", "cerrar_sesion",
-    "editar_horario", "editar_lista", "activar_lista",
-    "crear_usuario", "editar_usuario", "desactivar_usuario", "reactivar_usuario", "restablecer_clave",
-    "editar_establecimiento", "regenerar_qr", "editar_evento", "editar_umbrales",
-    "vincular_pantalla", "desvincular_pantalla",
-    "error_youtube", "intento_no_permitido",
-  )
 
   @Suppress("UNCHECKED_CAST")
   @Transactional(readOnly = true)
@@ -72,7 +61,7 @@ class ContratoNocheService(
       "cola" to cola,
       "volumen" to ahora["volumen"],
       "metricas" to metricas(sesion),
-      "registro" to registro(p.barId, sesion?.apertura),
+      "registro" to bitacora.recientes(p.barId, sesion?.apertura),
       "horario" to horario(p.barId),
       "lista_casa" to lista,
       "bloqueos" to bloqueos(p.barId),
@@ -123,43 +112,6 @@ class ContratoNocheService(
     ).first()
   }
 
-  /** Lo de esta noche (o de las últimas 12 h sin noche abierta), lo más reciente primero. */
-  private fun registro(idBar: Long, desde: OffsetDateTime?): List<Map<String, Any?>> = jdbc.query(
-    // Solo los tipos que el contrato conoce, filtrados antes del LIMIT para no mostrar menos de 20.
-    """SELECT a.id_accion, a.fecha, a.tipo, a.objetivo_tipo, a.detalle->>'texto' AS texto,
-              a.detalle->>'objetivo_nombre' AS objetivo_nombre,
-              u.id_usuario, u.nombre AS usuario, c.titulo, c.artista, c.canal
-       FROM public.accion_admin a
-       LEFT JOIN public.usuario u ON u.id_usuario = a.id_usuario
-       LEFT JOIN public.cancion c ON a.objetivo_tipo = 'cancion' AND c.id_cancion = a.objetivo_id
-       WHERE a.id_establecimiento = ? AND a.fecha >= ? AND a.tipo IN (${tiposAccion.joinToString { "?" }})
-       ORDER BY a.fecha DESC, a.id_accion DESC LIMIT 20""",
-    { rs, _ ->
-      val tipo = rs.getString("tipo")
-      val idUsuario = rs.getObject("id_usuario")?.let { (it as Number).toLong() }
-      mapOf(
-        "id" to rs.getLong("id_accion").toString(),
-        "fecha" to rs.getObject("fecha", OffsetDateTime::class.java),
-        "usuario" to idUsuario?.let { mapOf("id" to it.toString(), "nombre" to rs.getString("usuario")) },
-        "tipo" to tipo,
-        "objetivo" to (
-          rs.getString("titulo")?.let { titulo ->
-            mapOf(
-              "tipo" to "cancion",
-              "nombre" to titulo,
-              "detalle" to (rs.getString("artista")?.takeIf(String::isNotBlank) ?: rs.getString("canal")),
-            )
-          } ?: rs.getString("objetivo_nombre")?.let { nombre ->
-            // Lo que no es una canción (un usuario, una lista, el horario) guarda su nombre en el detalle.
-            rs.getString("objetivo_tipo")?.takeIf { it in TIPOS_OBJETIVO }?.let { mapOf("tipo" to it, "nombre" to nombre, "detalle" to null) }
-          }
-        ),
-        "detalle" to rs.getString("texto"),
-      )
-    },
-    idBar, desde ?: OffsetDateTime.now().minusHours(12), *tiposAccion.toTypedArray(),
-  )
-
   private fun horario(idBar: Long): List<Map<String, Any>> {
     val formato = DateTimeFormatter.ofPattern("HH:mm")
     return jdbc.query(
@@ -209,9 +161,6 @@ class ContratoNocheService(
 
   companion object {
     private const val ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-    /** Los tipos de objetivo de la bitácora que el contrato conoce (`AccionAdmin.objetivo.tipo`). */
-    private val TIPOS_OBJETIVO = setOf("usuario", "lista", "horario", "servicio", "sesion", "establecimiento", "evento", "pantalla")
-
 
     /**
      * Código corto del teléfono (p. ej. 7F3K) derivado de su huella SHA-256: identifica el

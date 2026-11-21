@@ -4611,6 +4611,16 @@
           "204": {
             "description": "Sin contenido"
           },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
           "401": {
             "description": "no_autenticado",
             "content": {
@@ -7035,6 +7045,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/PaginaBitacora"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
                 }
               }
             }

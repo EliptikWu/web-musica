@@ -43,7 +43,7 @@
 | `noche` | `GET /panel/noche` | `Noche` | operador | `no_autenticado`, `sin_permiso` | RF-037, RF-044, RF-049 |
 | `abrirSesion` | `POST /panel/sesiones` | `CuerpoSesion` → 204 | administrador | `no_autenticado`, `sin_permiso`, `conflicto` | RF-037 |
 | `cerrarSesion` | `POST /panel/sesiones/actual/cierre` | 204 | administrador | `no_autenticado`, `sin_permiso`, `conflicto` | RF-037 |
-| `cambiarServicio` | `PUT /panel/servicio` | `CuerpoServicio` → 204 | operador | `no_autenticado`, `sin_permiso` | RF-036, RF-039 |
+| `cambiarServicio` | `PUT /panel/servicio` | `CuerpoServicio` → 204 | operador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-036, RF-039 |
 | `mantenimiento` | `POST /panel/servicio/mantenimiento` | 204 | administrador | `no_autenticado`, `sin_permiso` | RF-038 |
 | `saltar` (idempotente) | `POST /panel/reproduccion/{id}/salto` | 204 | operador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-040 |
 | `pausarReproduccion` | `POST /panel/reproduccion/{id}/pausa` | 204 | operador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-040 |
@@ -79,7 +79,7 @@
 | `pantallas` | `GET /panel/pantallas` | `ListaPantallas` | administrador | `no_autenticado`, `sin_permiso` | RF-058 |
 | `vincularPantalla` | `POST /panel/pantallas` | `CuerpoVincularPantalla` → `PantallaVinculada` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-058 |
 | `desvincularPantalla` | `DELETE /panel/pantallas/{id}` | 204 | administrador | `no_autenticado`, `sin_permiso`, `no_encontrado` | RF-058 |
-| `bitacora` | `GET /panel/bitacora?desde&hasta&usuario&tipo&cursor` | `PaginaBitacora` | administrador | `no_autenticado`, `sin_permiso` | RF-044, RF-008 |
+| `bitacora` | `GET /panel/bitacora?desde&hasta&usuario&tipo&cursor` | `PaginaBitacora` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-044, RF-008 |
 | `eventos` | `GET /panel/eventos` | `ListaEventos` | administrador | `no_autenticado`, `sin_permiso` | RF-045 |
 | `crearEvento` | `POST /panel/eventos` | `CuerpoEvento` → `EventoBar` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `conflicto` | RF-045 |
 | `editarEvento` | `PATCH /panel/eventos/{id}` | `CuerpoEditarEvento` → `EventoBar` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-045 |
