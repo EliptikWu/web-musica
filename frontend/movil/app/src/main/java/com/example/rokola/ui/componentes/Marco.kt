@@ -1,5 +1,13 @@
 package com.example.rokola.ui.componentes
 
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.border
+import com.example.rokola.ui.theme.ManchasVidrioApagadas
+import com.example.rokola.ui.theme.ManchasVidrio
+import com.example.rokola.ui.theme.TonosAfiche
+import com.example.rokola.ui.theme.TonosVidrio
+import com.example.rokola.ui.theme.LocalDiseno
+import com.example.rokola.dominio.TemaBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +74,6 @@ import com.example.rokola.ui.textos.T
 import com.example.rokola.ui.theme.Ambar
 import com.example.rokola.ui.theme.Apagado
 import com.example.rokola.ui.theme.Archivo
-import com.example.rokola.ui.theme.Cereza
 import com.example.rokola.ui.theme.Cifra
 import com.example.rokola.ui.theme.Condensada
 import com.example.rokola.ui.theme.Crema
@@ -93,9 +100,19 @@ private val Negro = Color(0xFF000000)
 private val Blanco = Color(0xFFFFFFFF)
 
 /** Nogal con la luz del arco arriba, sombra abajo y la veta; apagada sin el resplandor. */
-fun Modifier.madera(apagada: Boolean): Modifier = drawBehind {
-    (if (apagada) FondoMaderaApagada else FondoMadera).forEach { drawRect(it) }
-    vetaMadera(this).forEach { drawRect(it) }
+fun Modifier.madera(apagada: Boolean, tema: TemaBar = TemaBar.ROCKOLA): Modifier = drawBehind {
+    when (tema) {
+        TemaBar.ROCKOLA -> {
+            (if (apagada) FondoMaderaApagada else FondoMadera).forEach { drawRect(it) }
+            vetaMadera(this).forEach { drawRect(it) }
+        }
+        // Cerrado o en pausa, las manchas se apagan: la luz es el estado (doc 05).
+        TemaBar.VIDRIO -> {
+            drawRect(TonosVidrio.Carbon)
+            (if (apagada) ManchasVidrioApagadas else ManchasVidrio).forEach { drawRect(it) }
+        }
+        TemaBar.AFICHE -> drawRect(TonosAfiche.PapelAfiche)
+    }
 }
 
 /**
@@ -134,7 +151,7 @@ fun MarcoCliente(
     abajo: (@Composable ColumnScope.() -> Unit)? = null,
     arriba: @Composable ColumnScope.() -> Unit,
 ) {
-    Box(Modifier.fillMaxSize().madera(apagada).semantics { paneTitle = titulo }, contentAlignment = Alignment.TopCenter) {
+    Box(Modifier.fillMaxSize().madera(apagada, LocalDiseno.current.tema).semantics { paneTitle = titulo }, contentAlignment = Alignment.TopCenter) {
         // widthIn antes de fillMaxSize: al revés, el tope no tiene efecto y en tableta todo se estira.
         Column(Modifier.widthIn(max = 480.dp).fillMaxSize()) {
             Spacer(Modifier.statusBarsPadding())
@@ -162,17 +179,18 @@ fun MarcoCliente(
 /** Sale cuando la conexión en vivo se cortó. */
 @Composable
 private fun BannerConexion() {
+    val paleta = LocalDiseno.current.paleta
     Row(
         Modifier
             .fillMaxWidth()
-            .background(Cereza)
+            .background(paleta.bannerFondo)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .semantics { liveRegion = LiveRegionMode.Polite },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Box(Modifier.size(8.dp).background(Crema.copy(alpha = 0.7f), CircleShape))
-        Text(com.example.rokola.ui.textos.Conexion.DESCONECTADO, style = Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W500), color = Crema)
+        Box(Modifier.size(8.dp).background(paleta.bannerTexto.copy(alpha = 0.7f), CircleShape))
+        Text(com.example.rokola.ui.textos.Conexion.DESCONECTADO, style = Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W500), color = paleta.bannerTexto)
     }
 }
 
@@ -192,50 +210,93 @@ fun PieCliente(pie: Pie?, actual: Pestana, onIr: (Pestana) -> Unit) {
 
 @Composable
 private fun ContenidoPie(pie: Pie?, actual: Pestana, onIr: (Pestana) -> Unit) {
+    val d = LocalDiseno.current
     val rep = pie?.reproduccion
     val fraccion = if (rep != null && pie != null) {
         val ahora = rememberAhoraServidor(pie.servidorAhora)
         (posicionActual(rep, pie.servidorAhora, ahora) / maxOf(1, rep.cancion.duracionSeg)).toFloat()
     } else 0f
-    Column(
-        Modifier
+    val raiz = when (d.tema) {
+        TemaBar.ROCKOLA -> Modifier
             .fillMaxWidth()
             .dropShadow(RoundedCornerShape(0.dp), Shadow(radius = 30.dp, color = Negro.copy(alpha = 0.45f), offset = DpOffset(0.dp, (-12).dp)))
             .background(FondoPie)
             .drawBehind { drawRect(PieFilete, size = size.copy(height = 2.dp.toPx())) }
             .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp)
-            .navigationBarsPadding(),
-    ) {
-        // Mini reproductor
+        TemaBar.VIDRIO -> Modifier
+            .fillMaxWidth()
+            .background(Brush.verticalGradient(0f to TonosVidrio.Velo.copy(alpha = 0f), 0.46f to TonosVidrio.Velo))
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 14.dp)
+        TemaBar.AFICHE -> Modifier
+            .fillMaxWidth()
+            .background(TonosAfiche.PapelAfiche)
+            .drawBehind { drawRect(TonosAfiche.TintaAfiche, size = size.copy(height = 3.dp.toPx())) }
+            .padding(start = 12.dp, end = 12.dp, top = 3.dp, bottom = 12.dp)
+    }
+    Column(raiz.navigationBarsPadding()) {
+        MiniReproductor(pie, fraccion)
+        // Pestañas
+        val forma = RoundedCornerShape(26.dp)
+        val grupo = if (d.esVidrio) {
+            Modifier.fillMaxWidth().background(TonosVidrio.Superficie, forma).border(1.dp, TonosVidrio.BordeVidrio, forma).padding(6.dp)
+        } else {
+            Modifier.fillMaxWidth()
+        }
+        Row(grupo, horizontalArrangement = Arrangement.spacedBy(if (d.esVidrio) 0.dp else 8.dp)) {
+            Pestana.entries.forEach { p -> BotonPestana(p, p == actual, Modifier.weight(1f)) { onIr(p) } }
+        }
+    }
+}
+
+@Composable
+private fun MiniReproductor(pie: Pie?, fraccion: Float) {
+    val base = LocalDiseno.current
+    val rep = pie?.reproduccion
+    val forma = RoundedCornerShape(22.dp)
+    val fila = when (base.tema) {
+        TemaBar.ROCKOLA -> Modifier.fillMaxWidth().padding(start = 6.dp, end = 6.dp, bottom = 6.dp)
+        TemaBar.VIDRIO -> Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .background(TonosVidrio.Superficie, forma)
+            .border(1.dp, TonosVidrio.BordeVidrio, forma)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+        TemaBar.AFICHE -> Modifier.aSangre(12.dp).background(TonosAfiche.TintaAfiche).padding(horizontal = 16.dp, vertical = 8.dp)
+    }
+    CompositionLocalProvider(LocalDiseno provides base.sobreTinta()) {
+        val d = LocalDiseno.current
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 6.dp, end = 6.dp, bottom = 6.dp)
-                .semantics(mergeDescendants = true) { },
+            fila.semantics(mergeDescendants = true) { },
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Box(
-                Modifier
-                    .width(10.dp)
-                    .height(40.dp)
-                    .then(
-                        if (rep != null) Modifier.dropShadow(RoundedCornerShape(5.dp), Shadow(radius = 12.dp, color = Ambar.copy(alpha = 0.6f))).background(Luz, RoundedCornerShape(5.dp))
-                        else Modifier.background(Apagado, RoundedCornerShape(5.dp)),
-                    ),
-            )
+            if (d.esRockola) {
+                Box(
+                    Modifier
+                        .width(10.dp)
+                        .height(40.dp)
+                        .then(
+                            if (rep != null) Modifier.dropShadow(RoundedCornerShape(5.dp), Shadow(radius = 12.dp, color = Ambar.copy(alpha = 0.6f))).background(Luz, RoundedCornerShape(5.dp))
+                            else Modifier.background(Apagado, RoundedCornerShape(5.dp)),
+                        ),
+                )
+            }
             Column(Modifier.weight(1f)) {
-                Text(if (rep != null) T.SUENA_AHORA else T.NADA_SUENA, style = Cuerpo.copy(fontSize = 12.sp), color = Crema2)
+                Text(
+                    if (rep != null) T.SUENA_AHORA else T.NADA_SUENA,
+                    style = Cuerpo.copy(fontSize = if (d.esRockola) 12.sp else 13.sp, fontWeight = if (d.esAfiche) FontWeight.W600 else FontWeight.W400),
+                    color = if (d.esAfiche) TonosAfiche.Amarillo else Crema2,
+                )
                 if (rep != null) {
                     Text(
                         buildAnnotatedString {
                             append(rep.cancion.titulo)
                             append(" ")
-                            withStyle(SpanStyle(fontFamily = Archivo, fontWeight = FontWeight.W400, fontSize = 14.sp, color = Crema2, letterSpacing = 0.sp)) {
+                            withStyle(SpanStyle(fontFamily = Archivo, fontWeight = FontWeight.W400, fontSize = if (d.esRockola) 14.sp else 13.sp, color = Crema2, letterSpacing = 0.sp)) {
                                 append(rep.cancion.artista)
                             }
                         },
-                        style = Condensada.copy(fontSize = 19.sp, lineHeight = 1.15.em),
+                        style = Condensada.copy(fontSize = if (d.esRockola) 19.sp else 15.sp, lineHeight = if (d.esRockola) 1.15.em else 1.25.em),
                         color = Crema,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -244,39 +305,50 @@ private fun ContenidoPie(pie: Pie?, actual: Pestana, onIr: (Pestana) -> Unit) {
             }
             if (rep?.votos != null) {
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("${rep.votos}", style = Cifra.copy(fontSize = 20.sp), color = Crema)
+                    Text("${rep.votos}", style = Cifra.copy(fontSize = if (d.esAfiche) 30.sp else if (d.esVidrio) 15.sp else 20.sp), color = Crema)
                     Text(if (rep.votos == 1) "voto" else "votos", style = Cuerpo.copy(fontSize = 13.sp), color = Crema2)
                 }
             } else if (rep != null) {
                 Text(T.LISTA_DE_LA_CASA, Modifier.widthIn(max = 88.dp), style = Cuerpo.copy(fontSize = 13.sp, lineHeight = 1.2.em), color = Crema2, textAlign = TextAlign.End)
             }
         }
-        MiniAvance(fraccion, Modifier.padding(start = 6.dp, end = 6.dp, bottom = 10.dp))
-        // Pestañas
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Pestana.entries.forEach { p -> BotonPestana(p, p == actual, Modifier.weight(1f)) { onIr(p) } }
-        }
     }
+    MiniAvance(
+        fraccion,
+        when (base.tema) {
+            TemaBar.ROCKOLA -> Modifier.padding(start = 6.dp, end = 6.dp, bottom = 10.dp)
+            TemaBar.VIDRIO -> Modifier.padding(start = 28.dp, end = 28.dp, top = 2.dp, bottom = 8.dp)
+            TemaBar.AFICHE -> Modifier.aSangre(12.dp).padding(bottom = 8.dp)
+        },
+    )
 }
 
 @Composable
 private fun BotonPestana(pestana: Pestana, actual: Boolean, modifier: Modifier, alPulsar: () -> Unit) {
     val densidad = LocalDensity.current
-    val forma = if (actual) {
-        Modifier
+    val d = LocalDiseno.current
+    val radio = RadioTecla
+    val forma = when {
+        d.esVidrio -> if (actual) Modifier.background(TonosVidrio.SuperficieAlta, RoundedCornerShape(20.dp)) else Modifier
+        d.esAfiche -> if (actual) Modifier.background(TonosAfiche.TintaAfiche, radio) else Modifier
+        actual -> Modifier
             .graphicsLayer { translationY = with(densidad) { (-2).dp.toPx() } }
-            .dropShadow(RadioTecla, Shadow(radius = 0.dp, color = TeclaCanto, offset = DpOffset(0.dp, 3.dp)))
-            .background(TeclaCara, RadioTecla)
-            .innerShadow(RadioTecla, Shadow(radius = 0.dp, color = Blanco.copy(alpha = 0.8f), offset = DpOffset(0.dp, 1.dp)))
-    } else {
-        Modifier
-            .background(Hueco, RadioTecla)
-            .innerShadow(RadioTecla, Shadow(radius = 3.dp, color = Negro.copy(alpha = 0.4f), offset = DpOffset(0.dp, 1.dp)))
+            .dropShadow(radio, Shadow(radius = 0.dp, color = TeclaCanto, offset = DpOffset(0.dp, 3.dp)))
+            .background(TeclaCara, radio)
+            .innerShadow(radio, Shadow(radius = 0.dp, color = Blanco.copy(alpha = 0.8f), offset = DpOffset(0.dp, 1.dp)))
+        else -> Modifier
+            .background(Hueco, radio)
+            .innerShadow(radio, Shadow(radius = 3.dp, color = Negro.copy(alpha = 0.4f), offset = DpOffset(0.dp, 1.dp)))
     }
-    val color = if (actual) Tinta else Crema2
+    val color = when {
+        d.esAfiche && actual -> TonosAfiche.Amarillo
+        d.esAfiche -> TonosAfiche.Tinta2Afiche
+        actual -> Tinta
+        else -> Crema2
+    }
     Column(
         modifier
-            .height(54.dp)
+            .height(if (d.esVidrio) 52.dp else 54.dp)
             .then(forma)
             .clearAndSetSemantics {
                 contentDescription = pestana.texto + if (actual) ", pestaña actual" else ""
@@ -289,6 +361,10 @@ private fun BotonPestana(pestana: Pestana, actual: Boolean, modifier: Modifier, 
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icono(pestana.icono, tamano = 22.dp, color = color)
-        Text(pestana.texto, style = Cuerpo.copy(fontSize = 12.sp, fontWeight = FontWeight.W600, lineHeight = 1.2.em), color = color)
+        Text(
+            pestana.texto,
+            style = Cuerpo.copy(fontSize = 12.sp, fontWeight = if (d.esAfiche) FontWeight.W700 else if (d.esVidrio && !actual) FontWeight.W500 else FontWeight.W600, lineHeight = 1.2.em),
+            color = color,
+        )
     }
 }

@@ -1,5 +1,13 @@
 package com.example.rokola.ui.pantallas
 
+import com.example.rokola.ui.theme.TonosAfiche
+import com.example.rokola.ui.theme.RadioFiltros
+import com.example.rokola.ui.theme.RadioBuscador
+import com.example.rokola.ui.theme.LocalDiseno
+import com.example.rokola.ui.theme.Borde
+import com.example.rokola.ui.componentes.fondoTuya
+import com.example.rokola.ui.componentes.Filas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -94,7 +102,6 @@ import com.example.rokola.ui.theme.Crema2
 import com.example.rokola.ui.theme.Cuerpo
 import com.example.rokola.ui.theme.Hueco
 import com.example.rokola.ui.theme.Papel
-import com.example.rokola.ui.theme.RadioTecla
 import com.example.rokola.ui.theme.Tinta
 import com.example.rokola.ui.theme.Tinta2
 import com.example.rokola.viewmodel.AvisoBuscar
@@ -257,27 +264,38 @@ fun PantallaBuscar(
 private fun Buscador(texto: String, onTexto: (String) -> Unit, modifier: Modifier) {
     var conFoco by remember { mutableStateOf(false) }
     val foco = LocalFocusManager.current
+    val d = LocalDiseno.current
+    val radio = RadioBuscador
+    // El anillo de foco: ámbar en Rockola, blanco en Vidrio y tinta en Afiche (3:1 con su fondo).
+    val colorFoco = if (d.esRockola) Ambar else Tinta
+    val radioFoco = d.radios.buscadorDp
+    val superficie = when {
+        d.esVidrio -> Modifier.background(Papel, radio).border(1.dp, Borde, radio)
+        d.esAfiche -> Modifier.background(TonosAfiche.PapelClaro, radio).border(3.dp, Tinta, radio)
+        else -> Modifier
+            .dropShadow(radio, Shadow(radius = 0.dp, color = Negro.copy(alpha = 0.25f), spread = 3.dp))
+            .background(Papel, radio)
+            .innerShadow(radio, Shadow(radius = 5.dp, color = Negro.copy(alpha = 0.28f), offset = androidx.compose.ui.unit.DpOffset(0.dp, 2.dp)))
+    }
     Row(
         modifier
             .fillMaxWidth()
             .height(52.dp)
             .drawBehind {
-                // :focus-within → 3 dp ámbar separado 3 dp.
+                // :focus-within → 3 dp separado 3 dp.
                 if (conFoco) {
                     val g = 3.dp.toPx()
                     val s = 3.dp.toPx() + g / 2
                     drawRoundRect(
-                        Ambar,
+                        colorFoco,
                         topLeft = Offset(-s, -s),
                         size = Size(size.width + 2 * s, size.height + 2 * s),
-                        cornerRadius = CornerRadius(10.dp.toPx() + s),
+                        cornerRadius = CornerRadius(radioFoco.toPx() + s),
                         style = Stroke(g),
                     )
                 }
             }
-            .dropShadow(RadioTecla, Shadow(radius = 0.dp, color = Negro.copy(alpha = 0.25f), spread = 3.dp))
-            .background(Papel, RadioTecla)
-            .innerShadow(RadioTecla, Shadow(radius = 5.dp, color = Negro.copy(alpha = 0.28f), offset = androidx.compose.ui.unit.DpOffset(0.dp, 2.dp)))
+            .then(superficie)
             .padding(start = 14.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -340,16 +358,14 @@ private fun Resultados(
             TituloDeSeccion(T.YA_EN_LA_COLA)
             Text(T.VOTA_EN_VEZ, style = Cuerpo.copy(fontSize = 13.sp), color = Crema2)
         }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            datos.enCola.forEach { f ->
-                FilaCancion(
-                    item = f.item,
-                    tecla = f.tecla,
-                    puedeVotar = estado.aceptaPedidos,
-                    ocupada = f.ocupada,
-                    onVotar = { onVotar(it.cancion.titulo, it.solicitudId) },
-                )
-            }
+        Filas(datos.enCola) { f ->
+            FilaCancion(
+                item = f.item,
+                tecla = f.tecla,
+                puedeVotar = estado.aceptaPedidos,
+                ocupada = f.ocupada,
+                onVotar = { onVotar(it.cancion.titulo, it.solicitudId) },
+            )
         }
     }
 
@@ -373,8 +389,8 @@ private fun Resultados(
         if (datos.resultados.isEmpty()) {
             Vacio(TextosFiltros.NINGUNO, abajo = { Tecla(TextosFiltros.QUITAR, { onFiltros(SIN_FILTROS) }, tamano = TamanoTecla.CHICA) })
         }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            datos.resultados.forEach { r ->
+        if (datos.resultados.isNotEmpty()) {
+            Filas(datos.resultados) { r ->
                 FilaResultado(r, pedidas[r.cancion.videoId], sinCupo, estado.pidiendo == r.cancion.videoId, zona, onPedir)
             }
         }
@@ -392,7 +408,11 @@ private fun FilaResultado(
 ) {
     val c = resultado.cancion
     val duracion = formatoDuracion(c.duracionSeg)
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(
+        Modifier.fillMaxWidth().fondoTuya(puestoPedida != null, LocalDiseno.current),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         when {
             puestoPedida != null -> {
                 TarjetaTitulo(c.titulo, "${c.artista}, puesto $puestoPedida", Modifier.weight(1f), variante = VarianteTarjeta.TUYA, duracion = duracion, miniatura = c.miniaturaUrl)
@@ -435,7 +455,7 @@ private fun PanelFiltros(filtros: FiltrosBusqueda, generos: List<String?>, onCam
         Modifier
             .padding(bottom = 14.dp)
             .fillMaxWidth()
-            .background(Hueco, RadioTecla)
+            .background(Hueco, RadioFiltros)
             .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

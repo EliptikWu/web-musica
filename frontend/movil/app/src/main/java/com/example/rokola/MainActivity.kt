@@ -1,5 +1,6 @@
 package com.example.rokola
 
+import com.example.rokola.dominio.TemaBar
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.graphics.Color
@@ -87,9 +88,11 @@ class MainActivity : ComponentActivity() {
      * `adb shell am start -n com.example.rokola/.MainActivity --es escenario fuera-de-horario`
      */
     private fun elegirEscenarioDePrueba() {
+        val repo = Contenedor.repositorio as? RepositorioSimulado ?: return
+        // `--es tema vidrio|afiche`: el diseño del bar simulado.
+        intent.getStringExtra("tema")?.let { repo.temaDePrueba = TemaBar.desde(it) }
         val id = intent.getStringExtra("escenario") ?: return
         val escenario = Escenario.entries.firstOrNull { it.id == id } ?: return
-        val repo = Contenedor.repositorio as? RepositorioSimulado ?: return
         runBlocking { repo.cambiarEscenario(escenario) }
     }
 

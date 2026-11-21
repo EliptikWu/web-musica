@@ -1,5 +1,6 @@
 package com.example.rokola.datos.simulacion
 
+import com.example.rokola.dominio.TemaBar
 import com.example.rokola.dominio.Ahora
 import com.example.rokola.dominio.Bar
 import com.example.rokola.dominio.Busqueda
@@ -41,6 +42,9 @@ class RepositorioSimulado(
     private var estado = crearEstado(escenario, dispositivo, relojReal(), velocidad)
     private val versiones = MutableStateFlow(estado.version)
 
+    /** El diseño con que se ve el bar simulado (`--es tema`, solo en depuración). */
+    @Volatile var temaDePrueba: TemaBar = TemaBar.ROCKOLA
+
     /** Vuelve a empezar con otro escenario (para probar estados desde la app). */
     suspend fun cambiarEscenario(escenario: Escenario) = candado.withLock {
         estado = crearEstado(escenario, dispositivo, relojReal(), velocidad)
@@ -75,6 +79,7 @@ class RepositorioSimulado(
                 duracionMaxSeg = e.bar.duracionMaxSeg,
                 ventanaNoRepeticionMin = e.bar.ventanaNoRepeticionMin,
                 horario = e.horario,
+                tema = temaDePrueba,
             ),
         )
     }

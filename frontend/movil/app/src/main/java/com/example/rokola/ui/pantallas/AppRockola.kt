@@ -1,5 +1,11 @@
 package com.example.rokola.ui.pantallas
 
+import com.example.rokola.viewmodel.EstadoPantalla
+import com.example.rokola.ui.theme.RokolaTheme
+import com.example.rokola.dominio.TemaBar
+import com.example.rokola.Contenedor
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,6 +44,14 @@ fun AppRockola(inicial: Pantalla = Pantalla.INICIO) {
     val bienvenida by bienvenidaVm.estado.collectAsStateWithLifecycle()
     val pie by pieVm.estado.collectAsStateWithLifecycle()
 
+    // El diseño del bar; mientras llega, el último que se vio de este bar (ADR-26).
+    val barActual = (bienvenida as? EstadoPantalla.Contenido)?.datos?.bar ?: (bienvenida as? EstadoPantalla.Vacio)?.datos?.bar
+    val recordado = remember { Contenedor.almacen.slug?.let(Contenedor.almacen::temaDe) }
+    val tema = barActual?.tema ?: TemaBar.desde(recordado)
+    LaunchedEffect(barActual?.slug, barActual?.tema) {
+        barActual?.let { Contenedor.almacen.guardarTema(it.slug, it.tema.id) }
+    }
+
     val abrirPolitica = { antesDePolitica = pantalla; pantalla = Pantalla.POLITICA }
     val ir = { p: Pestana ->
         pantalla = when (p) {
@@ -48,6 +62,7 @@ fun AppRockola(inicial: Pantalla = Pantalla.INICIO) {
     }
     val piePara = { p: Pestana -> @Composable { PieCliente(pie, p, ir) } }
 
+    RokolaTheme(tema) {
     when (pantalla) {
         Pantalla.INICIO -> PantallaBienvenida(
             estado = bienvenida,
@@ -88,9 +103,9 @@ fun AppRockola(inicial: Pantalla = Pantalla.INICIO) {
             )
         }
         Pantalla.POLITICA -> PantallaPolitica(
-            nombreBar = (bienvenida as? com.example.rokola.viewmodel.EstadoPantalla.Contenido)?.datos?.bar?.nombre
-                ?: (bienvenida as? com.example.rokola.viewmodel.EstadoPantalla.Vacio)?.datos?.bar?.nombre,
+            nombreBar = barActual?.nombre,
             onVolver = { pantalla = antesDePolitica },
         )
+    }
     }
 }

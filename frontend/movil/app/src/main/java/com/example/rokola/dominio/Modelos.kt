@@ -30,6 +30,15 @@ data class Franja(
 val FORMATO_SLUG = Regex("^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 /** Datos públicos del bar (GET /bares/{slug}). */
+/** El diseño del teléfono de este bar (RF-059). Uno desconocido se ve como Rockola. */
+enum class TemaBar(val id: String) {
+    ROCKOLA("rockola"), VIDRIO("vidrio"), AFICHE("afiche");
+
+    companion object {
+        fun desde(id: String?): TemaBar = entries.firstOrNull { it.id == id } ?: ROCKOLA
+    }
+}
+
 data class Bar(
     val slug: String,
     val nombre: String,
@@ -38,6 +47,7 @@ data class Bar(
     val duracionMaxSeg: Int,
     val ventanaNoRepeticionMin: Int,
     val horario: List<Franja>,
+    val tema: TemaBar = TemaBar.ROCKOLA,
 )
 
 enum class EstadoServicio { ABIERTO, FUERA_DE_HORARIO, EN_PAUSA, MANTENIMIENTO }

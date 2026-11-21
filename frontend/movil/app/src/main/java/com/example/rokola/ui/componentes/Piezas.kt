@@ -1,5 +1,10 @@
 package com.example.rokola.ui.componentes
 
+import androidx.compose.ui.graphics.SolidColor
+import com.example.rokola.ui.theme.Borde
+import com.example.rokola.ui.theme.comoCartel
+import com.example.rokola.ui.theme.TonosVidrio
+import com.example.rokola.ui.theme.LocalDiseno
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -96,14 +101,12 @@ import com.example.rokola.ui.theme.tubosApagados
 
 private val Negro = Color(0xFF000000)
 private val Blanco = Color(0xFFFFFFFF)
-/** rgba(35, 20, 15, .3): el corte punteado entre columnas de la tarjeta. */
-private val Corte = Tinta.copy(alpha = 0.3f)
-
 /** Raya punteada vertical (border-left/right: 1px dashed). */
-private fun Modifier.corte(izquierda: Boolean): Modifier = drawBehind {
+/** [color]: rgba(35, 20, 15, .3), el corte punteado entre columnas de la tarjeta. */
+private fun Modifier.corte(izquierda: Boolean, color: Color): Modifier = drawBehind {
     val x = if (izquierda) 0.5f else size.width - 0.5f
     drawLine(
-        color = Corte,
+        color = color,
         start = Offset(x, 0f),
         end = Offset(x, size.height),
         strokeWidth = 1.dp.toPx(),
@@ -114,7 +117,18 @@ private fun Modifier.corte(izquierda: Boolean): Modifier = drawBehind {
 /** Título de sección (.titulo-seccion): 112 %, 600, 16. */
 @Composable
 fun TituloDeSeccion(texto: String, modifier: Modifier = Modifier, color: Color = Crema, alineacion: TextAlign = TextAlign.Start) {
-    Text(texto, modifier.semantics { heading() }, style = TituloSeccion, color = color, textAlign = alineacion)
+    val rockola = LocalDiseno.current.esRockola
+    Text(
+        texto.comoCartel(),
+        modifier.semantics {
+            heading()
+            if (!rockola) contentDescription = texto
+        },
+        style = TituloSeccion,
+        color = color,
+        // Fuera de Rockola los títulos de sección van a la izquierda (temas/*.css).
+        textAlign = if (rockola) alineacion else TextAlign.Start,
+    )
 }
 
 // ── Tarjeta de título ─────────────────────────────────────────────────────────
@@ -141,13 +155,6 @@ fun TarjetaTitulo(
     duracion: String? = null,
     miniatura: String? = null,
 ) {
-    val fondo = if (variante == VarianteTarjeta.APAGADA) PapelApagado else Papel
-    val franja = when (variante) {
-        VarianteTarjeta.NORMAL -> Cereza
-        VarianteTarjeta.TUYA -> Ambar
-        VarianteTarjeta.APAGADA -> GrisApagado
-    }
-    val textoFranja = if (variante == VarianteTarjeta.TUYA) Tinta else Crema
     val leido = buildList {
         puesto?.let { add("Puesto $it") }
         add(titulo)
@@ -155,6 +162,15 @@ fun TarjetaTitulo(
         votos?.let { add(if (it == 1) "1 voto" else "$it votos") }
         duracion?.let { add("Duración $it") }
     }.joinToString(", ")
+    if (!LocalDiseno.current.esRockola) return RenglonTitulo(titulo, artista, modifier, variante, puesto, votos, duracion, miniatura, leido)
+    val corte = Tinta.copy(alpha = 0.3f)
+    val fondo = if (variante == VarianteTarjeta.APAGADA) PapelApagado else Papel
+    val franja = when (variante) {
+        VarianteTarjeta.NORMAL -> Cereza
+        VarianteTarjeta.TUYA -> Ambar
+        VarianteTarjeta.APAGADA -> GrisApagado
+    }
+    val textoFranja = if (variante == VarianteTarjeta.TUYA) Tinta else Crema
     Row(
         modifier
             .dropShadow(RadioTarjeta, Shadow(radius = 0.dp, color = Negro.copy(alpha = 0.3f), offset = DpOffset(0.dp, 2.dp)))
@@ -167,7 +183,7 @@ fun TarjetaTitulo(
         if (miniatura != null) {
             Miniatura(miniatura, puesto)
         } else if (puesto != null) {
-            Box(Modifier.widthIn(min = 34.dp).fillMaxHeight().corte(izquierda = false), contentAlignment = Alignment.Center) {
+            Box(Modifier.widthIn(min = 34.dp).fillMaxHeight().corte(izquierda = false, corte), contentAlignment = Alignment.Center) {
                 Text("$puesto", style = Cifra.copy(fontSize = 18.sp), color = Tinta2)
             }
         }
@@ -191,7 +207,7 @@ fun TarjetaTitulo(
         }
         if (votos != null) {
             Column(
-                Modifier.widthIn(min = 46.dp).padding(horizontal = 2.dp).fillMaxHeight().corte(izquierda = true),
+                Modifier.widthIn(min = 46.dp).padding(horizontal = 2.dp).fillMaxHeight().corte(izquierda = true, corte),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -205,7 +221,7 @@ fun TarjetaTitulo(
             }
         }
         if (duracion != null) {
-            Box(Modifier.widthIn(min = 62.dp).padding(horizontal = 4.dp).fillMaxHeight().corte(izquierda = true), contentAlignment = Alignment.Center) {
+            Box(Modifier.widthIn(min = 62.dp).padding(horizontal = 4.dp).fillMaxHeight().corte(izquierda = true, corte), contentAlignment = Alignment.Center) {
                 Text(duracion, style = Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W600, fontFeatureSettings = "tnum"), color = Tinta)
             }
         }
@@ -215,7 +231,8 @@ fun TarjetaTitulo(
 /** .tarjeta__miniatura: 54 dp, la foto a 4 dp del borde y el puesto en la esquina de abajo. */
 @Composable
 private fun Miniatura(url: String, puesto: Int?) {
-    Box(Modifier.width(54.dp).fillMaxHeight().corte(izquierda = false)) {
+    val corte = Tinta.copy(alpha = 0.3f)
+    Box(Modifier.width(54.dp).fillMaxHeight().corte(izquierda = false, corte)) {
         AsyncImage(
             model = url,
             contentDescription = null,
@@ -268,6 +285,7 @@ fun Arco(
     descripcion: String? = null,
     contenido: @Composable ColumnScope.() -> Unit,
 ) {
+    if (!LocalDiseno.current.esRockola) return ArcoTema(modifier, apagado, descripcion, contenido)
     val densidad = LocalDensity.current
     var marco = modifier
     // En Compose 1.10, dropShadow con spread negativo pinta un rectángulo de bordes duros:
@@ -305,6 +323,21 @@ fun Ventana(
     alineacion: Alignment.Horizontal = Alignment.CenterHorizontally,
     contenido: @Composable ColumnScope.() -> Unit,
 ) {
+    val d = LocalDiseno.current
+    if (!d.esRockola) {
+        val plana = LocalVentanaPlana.current
+        val enArco = LocalEnArco.current
+        val forma = RadioTarjeta
+        val caja = when {
+            enArco -> modifier.fillMaxWidth()
+            plana -> modifier.fillMaxWidth().padding(relleno)
+            d.esVidrio -> modifier.fillMaxWidth().background(Papel, forma).border(1.dp, Borde, forma).padding(relleno)
+            else -> modifier.fillMaxWidth().border(3.dp, Tinta).padding(relleno)
+        }
+        val horizontal = if (plana && alineacionArco() == TextAlign.Center) Alignment.CenterHorizontally else Alignment.Start
+        Column(caja, horizontalAlignment = horizontal, content = contenido)
+        return
+    }
     Column(
         modifier
             .fillMaxWidth()
@@ -320,6 +353,7 @@ fun Ventana(
 /** Marco pequeño con luz (la tarjeta «Tu canción»). */
 @Composable
 fun Marco(modifier: Modifier = Modifier, contenido: @Composable () -> Unit) {
+    if (!LocalDiseno.current.esRockola) return MarcoTema(modifier, contenido)
     val densidad = LocalDensity.current
     Box(
         modifier
@@ -342,6 +376,7 @@ fun Marco(modifier: Modifier = Modifier, contenido: @Composable () -> Unit) {
 /** Luz de estado: punto ámbar encendido, gris apagado. El texto dice el estado. */
 @Composable
 fun LuzDeEstado(texto: String, encendida: Boolean, modifier: Modifier = Modifier) {
+    if (!LocalDiseno.current.esRockola) return LuzTema(texto, encendida, modifier)
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         val punto = if (encendida) {
             Modifier.dropShadow(CircleShape, Shadow(radius = 10.dp, color = Ambar.copy(alpha = 0.7f), spread = 2.dp)).background(LuzEstado, CircleShape)
@@ -359,6 +394,8 @@ fun LuzDeEstado(texto: String, encendida: Boolean, modifier: Modifier = Modifier
  */
 @Composable
 fun Fichas(libres: Int, total: Int, modifier: Modifier = Modifier) {
+    if (!LocalDiseno.current.esRockola) return FichasTema(libres, total, modifier)
+    val colorVacia = Crema.copy(alpha = 0.45f)
     Row(modifier.clearAndSetSemantics { }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         repeat(total) { i ->
             val ficha = if (i < libres) {
@@ -370,7 +407,7 @@ fun Fichas(libres: Int, total: Int, modifier: Modifier = Modifier) {
                 Modifier.drawBehind {
                     val grosor = 1.5.dp.toPx()
                     drawCircle(
-                        color = Crema.copy(alpha = 0.45f),
+                        color = colorVacia,
                         radius = size.minDimension / 2 - grosor / 2,
                         style = androidx.compose.ui.graphics.drawscope.Stroke(
                             width = grosor,
@@ -387,6 +424,7 @@ fun Fichas(libres: Int, total: Int, modifier: Modifier = Modifier) {
 /** Insignia cereza: «24 votos», «Subió 2 puestos». */
 @Composable
 fun Insignia(texto: String, modifier: Modifier = Modifier, icono: NombreIcono? = null) {
+    if (!LocalDiseno.current.esRockola) return InsigniaTema(texto, modifier, icono)
     Row(
         modifier
             .background(Cereza, RadioInsignia)
@@ -404,6 +442,7 @@ data class Dia(val corto: String, val largo: String, val abre: Boolean, val hoy:
 /** Los siete días del horario: los que abren son teclas; «Hoy» marca el día actual. */
 @Composable
 fun DiasSemana(dias: List<Dia>, modifier: Modifier = Modifier) {
+    if (!LocalDiseno.current.esRockola) return DiasTema(dias, modifier)
     val densidad = LocalDensity.current
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         dias.forEach { dia ->
@@ -462,8 +501,12 @@ fun Avance(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(textoInicio, style = estiloTiempo, color = colorTexto)
-        Box(Modifier.weight(1f).height(4.dp).background(Tinta.copy(alpha = 0.25f), RoundedCornerShape(2.dp))) {
-            Box(Modifier.fillMaxWidth(f).height(4.dp).background(colorSurco, RoundedCornerShape(2.dp)))
+        // Afiche: una regla gruesa y sin redondeo.
+        val d = LocalDiseno.current
+        val alto = if (d.esAfiche) 6.dp else 4.dp
+        val forma = if (d.esAfiche) RoundedCornerShape(0.dp) else RoundedCornerShape(2.dp)
+        Box(Modifier.weight(1f).height(alto).background(d.paleta.pista, forma)) {
+            Box(Modifier.fillMaxWidth(f).height(alto).background(colorSurco, forma))
         }
         Text(textoFin, style = estiloTiempo, color = colorTexto)
     }
@@ -472,8 +515,17 @@ fun Avance(
 /** La raya ámbar bajo el mini reproductor: decorativa, el avance ya se lee arriba. */
 @Composable
 fun MiniAvance(fraccion: Float, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().height(3.dp).background(Crema.copy(alpha = 0.16f), RoundedCornerShape(2.dp))) {
-        Box(Modifier.fillMaxWidth(fraccion.coerceIn(0f, 1f)).height(3.dp).background(Ambar, RoundedCornerShape(2.dp)))
+    val d = LocalDiseno.current
+    val forma = if (d.esAfiche) RoundedCornerShape(0.dp) else RoundedCornerShape(2.dp)
+    val alto = if (d.esAfiche) 4.dp else 3.dp
+    val pista = if (d.esRockola) Crema.copy(alpha = 0.16f) else d.paleta.pista
+    val lleno: Brush = when {
+        d.esAfiche -> d.paleta.luz
+        d.esVidrio -> SolidColor(TonosVidrio.Blanco)
+        else -> SolidColor(Ambar)
+    }
+    Box(modifier.fillMaxWidth().height(alto).background(pista, forma)) {
+        Box(Modifier.fillMaxWidth(fraccion.coerceIn(0f, 1f)).height(alto).background(lleno, forma))
     }
 }
 
@@ -484,6 +536,8 @@ fun MiniAvance(fraccion: Float, modifier: Modifier = Modifier) {
 fun Esqueleto(modifier: Modifier = Modifier, forma: androidx.compose.ui.graphics.Shape = RadioTarjeta) {
     val t = rememberInfiniteTransition(label = "esqueleto")
     val x = t.animateFloat(1f, -1f, infiniteRepeatable(tween(1400, easing = LinearEasing), RepeatMode.Restart), label = "x")
+    val claro = Crema.copy(alpha = 0.06f)
+    val brillo = Crema.copy(alpha = 0.12f)
     Box(
         modifier
             .clearAndSetSemantics { }
@@ -492,9 +546,9 @@ fun Esqueleto(modifier: Modifier = Modifier, forma: androidx.compose.ui.graphics
                 val inicio = x.value * size.width
                 drawRect(
                     Brush.horizontalGradient(
-                        0f to Crema.copy(alpha = 0.06f),
-                        0.5f to Crema.copy(alpha = 0.12f),
-                        1f to Crema.copy(alpha = 0.06f),
+                        0f to claro,
+                        0.5f to brillo,
+                        1f to claro,
                         startX = inicio,
                         endX = inicio + size.width * 2,
                         tileMode = androidx.compose.ui.graphics.TileMode.Mirror,

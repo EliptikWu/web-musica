@@ -1,5 +1,7 @@
 package com.example.rokola.ui.theme
 
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.Composable
 import android.graphics.Matrix
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -67,7 +69,7 @@ val ApagadoHorizontal = Brush.horizontalGradient(
 
 /** .pie: madera clara → madera 40 % → #2E1A12. */
 val Pie = Brush.verticalGradient(
-    0f to MaderaClara,
+    0f to MaderaClaraBase,
     0.40f to Madera,
     1f to PieFondo,
 )
@@ -112,22 +114,42 @@ private class Radial(
 }
 
 /** .tecla--tuya: radial-gradient(120% 140% at 50% 0%, ámbar claro, ámbar 70 %). */
-val TeclaTuya: Brush = Radial(0.5f, 0f, 1.2f, 1.4f, listOf(0f to AmbarClaro, 0.7f to Ambar))
+val TeclaTuya: Brush = Radial(0.5f, 0f, 1.2f, 1.4f, listOf(0f to AmbarClaro, 0.7f to AmbarBase))
 
 /** .ficha--libre: radial-gradient(circle at 35% 30%, #FFF0C4, ámbar 55 %, #B8741A). */
-val FichaLibre: Brush = Radial(0.35f, 0.30f, paradas = listOf(0f to FichaBrillo, 0.55f to Ambar, 1f to FichaCanto))
+val FichaLibre: Brush = Radial(0.35f, 0.30f, paradas = listOf(0f to FichaBrillo, 0.55f to AmbarBase, 1f to FichaCanto))
 
 /** .aviso: radial-gradient(120% 160% at 30% 0%, ámbar claro, ámbar 70 %). */
-val AvisoLuz: Brush = Radial(0.30f, 0f, 1.2f, 1.6f, listOf(0f to AmbarClaro, 0.7f to Ambar))
+val AvisoLuz: Brush = Radial(0.30f, 0f, 1.2f, 1.6f, listOf(0f to AmbarClaro, 0.7f to AmbarBase))
 
 /** .dialogo: madera clara → madera. */
-val FondoDialogo = Brush.verticalGradient(0f to MaderaClara, 1f to Madera)
+private val FondoDialogoRockola = Brush.verticalGradient(0f to MaderaClaraBase, 1f to Madera)
+val FondoDialogo: Brush
+    @Composable @ReadOnlyComposable get() = LocalDiseno.current.let {
+        if (it.esRockola) FondoDialogoRockola else SolidColor(it.paleta.fondo)
+    }
+
+private fun mancha(x: Float, y: Float, rx: Float, ry: Float, color: Color): Brush =
+    Radial(x, y, rx, ry, listOf(0f to color, 0.72f to color.copy(alpha = 0f)))
+
+/** --vidrio-manchas: tres luces pastel sobre el carbón. */
+val ManchasVidrio: List<Brush> = listOf(
+    mancha(0.92f, 0f, 0.34f, 0.24f, Color(red = 244, green = 169, blue = 142).copy(alpha = 0.34f)),
+    mancha(0f, 0.30f, 0.36f, 0.26f, Color(red = 224, green = 127, blue = 174).copy(alpha = 0.26f)),
+    mancha(0.40f, 0.92f, 0.48f, 0.30f, Color(red = 154, green = 134, blue = 236).copy(alpha = 0.29f)),
+)
+
+/** --vidrio-manchas-apagadas: cerrado o en pausa, la luz baja. */
+val ManchasVidrioApagadas: List<Brush> = listOf(
+    mancha(0.92f, 0f, 0.34f, 0.24f, Color(red = 244, green = 169, blue = 142).copy(alpha = 0.10f)),
+    mancha(0.40f, 0.92f, 0.48f, 0.30f, Color(red = 154, green = 134, blue = 236).copy(alpha = 0.10f)),
+)
 
 /** .madera--apagada: sin el resplandor del arco (cerrado o en pausa). */
 val FondoMaderaApagada: List<Brush> get() = FondoMadera.take(2)
 
 /** .luz-estado encendida: radial-gradient(circle at 35% 35%, #FFE7B0, ámbar 60 %). */
-val LuzEstado: Brush = Radial(0.35f, 0.35f, paradas = listOf(0f to LuzBrillo, 0.6f to Ambar))
+val LuzEstado: Brush = Radial(0.35f, 0.35f, paradas = listOf(0f to LuzBrillo, 0.6f to AmbarBase))
 
 /*
  * Fondo de madera (body en estilos.css), de arriba hacia abajo en orden de pintura:
@@ -136,7 +158,7 @@ val LuzEstado: Brush = Radial(0.35f, 0.35f, paradas = listOf(0f to LuzBrillo, 0.
 val FondoMadera: List<Brush> = listOf(
     SolidColor(Nogal),
     Radial(0.5f, 1.10f, 0.90f, 0.60f, listOf(0f to Color(0xFF000000).copy(alpha = 0.45f), 0.70f to Color(0xFF000000).copy(alpha = 0f))),
-    Radial(0.5f, -0.05f, 1.30f, 0.55f, listOf(0f to Ambar.copy(alpha = 0.16f), 0.60f to Ambar.copy(alpha = 0f))),
+    Radial(0.5f, -0.05f, 1.30f, 0.55f, listOf(0f to AmbarBase.copy(alpha = 0.16f), 0.60f to AmbarBase.copy(alpha = 0f))),
 )
 
 /** body::before: tres vetas finas de anchos irregulares para que no parezca rayado. */

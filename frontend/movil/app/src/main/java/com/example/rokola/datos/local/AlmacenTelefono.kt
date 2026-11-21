@@ -33,10 +33,16 @@ class AlmacenTelefono(context: Context) {
         get() = preferencias.getString(CLAVE_SLUG, null)
         set(valor) = preferencias.edit { putString(CLAVE_SLUG, valor) }
 
+    /** El diseño del bar, para no pintar otro mientras llega del servidor (ADR-26). */
+    fun temaDe(slug: String): String? = preferencias.getString(CLAVE_TEMA + slug, null)
+
+    fun guardarTema(slug: String, tema: String) = preferencias.edit { putString(CLAVE_TEMA + slug, tema) }
+
     companion object {
         /** Mismo nombre en backup_rules.xml y data_extraction_rules.xml. */
         const val ARCHIVO = "rockola-telefono"
         private const val CLAVE_DISPOSITIVO = "dispositivo"
         private const val CLAVE_SLUG = "bar"
+        private const val CLAVE_TEMA = "tema:"
     }
 }

@@ -1,5 +1,18 @@
 package com.example.rokola.ui.pantallas
 
+import com.example.rokola.ui.theme.comoCartel
+import com.example.rokola.ui.theme.estiloCartel
+import com.example.rokola.ui.theme.TonosAfiche
+import com.example.rokola.ui.theme.TituloCerrado
+import com.example.rokola.ui.theme.LocalDiseno
+import com.example.rokola.ui.componentes.fondoTuya
+import com.example.rokola.ui.componentes.alineacionArco
+import com.example.rokola.ui.componentes.aSangre
+import com.example.rokola.ui.componentes.CajaHorario
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -55,7 +69,6 @@ import com.example.rokola.ui.textos.diaDeLaSemana
 import com.example.rokola.ui.textos.falloCarga
 import com.example.rokola.ui.textos.resumenHorario
 import com.example.rokola.ui.textos.servicioCerrado
-import com.example.rokola.ui.theme.Condensada
 import com.example.rokola.ui.theme.Crema
 import com.example.rokola.ui.theme.Crema2
 import com.example.rokola.ui.theme.Cuerpo
@@ -67,7 +80,69 @@ import com.example.rokola.ui.theme.Tinta2
 /** Título de página (.placa): 125 %, 800. */
 @Composable
 fun TituloPlaca(texto: String, modifier: Modifier = Modifier, tamano: Int = 24, alineacion: TextAlign = TextAlign.Start) {
-    Text(texto, modifier.semantics { heading() }, style = Placa.copy(fontSize = tamano.sp), color = Crema, textAlign = alineacion)
+    val tipos = LocalDiseno.current.tipos
+    // En Vidrio y Afiche la placa tiene su propio tamaño (h1.placa en temas/*.css).
+    val medida = if (tamano == 24) tipos.tamanoPlaca ?: tamano else tamano
+    Text(
+        texto.comoCartel(),
+        modifier.semantics {
+            heading()
+            contentDescription = texto
+        },
+        style = Placa.copy(fontSize = medida.sp),
+        color = Crema,
+        textAlign = alineacion,
+    )
+}
+
+/**
+ * El nombre del bar con su luz. Rockola lo centra; Vidrio lo pone a la izquierda con la luz al
+ * lado; Afiche lo imprime a sangre sobre la tinta partida, unido al arco que sigue.
+ */
+@Composable
+fun ColumnScope.CabeceraBar(nombre: String, luz: String, encendida: Boolean, apagada: Boolean = false) {
+    val d = LocalDiseno.current
+    val tamano = (if (apagada) d.tipos.tamanoPlacaBarApagada else d.tipos.tamanoPlacaBar) ?: 25
+    when {
+        d.esRockola -> {
+            TituloPlaca(nombre, Modifier.fillMaxWidth(), tamano = tamano, alineacion = TextAlign.Center)
+            LuzDeEstado(luz, encendida = encendida, modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally))
+        }
+        // Con la letra grande el nombre necesita todo el ancho: la luz baja a su propia línea.
+        (d.esVidrio || apagada) && LocalDensity.current.fontScale > 1.3f -> Column(Modifier.fillMaxWidth()) {
+            TituloPlaca(nombre, Modifier.fillMaxWidth(), tamano = tamano)
+            LuzDeEstado(luz, encendida = encendida, modifier = Modifier.padding(top = 8.dp))
+        }
+        d.esVidrio || apagada -> Row(
+            Modifier
+                .fillMaxWidth()
+                .then(
+                    if (d.esAfiche) Modifier.drawBehind {
+                        val g = 3.dp.toPx()
+                        drawRect(TonosAfiche.TintaAfiche, topLeft = Offset(0f, size.height - g), size = Size(size.width, g))
+                    }.padding(bottom = 13.dp) else Modifier,
+                ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TituloPlaca(nombre, Modifier.weight(1f).padding(end = 12.dp), tamano = tamano)
+            LuzDeEstado(luz, encendida = encendida)
+        }
+        else -> Column(
+            Modifier
+                .aSangre(arriba = 22.dp)
+                .background(d.paleta.luz)
+                .drawBehind {
+                    val g = 3.dp.toPx()
+                    drawRect(TonosAfiche.TintaAfiche, topLeft = Offset(0f, size.height - g), size = Size(size.width, g))
+                }
+                .padding(start = 16.dp, end = 16.dp, top = 22.dp, bottom = 19.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            TituloPlaca(nombre, Modifier.fillMaxWidth(), tamano = tamano, alineacion = TextAlign.Center)
+            LuzDeEstado(luz, encendida = encendida, modifier = Modifier.padding(top = 10.dp))
+        }
+    }
 }
 
 /** Mientras llega la primera foto: la forma de la pantalla, sin texto inventado. */
@@ -105,9 +180,9 @@ fun ColumnScope.EstadoCerradoArriba(bar: Bar, ahora: Ahora) {
     val abren = bar.horario.filter { it.activo }.map { it.diaSemana }.toSet()
     val hoy = diaDeLaSemana(ahora.servidorAhora, bar.zonaHoraria)
     val lineas = resumenHorario(bar.horario)
+    val rockola = LocalDiseno.current.esRockola
 
-    TituloPlaca(bar.nombre, Modifier.fillMaxWidth(), tamano = 25, alineacion = TextAlign.Center)
-    LuzDeEstado(textos.luz, encendida = false, modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally))
+    CabeceraBar(bar.nombre, textos.luz, encendida = false, apagada = true)
 
     Arco(
         Modifier.padding(top = 34.dp),
@@ -117,28 +192,45 @@ fun ColumnScope.EstadoCerradoArriba(bar: Bar, ahora: Ahora) {
         descripcion = "Estado de la rockola",
     ) {
         Ventana(relleno = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 18.dp)) {
-            Text(textos.titulo, Modifier.semantics { heading() }, style = Condensada.copy(fontSize = 34.sp, lineHeight = 0.98.em), color = Tinta, textAlign = TextAlign.Center)
-            Text(textos.detalle, Modifier.padding(top = 10.dp), style = Cuerpo.copy(fontSize = 15.sp, lineHeight = 1.4.em), color = Tinta2, textAlign = TextAlign.Center)
+            Text(
+                textos.titulo.comoCartel(),
+                Modifier.semantics {
+                    heading()
+                    contentDescription = textos.titulo
+                },
+                style = estiloCartel(TituloCerrado, textos.titulo),
+                color = Tinta,
+                textAlign = alineacionArco(),
+            )
+            Text(
+                textos.detalle,
+                Modifier.padding(top = if (rockola) 10.dp else 14.dp),
+                style = Cuerpo.copy(fontSize = if (rockola) 15.sp else 17.sp, lineHeight = if (rockola) 1.4.em else 1.45.em),
+                color = Tinta2,
+                textAlign = alineacionArco(),
+            )
         }
     }
 
     if (lineas.isNotEmpty()) {
-        TituloDeSeccion(T.HORARIO_DE_PEDIDOS, Modifier.padding(top = 36.dp).fillMaxWidth(), alineacion = TextAlign.Center)
-        DiasSemana(
-            DIAS.mapIndexed { i, d -> Dia(d.corto, d.largo, abre = (i + 1) in abren, hoy = hoy == i + 1) },
-            Modifier.padding(top = 12.dp),
-        )
-        lineas.forEach { l ->
-            Text(
-                buildAnnotatedString {
-                    append("${l.dias}, ")
-                    withStyle(SpanStyle(color = Crema, fontWeight = FontWeight.W700)) { append(l.horas) }
-                },
-                Modifier.padding(top = 14.dp).fillMaxWidth(),
-                style = Cuerpo.copy(fontSize = 16.sp),
-                color = Crema2,
-                textAlign = TextAlign.Center,
+        CajaHorario(Modifier.padding(top = if (rockola) 0.dp else 32.dp)) {
+            TituloDeSeccion(T.HORARIO_DE_PEDIDOS, Modifier.padding(top = if (rockola) 36.dp else 0.dp).fillMaxWidth(), alineacion = TextAlign.Center)
+            DiasSemana(
+                DIAS.mapIndexed { i, d -> Dia(d.corto, d.largo, abre = (i + 1) in abren, hoy = hoy == i + 1) },
+                Modifier.padding(top = 12.dp),
             )
+            lineas.forEach { l ->
+                Text(
+                    buildAnnotatedString {
+                        append("${l.dias}, ")
+                        withStyle(SpanStyle(color = Crema, fontWeight = FontWeight.W700)) { append(l.horas) }
+                    },
+                    Modifier.padding(top = 14.dp).fillMaxWidth(),
+                    style = Cuerpo.copy(fontSize = 16.sp),
+                    color = Crema2,
+                    textAlign = if (rockola) TextAlign.Center else TextAlign.Start,
+                )
+            }
         }
     }
 }
@@ -164,7 +256,11 @@ fun FilaCancion(
     onMover: ((ItemCola) -> Unit)? = null,
 ) {
     val titulo = item.cancion.titulo
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(
+        Modifier.fillMaxWidth().fondoTuya(tecla == EstadoTecla.TUYA, LocalDiseno.current),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
         TarjetaTitulo(
             titulo = titulo,
             artista = artista,

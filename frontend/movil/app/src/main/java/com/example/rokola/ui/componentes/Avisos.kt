@@ -1,5 +1,11 @@
 package com.example.rokola.ui.componentes
 
+import com.example.rokola.ui.theme.comoCartel
+import com.example.rokola.ui.theme.TituloSeccion
+import com.example.rokola.ui.theme.TonosVidrio
+import com.example.rokola.ui.theme.TonosAfiche
+import com.example.rokola.ui.theme.LocalDiseno
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import com.example.rokola.ui.theme.Ambar
 import com.example.rokola.ui.theme.AvisoLuz
 import com.example.rokola.ui.theme.Borde
-import com.example.rokola.ui.theme.Cereza
 import com.example.rokola.ui.theme.Crema
 import com.example.rokola.ui.theme.Crema2
 import com.example.rokola.ui.theme.Cuerpo
@@ -69,17 +74,35 @@ fun Aviso(
     meta: String? = null,
     accion: AccionAviso? = null,
 ) {
-    val texto = if (tipo == TipoAviso.LUZ) Tinta else Crema
+    val d = LocalDiseno.current
+    val radio = RadioAviso
+    val texto = when (tipo) {
+        TipoAviso.LUZ -> d.sobreLuz().paleta.tinta
+        TipoAviso.ERROR -> d.paleta.sobreError
+        TipoAviso.INFO -> Crema
+    }
+    val colorTitulo = if (d.esAfiche && tipo == TipoAviso.ERROR) TonosAfiche.Amarillo else texto
     val forma = when (tipo) {
-        TipoAviso.LUZ -> Modifier
-            .dropShadow(RadioAviso, Shadow(radius = 26.dp, color = Ambar.copy(alpha = 0.4f)))
-            .background(AvisoLuz, RadioAviso)
-        TipoAviso.ERROR -> Modifier
-            .dropShadow(RadioAviso, Shadow(radius = 10.dp, color = Negro.copy(alpha = 0.45f), offset = DpOffset(0.dp, 6.dp)))
-            .background(Cereza, RadioAviso)
-        TipoAviso.INFO -> Modifier
-            .background(MaderaClara, RadioAviso)
-            .innerShadow(RadioAviso, Shadow(radius = 0.dp, color = Borde, spread = 1.dp))
+        TipoAviso.LUZ -> if (d.esRockola) {
+            Modifier
+                .dropShadow(radio, Shadow(radius = 26.dp, color = Ambar.copy(alpha = 0.4f)))
+                .background(AvisoLuz, radio)
+        } else {
+            Modifier.background(d.paleta.luz, radio)
+        }
+        TipoAviso.ERROR -> when {
+            d.esRockola -> Modifier
+                .dropShadow(radio, Shadow(radius = 10.dp, color = Negro.copy(alpha = 0.45f), offset = DpOffset(0.dp, 6.dp)))
+                .background(d.paleta.errorFondo, radio)
+            d.esVidrio -> Modifier.background(d.paleta.errorFondo, radio).border(1.dp, TonosVidrio.Rosa, radio)
+            else -> Modifier.background(d.paleta.errorFondo, radio)
+        }
+        TipoAviso.INFO -> when {
+            d.esAfiche -> Modifier.background(MaderaClara, radio).border(2.dp, Tinta, radio)
+            else -> Modifier
+                .background(MaderaClara, radio)
+                .innerShadow(radio, Shadow(radius = 0.dp, color = Borde, spread = 1.dp))
+        }
     }
     Row(
         modifier
@@ -91,7 +114,10 @@ fun Aviso(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(Modifier.weight(1f)) {
-            if (titulo != null) Text(titulo, style = Cuerpo.copy(fontSize = 16.sp, fontWeight = FontWeight.W700), color = texto)
+            if (titulo != null) {
+                if (d.esAfiche) Text(titulo.comoCartel(), style = TituloSeccion.copy(fontSize = 28.sp), color = colorTitulo)
+                else Text(titulo, style = Cuerpo.copy(fontSize = 16.sp, fontWeight = FontWeight.W700), color = colorTitulo)
+            }
             if (meta != null) Text(meta, style = Cuerpo.copy(fontSize = 14.sp), color = texto)
         }
         if (accion != null) Enlace(accion.texto, accion.alPulsar, color = texto)
@@ -126,16 +152,18 @@ fun Vacio(texto: String, modifier: Modifier = Modifier, destacado: String? = nul
         }
         append(texto)
     }
+    val colorBorde = Crema.copy(alpha = 0.25f)
+    val radioBorde = LocalDiseno.current.radios.cajaDp
     Column(
         modifier
             .fillMaxWidth()
             .drawBehind {
                 val grosor = 1.5.dp.toPx()
                 drawRoundRect(
-                    color = Crema.copy(alpha = 0.25f),
+                    color = colorBorde,
                     topLeft = androidx.compose.ui.geometry.Offset(grosor / 2, grosor / 2),
                     size = androidx.compose.ui.geometry.Size(size.width - grosor, size.height - grosor),
-                    cornerRadius = CornerRadius(14.dp.toPx()),
+                    cornerRadius = CornerRadius(radioBorde.toPx()),
                     style = Stroke(width = grosor, pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))),
                 )
             }

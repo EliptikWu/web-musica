@@ -1,5 +1,8 @@
 package com.example.rokola.datos.api
 
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
+import com.example.rokola.dominio.TemaBar
 import com.example.rokola.dominio.Ahora
 import com.example.rokola.dominio.Bar
 import com.example.rokola.dominio.Busqueda
@@ -95,6 +98,8 @@ data class BarJson(
     @SerialName("duracion_max_seg") val duracionMaxSeg: Int,
     @SerialName("ventana_no_repeticion_min") val ventanaNoRepeticionMin: Int,
     val horario: List<FranjaJson>,
+    /** Sin validar a propósito: un tema nuevo del servidor no debe impedir abrir el bar. */
+    val tema: JsonElement? = null,
 ) {
     fun aDominio(): Bar {
         require(FORMATO_SLUG.matches(slug)) { "slug fuera de formato" }
@@ -107,6 +112,7 @@ data class BarJson(
             duracionMaxSeg = positivo(duracionMaxSeg, "duracion_max_seg"),
             ventanaNoRepeticionMin = noNegativo(ventanaNoRepeticionMin, "ventana_no_repeticion_min"),
             horario = horario.map { it.aDominio() },
+            tema = TemaBar.desde((tema as? JsonPrimitive)?.takeIf { it.isString }?.content),
         )
     }
 }

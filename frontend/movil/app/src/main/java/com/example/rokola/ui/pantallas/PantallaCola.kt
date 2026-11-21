@@ -1,5 +1,12 @@
 package com.example.rokola.ui.pantallas
 
+import com.example.rokola.ui.theme.estiloCartel
+import com.example.rokola.ui.theme.estiloEtiqueta
+import com.example.rokola.ui.theme.comoCartel
+import com.example.rokola.ui.theme.TituloTuyo
+import com.example.rokola.ui.theme.LocalDiseno
+import com.example.rokola.ui.theme.CifraTuya
+import com.example.rokola.ui.componentes.Filas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -82,13 +89,10 @@ import com.example.rokola.ui.textos.formatoResumenCola
 import com.example.rokola.ui.textos.luzServicio
 import com.example.rokola.ui.theme.ArchivoSeccion
 import com.example.rokola.ui.theme.Borde
-import com.example.rokola.ui.theme.Cifra
-import com.example.rokola.ui.theme.Condensada
 import com.example.rokola.ui.theme.Crema
 import com.example.rokola.ui.theme.Crema2
 import com.example.rokola.ui.theme.Cuerpo
 import com.example.rokola.ui.theme.FondoDialogo
-import com.example.rokola.ui.theme.RadioMarco
 import com.example.rokola.ui.theme.Tinta
 import com.example.rokola.ui.theme.Tinta2
 import com.example.rokola.viewmodel.AvisoCola
@@ -190,18 +194,16 @@ fun PantallaCola(
         }
 
         if (filas.isNotEmpty()) {
-            Column(Modifier.padding(top = 14.dp).semantics { contentDescription = "Canciones en la cola" }, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                filas.forEach { f ->
-                    FilaCancion(
-                        item = f.item,
-                        tecla = f.tecla,
-                        artista = "${f.item.cancion.artista}, ${formatoEsperaCorta(f.esperaSeg)}",
-                        puedeVotar = abierto,
-                        ocupada = f.ocupada,
-                        onVotar = { ultimoVoto = it.cancion.titulo; onVotar(it.solicitudId) },
-                        onMover = { moviendo = it },
-                    )
-                }
+            Filas(filas, Modifier.padding(top = 14.dp).semantics { contentDescription = "Canciones en la cola" }) { f ->
+                FilaCancion(
+                    item = f.item,
+                    tecla = f.tecla,
+                    artista = "${f.item.cancion.artista}, ${formatoEsperaCorta(f.esperaSeg)}",
+                    puedeVotar = abierto,
+                    ocupada = f.ocupada,
+                    onVotar = { ultimoVoto = it.cancion.titulo; onVotar(it.solicitudId) },
+                    onMover = { moviendo = it },
+                )
             }
             Text(
                 buildAnnotatedString {
@@ -260,7 +262,7 @@ private fun TuCancion(fila: FilaCola, modifier: Modifier) {
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 itemVerticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(T.TU_CANCION_VA_DE, Modifier.padding(end = 8.dp), style = Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W600), color = Tinta2)
+                Text(T.TU_CANCION_VA_DE.comoCartel(), Modifier.padding(end = 8.dp), style = estiloEtiqueta(Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W600)), color = Tinta2)
                 if (fila.subio > 0) {
                     Insignia(if (fila.subio == 1) "Subió 1 puesto" else "Subió ${fila.subio} puestos", Modifier.heightIn(min = 26.dp), icono = NombreIcono.SUBIR)
                 }
@@ -269,11 +271,16 @@ private fun TuCancion(fila: FilaCola, modifier: Modifier) {
                 Text(
                     "#${item.puesto}",
                     Modifier.semantics { contentDescription = "Puesto ${item.puesto}" },
-                    style = Cifra.copy(fontSize = 60.sp, letterSpacing = (-0.01).em),
+                    style = CifraTuya,
                     color = Tinta,
                 )
                 Column(Modifier.weight(1f).padding(bottom = 6.dp)) {
-                    Text(item.cancion.titulo, style = Condensada.copy(fontSize = 30.sp, lineHeight = 1.em), color = Tinta)
+                    Text(
+                        item.cancion.titulo.comoCartel(),
+                        Modifier.semantics { contentDescription = item.cancion.titulo },
+                        style = estiloCartel(TituloTuyo, item.cancion.titulo, anchoDp = 190f),
+                        color = Tinta,
+                    )
                     Text(
                         "${item.cancion.artista}, ${if (item.votosTotal == 1) "1 voto" else "${item.votosTotal} votos"}",
                         Modifier.padding(top = 3.dp),
@@ -291,8 +298,13 @@ private fun TuCancion(fila: FilaCola, modifier: Modifier) {
 private fun TuCancionSuena(titulo: String, artista: String, modifier: Modifier) {
     Marco(modifier.semantics(mergeDescendants = true) { contentDescription = "Tu canción" }) {
         Ventana(relleno = PaddingValues(start = 14.dp, end = 14.dp, top = 10.dp, bottom = 12.dp), alineacion = Alignment.Start) {
-            Text(T.TU_CANCION_SUENA, style = Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W600), color = Tinta2)
-            Text(titulo, Modifier.padding(top = 4.dp), style = Condensada.copy(fontSize = 30.sp, lineHeight = 1.em), color = Tinta)
+            Text(T.TU_CANCION_SUENA.comoCartel(), style = estiloEtiqueta(Cuerpo.copy(fontSize = 14.sp, fontWeight = FontWeight.W600)), color = Tinta2)
+            Text(
+                titulo.comoCartel(),
+                Modifier.padding(top = 4.dp).semantics { contentDescription = titulo },
+                style = estiloCartel(TituloTuyo, titulo),
+                color = Tinta,
+            )
             Text(artista, Modifier.padding(top = 3.dp), style = Cuerpo.copy(fontSize = 14.sp), color = Tinta2)
         }
     }
@@ -303,21 +315,19 @@ private fun TuCancionSuena(titulo: String, artista: String, modifier: Modifier) 
 private fun TusPedidos(solicitudes: List<MiSolicitud>) {
     if (solicitudes.isEmpty()) return
     TituloDeSeccion(T.TUS_PEDIDOS, Modifier.padding(top = 28.dp, bottom = 12.dp))
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        solicitudes.forEach { s ->
-            val estado = estadoPedido(s.estado, s.puesto)
-            TarjetaTitulo(
-                titulo = s.cancion.titulo,
-                artista = if (s.motivo != null) "$estado: ${s.motivo}" else estado,
-                modifier = Modifier.fillMaxWidth(),
-                variante = when (s.estado) {
-                    EstadoSolicitud.PENDIENTE, EstadoSolicitud.REPRODUCIENDO -> VarianteTarjeta.TUYA
-                    EstadoSolicitud.REPRODUCIDA -> VarianteTarjeta.NORMAL
-                    else -> VarianteTarjeta.APAGADA
-                },
-                miniatura = s.cancion.miniaturaUrl,
-            )
-        }
+    Filas(solicitudes) { s ->
+        val estado = estadoPedido(s.estado, s.puesto)
+        TarjetaTitulo(
+            titulo = s.cancion.titulo,
+            artista = if (s.motivo != null) "$estado: ${s.motivo}" else estado,
+            modifier = Modifier.fillMaxWidth(),
+            variante = when (s.estado) {
+                EstadoSolicitud.PENDIENTE, EstadoSolicitud.REPRODUCIENDO -> VarianteTarjeta.TUYA
+                EstadoSolicitud.REPRODUCIDA -> VarianteTarjeta.NORMAL
+                else -> VarianteTarjeta.APAGADA
+            },
+            miniatura = s.cancion.miniaturaUrl,
+        )
     }
 }
 
@@ -339,7 +349,8 @@ private fun DialogoMoverVoto(desde: ItemCola, opciones: List<FilaCola>, onCerrar
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onCerrar)
                     .clearAndSetSemantics { },
             )
-            val forma = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+            val radio = LocalDiseno.current.radios.marcoDp
+            val forma = RoundedCornerShape(topStart = radio, topEnd = radio)
             // En tableta, del ancho de la columna del cliente (480 dp), no de toda la pantalla.
             Column(
                 Modifier

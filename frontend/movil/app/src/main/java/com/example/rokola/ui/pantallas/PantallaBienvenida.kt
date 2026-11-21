@@ -1,14 +1,19 @@
 package com.example.rokola.ui.pantallas
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import com.example.rokola.ui.theme.estiloCartel
+import com.example.rokola.ui.theme.estiloEtiqueta
+import com.example.rokola.ui.theme.comoCartel
+import com.example.rokola.ui.theme.TituloSonando
+import com.example.rokola.ui.theme.LocalDiseno
+import com.example.rokola.ui.componentes.alineacionArco
+import com.example.rokola.ui.componentes.Filas
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -28,7 +33,6 @@ import com.example.rokola.dominio.reglas.posicionActual
 import com.example.rokola.ui.componentes.Arco
 import com.example.rokola.ui.componentes.Avance
 import com.example.rokola.ui.componentes.Insignia
-import com.example.rokola.ui.componentes.LuzDeEstado
 import com.example.rokola.ui.componentes.MarcoCliente
 import com.example.rokola.ui.componentes.TamanoTecla
 import com.example.rokola.ui.componentes.TarjetaTitulo
@@ -108,27 +112,33 @@ fun PantallaBienvenida(
             Tecla(T.ENTRAR, onEntrar, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE)
         },
     ) {
-        TituloPlaca(datos.bar.nombre, Modifier.fillMaxWidth(), tamano = 25, alineacion = TextAlign.Center)
-        LuzDeEstado(
-            if (datos.enVivo) T.EN_VIVO else Conexion.LUZ,
-            encendida = datos.enVivo,
-            modifier = Modifier.padding(top = 8.dp).align(Alignment.CenterHorizontally),
-        )
+        CabeceraBar(datos.bar.nombre, if (datos.enVivo) T.EN_VIVO else Conexion.LUZ, encendida = datos.enVivo)
 
-        Arco(Modifier.padding(top = 20.dp), descripcion = T.SUENA_AHORA) {
+        // En Afiche, la cabecera y el arco son un solo bloque de tinta.
+        Arco(Modifier.padding(top = if (LocalDiseno.current.esAfiche) 0.dp else 20.dp), descripcion = T.SUENA_AHORA) {
             Ventana(relleno = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 14.dp)) {
                 if (rep != null) {
                     val ahora = rememberAhoraServidor(datos.ahora.servidorAhora)
                     val posicion = posicionActual(rep, datos.ahora.servidorAhora, ahora)
-                    Text(T.SUENA_AHORA, style = Cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.W600), color = Tinta2)
+                    Text(T.SUENA_AHORA.comoCartel(), style = estiloEtiqueta(Cuerpo.copy(fontSize = 13.sp, fontWeight = FontWeight.W600)), color = Tinta2)
                     Text(
-                        rep.cancion.titulo,
-                        Modifier.padding(top = 4.dp).semantics { heading() },
-                        style = Condensada.copy(fontSize = 40.sp, lineHeight = 1.em),
+                        rep.cancion.titulo.comoCartel(),
+                        Modifier.padding(top = 4.dp).semantics {
+                            heading()
+                            contentDescription = rep.cancion.titulo
+                        },
+                        style = estiloCartel(TituloSonando, rep.cancion.titulo),
                         color = Tinta,
-                        textAlign = TextAlign.Center,
+                        textAlign = alineacionArco(),
                     )
-                    Text(rep.cancion.artista, Modifier.padding(top = 4.dp), style = Cuerpo.copy(fontSize = 16.sp), color = Tinta)
+                    val diseno = LocalDiseno.current
+                    Text(
+                        rep.cancion.artista,
+                        Modifier.padding(top = 4.dp),
+                        style = Cuerpo.copy(fontSize = if (diseno.esAfiche) 18.sp else 16.sp, fontWeight = if (diseno.esAfiche) FontWeight.W700 else FontWeight.W400),
+                        color = if (diseno.esVidrio) Tinta2 else Tinta,
+                        textAlign = alineacionArco(),
+                    )
                     if (rep.votos != null) {
                         Insignia(if (rep.votos == 1) "1 voto" else "${rep.votos} votos", Modifier.padding(top = 8.dp))
                     } else {
@@ -141,8 +151,8 @@ fun PantallaBienvenida(
                         modifier = Modifier.padding(top = 10.dp),
                     )
                 } else {
-                    Text(T.NADA_SUENA, style = Condensada.copy(fontSize = 32.sp, lineHeight = 1.em), color = Tinta, textAlign = TextAlign.Center)
-                    Text(T.NADA_SUENA_META, Modifier.padding(top = 8.dp), style = Cuerpo.copy(fontSize = 15.sp), color = Tinta2, textAlign = TextAlign.Center)
+                    Text(T.NADA_SUENA, style = Condensada.copy(fontSize = 32.sp, lineHeight = 1.em), color = Tinta, textAlign = alineacionArco())
+                    Text(T.NADA_SUENA_META, Modifier.padding(top = 8.dp), style = Cuerpo.copy(fontSize = 15.sp), color = Tinta2, textAlign = alineacionArco())
                 }
             }
         }
@@ -151,22 +161,20 @@ fun PantallaBienvenida(
         if (datos.destacadas.isEmpty()) {
             Vacio(T.SIN_VOTOS_AUN)
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                datos.destacadas.forEachIndexed { i, d ->
-                    val contexto = when {
-                        d.contexto == ContextoDestacada.SONANDO -> "suena ahora"
-                        d.contexto == ContextoDestacada.SONO && d.hora != null -> "sonó a las ${formatoHora(d.hora, zona)}"
-                        else -> "en la cola"
-                    }
-                    TarjetaTitulo(
-                        titulo = d.cancion.titulo,
-                        artista = "${d.cancion.artista}, $contexto",
-                        modifier = Modifier.fillMaxWidth(),
-                        puesto = i + 1,
-                        votos = d.votos,
-                        miniatura = d.cancion.miniaturaUrl,
-                    )
+            Filas(datos.destacadas.withIndex().toList()) { (i, d) ->
+                val contexto = when {
+                    d.contexto == ContextoDestacada.SONANDO -> "suena ahora"
+                    d.contexto == ContextoDestacada.SONO && d.hora != null -> "sonó a las ${formatoHora(d.hora, zona)}"
+                    else -> "en la cola"
                 }
+                TarjetaTitulo(
+                    titulo = d.cancion.titulo,
+                    artista = "${d.cancion.artista}, $contexto",
+                    modifier = Modifier.fillMaxWidth(),
+                    puesto = i + 1,
+                    votos = d.votos,
+                    miniatura = d.cancion.miniaturaUrl,
+                )
             }
         }
     }
