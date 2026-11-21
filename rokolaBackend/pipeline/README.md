@@ -11,7 +11,7 @@ RF-063, ADR-27). Corre con PySpark en la imagen oficial `apache/spark:4.0.1-pyth
 
 ## Ejecutar
 
-Necesita Docker, la migración `V5` aplicada y estas variables de entorno:
+Necesita Docker, la migración `V6` aplicada y estas variables de entorno:
 
 | Variable | Para qué |
 |---|---|

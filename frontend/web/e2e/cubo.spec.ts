@@ -1,7 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 import { abrir, sinViolaciones, vigilarConsola } from './support';
 
-// Iteración 15: el cubo de KPI (RF-063). Datos de ejemplo de la simulación.
+// Iteración 16: el cubo de KPI (RF-063). Datos de ejemplo de la simulación.
 
 async function entrar(page: Page) {
   await abrir(page, '/panel/entrar');

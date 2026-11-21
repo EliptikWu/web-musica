@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 
 /**
  * Abrir y cerrar la noche a mano (RF-037). Solo el Administrador: lo exige el controlador.
- * Abierta fuera del horario, atiende hasta que se cierre (`sesion.fuera_de_horario`, V6).
+ * Abierta fuera del horario, atiende hasta que se cierre (`sesion.fuera_de_horario`, V7).
  *
  * Hecho por el equipo de frontend (2026-11-21, D14) sobre el esquema reconstruido.
  */
