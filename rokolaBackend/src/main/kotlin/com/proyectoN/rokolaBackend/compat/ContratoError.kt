@@ -36,6 +36,7 @@ class ContratoApiException(
   ContratoPantallasPanelController::class,
   ContratoEventosController::class,
   ContratoPanelController::class,
+  ContratoGestionController::class,
 ])
 class ContratoErrorAdvice {
   private val logger = LoggerFactory.getLogger(ContratoErrorAdvice::class.java)

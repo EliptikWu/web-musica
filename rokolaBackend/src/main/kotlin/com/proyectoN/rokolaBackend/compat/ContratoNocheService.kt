@@ -3,7 +3,6 @@ package com.proyectoN.rokolaBackend.compat
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
@@ -128,6 +127,7 @@ class ContratoNocheService(
   private fun registro(idBar: Long, desde: OffsetDateTime?): List<Map<String, Any?>> = jdbc.query(
     // Solo los tipos que el contrato conoce, filtrados antes del LIMIT para no mostrar menos de 20.
     """SELECT a.id_accion, a.fecha, a.tipo, a.objetivo_tipo, a.detalle->>'texto' AS texto,
+              a.detalle->>'objetivo_nombre' AS objetivo_nombre,
               u.id_usuario, u.nombre AS usuario, c.titulo, c.artista, c.canal
        FROM public.accion_admin a
        LEFT JOIN public.usuario u ON u.id_usuario = a.id_usuario
@@ -142,13 +142,18 @@ class ContratoNocheService(
         "fecha" to rs.getObject("fecha", OffsetDateTime::class.java),
         "usuario" to idUsuario?.let { mapOf("id" to it.toString(), "nombre" to rs.getString("usuario")) },
         "tipo" to tipo,
-        "objetivo" to rs.getString("titulo")?.let { titulo ->
-          mapOf(
-            "tipo" to "cancion",
-            "nombre" to titulo,
-            "detalle" to (rs.getString("artista")?.takeIf(String::isNotBlank) ?: rs.getString("canal")),
-          )
-        },
+        "objetivo" to (
+          rs.getString("titulo")?.let { titulo ->
+            mapOf(
+              "tipo" to "cancion",
+              "nombre" to titulo,
+              "detalle" to (rs.getString("artista")?.takeIf(String::isNotBlank) ?: rs.getString("canal")),
+            )
+          } ?: rs.getString("objetivo_nombre")?.let { nombre ->
+            // Lo que no es una canción (un usuario, una lista, el horario) guarda su nombre en el detalle.
+            rs.getString("objetivo_tipo")?.takeIf { it in TIPOS_OBJETIVO }?.let { mapOf("tipo" to it, "nombre" to nombre, "detalle" to null) }
+          }
+        ),
         "detalle" to rs.getString("texto"),
       )
     },
@@ -189,38 +194,10 @@ class ContratoNocheService(
     idBar,
   ).firstOrNull()
 
-  /** Bloqueos vigentes. El modelo no guarda «hasta el fin de la noche»: sale como horas o indefinido. */
+  /** Bloqueos vigentes, con el mismo formato que `GET /panel/bloqueos`. */
   private fun bloqueos(idBar: Long): List<Map<String, Any?>> = jdbc.query(
-    """SELECT b.id_bloqueo, b.motivo, b.fecha_inicio, b.fecha_fin, u.nombre AS creador,
-              c.youtube_video_id, c.titulo, c.artista, c.canal, c.duracion_seg, c.miniatura_url
-       FROM public.bloqueo_contenido b
-       JOIN public.cancion c ON c.id_cancion = b.id_cancion
-       LEFT JOIN public.usuario u ON u.id_usuario = b.id_usuario
-       WHERE b.id_establecimiento = ? AND b.activo = TRUE AND b.fecha_inicio <= CURRENT_TIMESTAMP
-         AND (b.fecha_fin IS NULL OR b.fecha_fin > CURRENT_TIMESTAMP)
-       ORDER BY b.fecha_inicio DESC""",
-    { rs, _ ->
-      val inicio = rs.getObject("fecha_inicio", OffsetDateTime::class.java)
-      val fin = rs.getObject("fecha_fin", OffsetDateTime::class.java)
-      val horas = fin?.let { Duration.between(inicio, it).toMinutes().let { m -> ((m + 59) / 60).toInt().coerceIn(1, 168) } }
-      mapOf(
-        "id" to rs.getLong("id_bloqueo").toString(),
-        "cancion" to mapOf(
-          "video_id" to rs.getString("youtube_video_id"),
-          "titulo" to rs.getString("titulo"),
-          "artista" to (rs.getString("artista")?.takeIf(String::isNotBlank) ?: rs.getString("canal").orEmpty()),
-          "duracion_seg" to rs.getInt("duracion_seg").coerceAtLeast(0),
-          "miniatura_url" to rs.getString("miniatura_url")?.takeIf(String::isNotBlank),
-        ),
-        "motivo" to rs.getString("motivo").orEmpty(),
-        "duracion" to if (fin == null) "indefinido" else "horas",
-        "horas" to horas,
-        "inicio" to inicio,
-        "fin" to fin,
-        "creado_por" to (rs.getString("creador") ?: "Sistema"),
-        "vigente" to true,
-      )
-    },
+    "${ContratoBloqueosService.SELECT} WHERE b.id_establecimiento = ? AND ${ContratoBloqueosService.VIGENTE} ORDER BY b.fecha_inicio DESC",
+    { rs, _ -> ContratoBloqueosService.fila(rs) },
     idBar,
   )
 
@@ -232,6 +209,9 @@ class ContratoNocheService(
 
   companion object {
     private const val ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    /** Los tipos de objetivo de la bitácora que el contrato conoce (`AccionAdmin.objetivo.tipo`). */
+    private val TIPOS_OBJETIVO = setOf("usuario", "lista", "horario", "servicio", "sesion", "establecimiento", "evento", "pantalla")
+
 
     /**
      * Código corto del teléfono (p. ej. 7F3K) derivado de su huella SHA-256: identifica el
