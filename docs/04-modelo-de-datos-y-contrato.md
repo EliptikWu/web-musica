@@ -355,12 +355,14 @@ resincroniza al reconectar.
       `tipo` guarda el `tipo_evento` del contrato.
 20. Eventos que cambian el horario y noches ligadas a su evento, **hechos por el equipo de
     frontend el 2026-11-21** (D14), a pedido del usuario. Para que lo revise el backend:
-    - **El día de un evento, el bar abre con las horas del evento y no con sus franjas** (un día
-      con varios eventos abre en cada uno). Lo calcula `HorarioEfectivoService` (paquete
+    - **Un evento suma horas al horario y nunca quita** (decisión del usuario, 2026-11-21): si
+      cae dentro del horario de siempre no cambia nada; si empieza antes o termina después, el bar
+      abre antes o cierra más tarde ese día. Las ventanas que se pisan se unen. Lo calcula `HorarioEfectivoService` (paquete
       `acceso`), que usan `ahora` (estado, `hasta` y `proxima_apertura`), pedir y la
       reproducción automática (`HorarioActivoService` ahora delega en él) y «hasta el fin de la
       noche» de los bloqueos. `GET /bares/{slug}` sigue mandando el horario semanal sin eventos.
-    - **Cada noche se liga al evento de hoy**: el que está en curso o, si no hay, el próximo que
-      empieza hoy (fecha del bar) *(propuesto)*. La noche toma su `tipo_evento` aunque se abra
+    - **Cada noche se liga al evento de hoy**: el de la ventana abierta ahora (aunque el evento
+      empiece más tarde esa noche) o, si no hay, el próximo que empieza hoy (fecha del bar)
+      *(propuesto)*. La noche toma su `tipo_evento` aunque se abra
       como «normal». Al crear, editar o eliminar un evento se religa la noche abierta; si deja
       de haber evento hoy, vuelve a «normal». Un tipo puesto a mano sin evento se respeta.

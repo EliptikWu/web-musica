@@ -9,9 +9,11 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 
 /**
- * El horario que vale de verdad (RF-036, RF-045): las franjas semanales, salvo el día que tiene un
- * evento en el calendario, que abre y cierra con las horas del evento (las franjas de ese día no
- * cuentan). Un día con varios eventos abre en cada uno. Lo usan `ahora` (lo que ven el teléfono, la
+ * El horario que vale de verdad (RF-036, RF-045): las franjas semanales **más** los eventos del
+ * calendario. Un evento suma horas y nunca quita: si cae dentro del horario de siempre no cambia
+ * nada, y si empieza antes o termina después, el bar abre antes o cierra más tarde ese día. Las
+ * ventanas que se tocan o se pisan se unen en una sola, para que «hasta» y «cierra a las» sean el
+ * cierre real. Lo usan `ahora` (lo que ven el teléfono, la
  * TV y el panel), pedir, la reproducción automática y «hasta el fin de la noche» de los bloqueos.
  *
  * Una franja o un evento que cruza la medianoche pertenece al día en que empieza. Todo en la zona
@@ -72,17 +74,35 @@ class HorarioEfectivoService(private val jdbc: JdbcTemplate) {
     fun vigente(ventanas: List<Ventana>, ahora: OffsetDateTime): Ventana? =
       ventanas.firstOrNull { !ahora.isBefore(it.inicio) && ahora.isBefore(it.fin) }
 
-    /** Regla pura: por cada día, los eventos de ese día o, si no tiene, sus franjas. */
+    /**
+     * Regla pura: las franjas de cada día y los eventos, unidos. Una ventana unida que contiene un
+     * evento lleva ese evento (el primero, si hay varios): es la noche de ese evento.
+     */
     fun calcular(franjas: List<Franja>, eventos: List<Evento>, desde: LocalDate, hasta: LocalDate, zona: ZoneId): List<Ventana> {
-      val porDia = eventos.groupBy { it.fecha }
-      return generateSequence(desde) { it.plusDays(1) }.takeWhile { !it.isAfter(hasta) }.flatMap { dia ->
-        val delDia = porDia[dia]
-        if (delDia != null) {
-          delDia.filter { it.inicio != it.fin }.map { ventana(dia, it.inicio, it.fin, zona).copy(evento = it.id, tipoEvento = it.tipo) }
+      val deFranjas = generateSequence(desde) { it.plusDays(1) }.takeWhile { !it.isAfter(hasta) }.flatMap { dia ->
+        franjas.filter { it.dia == dia.dayOfWeek.value && it.inicio != it.fin }.map { ventana(dia, it.inicio, it.fin, zona) }
+      }.toList()
+      val deEventos = eventos.filter { it.inicio != it.fin && !it.fecha.isBefore(desde) && !it.fecha.isAfter(hasta) }
+        .map { ventana(it.fecha, it.inicio, it.fin, zona).copy(evento = it.id, tipoEvento = it.tipo) }
+      return unir((deFranjas + deEventos).sortedWith(compareBy({ it.inicio }, { it.evento == null })))
+    }
+
+    /** Une las ventanas que se pisan o se tocan (ya ordenadas por inicio). */
+    private fun unir(ordenadas: List<Ventana>): List<Ventana> {
+      val unidas = mutableListOf<Ventana>()
+      for (v in ordenadas) {
+        val ultima = unidas.lastOrNull()
+        if (ultima != null && !v.inicio.isAfter(ultima.fin)) {
+          unidas[unidas.size - 1] = ultima.copy(
+            fin = if (v.fin.isAfter(ultima.fin)) v.fin else ultima.fin,
+            evento = ultima.evento ?: v.evento,
+            tipoEvento = ultima.tipoEvento ?: v.tipoEvento,
+          )
         } else {
-          franjas.filter { it.dia == dia.dayOfWeek.value && it.inicio != it.fin }.map { ventana(dia, it.inicio, it.fin, zona) }
+          unidas += v
         }
-      }.sortedBy { it.inicio }.toList()
+      }
+      return unidas
     }
 
     private fun ventana(dia: LocalDate, inicio: LocalTime, fin: LocalTime, zona: ZoneId) = Ventana(
