@@ -18,6 +18,12 @@
         "name": "rockola_panel",
         "description": "Cookie httpOnly que pone el backend al entrar"
       },
+      "sesionPlataforma": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "rockola_plataforma",
+        "description": "Cookie httpOnly y SameSite=Strict de la plataforma (RF-064)"
+      },
       "sesionPantalla": {
         "type": "apiKey",
         "in": "cookie",
@@ -232,6 +238,58 @@
           "ventana_no_repeticion_min",
           "tema",
           "horario"
+        ]
+      },
+      "BarCreado": {
+        "type": "object",
+        "properties": {
+          "bar": {
+            "$ref": "#/components/schemas/BarPlataforma"
+          },
+          "clave_temporal": {
+            "type": "string",
+            "description": "Del primer Administrador. Se muestra una sola vez"
+          }
+        },
+        "required": [
+          "bar",
+          "clave_temporal"
+        ]
+      },
+      "BarPlataforma": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "slug": {
+            "$ref": "#/components/schemas/Slug"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "zona_horaria": {
+            "type": "string",
+            "description": "IANA, p. ej. America/Bogota"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "cuentas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CuentaBar"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "nombre",
+          "zona_horaria",
+          "activo",
+          "cuentas"
         ]
       },
       "Bloqueo": {
@@ -549,6 +607,18 @@
           "popular"
         ]
       },
+      "ClaveCuentaBar": {
+        "type": "object",
+        "properties": {
+          "clave_temporal": {
+            "type": "string",
+            "description": "Se muestra una sola vez"
+          }
+        },
+        "required": [
+          "clave_temporal"
+        ]
+      },
       "ClaveTemporal": {
         "type": "object",
         "properties": {
@@ -728,6 +798,59 @@
           "celdas"
         ]
       },
+      "CuentaBar": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "activo",
+              "inactivo"
+            ]
+          },
+          "debe_cambiar_clave": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "rol",
+          "estado",
+          "debe_cambiar_clave"
+        ]
+      },
+      "CuentaCreada": {
+        "type": "object",
+        "properties": {
+          "cuenta": {
+            "$ref": "#/components/schemas/CuentaBar"
+          },
+          "clave_temporal": {
+            "type": "string",
+            "description": "Se muestra una sola vez"
+          }
+        },
+        "required": [
+          "cuenta",
+          "clave_temporal"
+        ]
+      },
       "CuerpoActivacion": {
         "type": "object",
         "properties": {
@@ -738,6 +861,56 @@
         "required": [
           "modo_rotacion"
         ]
+      },
+      "CuerpoBarNuevo": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 150
+          },
+          "slug": {
+            "maxLength": 100,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Slug"
+              }
+            ]
+          },
+          "zona_horaria": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "administrador": {
+            "type": "object",
+            "properties": {
+              "nombre": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 120
+              },
+              "correo": {
+                "type": "string",
+                "maxLength": 254,
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              }
+            },
+            "required": [
+              "nombre",
+              "correo"
+            ]
+          }
+        },
+        "required": [
+          "nombre",
+          "slug",
+          "zona_horaria",
+          "administrador"
+        ],
+        "description": "El bar nace con su primer Administrador"
       },
       "CuerpoBloqueo": {
         "type": "object",
@@ -810,6 +983,48 @@
         },
         "required": [
           "video_id"
+        ]
+      },
+      "CuerpoClavePlataforma": {
+        "type": "object",
+        "properties": {
+          "actual": {
+            "type": "string",
+            "minLength": 1
+          },
+          "nueva": {
+            "type": "string",
+            "minLength": 12
+          }
+        },
+        "required": [
+          "actual",
+          "nueva"
+        ],
+        "description": "Mínimo de 12 caracteres (propuesto)"
+      },
+      "CuerpoCuentaBar": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "correo": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "rol": {
+            "$ref": "#/components/schemas/Rol"
+          }
+        },
+        "required": [
+          "nombre",
+          "correo",
+          "rol"
         ]
       },
       "CuerpoDispositivo": {
@@ -1555,6 +1770,20 @@
           "puesto",
           "puesto_anterior",
           "espera_seg"
+        ]
+      },
+      "ListaBaresPlataforma": {
+        "type": "object",
+        "properties": {
+          "bares": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BarPlataforma"
+            }
+          }
+        },
+        "required": [
+          "bares"
         ]
       },
       "ListaBloqueos": {
@@ -3146,6 +3375,31 @@
         "required": [
           "usuario",
           "establecimiento"
+        ]
+      },
+      "YoPlataforma": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "correo": {
+            "type": "string",
+            "minLength": 1
+          },
+          "debe_cambiar_clave": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "nombre",
+          "correo",
+          "debe_cambiar_clave"
         ]
       }
     }
@@ -8215,6 +8469,450 @@
           },
           "403": {
             "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataforma/sesion": {
+      "post": {
+        "operationId": "entrarPlataforma",
+        "summary": "Entrar a la plataforma",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoEntrar"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoPlataforma"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "credenciales_invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "salirPlataforma",
+        "summary": "Salir de la plataforma",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          }
+        }
+      }
+    },
+    "/plataforma/yo": {
+      "get": {
+        "operationId": "yoPlataforma",
+        "summary": "Cuenta de la plataforma",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/YoPlataforma"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataforma/yo/clave": {
+      "put": {
+        "operationId": "cambiarClavePlataforma",
+        "summary": "Cambiar la clave de la plataforma",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoClavePlataforma"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sin contenido"
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado, credenciales_invalidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataforma/bares": {
+      "get": {
+        "operationId": "baresPlataforma",
+        "summary": "Bares con sus cuentas",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListaBaresPlataforma"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "debe_cambiar_clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "crearBarPlataforma",
+        "summary": "Crear un bar con su primer Administrador",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoBarNuevo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BarCreado"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "debe_cambiar_clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataforma/bares/{id}/cuentas": {
+      "post": {
+        "operationId": "crearCuentaPlataforma",
+        "summary": "Crear una cuenta en un bar",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoCuentaBar"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CuentaCreada"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "debe_cambiar_clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "conflicto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plataforma/cuentas/{id}/clave-temporal": {
+      "post": {
+        "operationId": "claveCuentaPlataforma",
+        "summary": "Dar una clave temporal nueva a una cuenta de bar",
+        "tags": [
+          "plataforma"
+        ],
+        "description": "Requisitos: RF-064.",
+        "security": [
+          {
+            "sesionPlataforma": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaveCuentaBar"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "debe_cambiar_clave",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
             "content": {
               "application/json": {
                 "schema": {

@@ -204,8 +204,7 @@ class ContratoUsuariosService(
   )
 
   /** 12 caracteres sin los que se confunden al dictarlos (0/O, 1/I/l), en tres grupos. */
-  private fun claveTemporal(): String =
-    (1..3).joinToString("-") { (1..4).map { ALFABETO[azar.nextInt(ALFABETO.length)] }.joinToString("") }
+  private fun claveTemporal(): String = generarClaveTemporal(azar)
 
   companion object {
     val ROLES = setOf("operador", "administrador")
@@ -214,5 +213,8 @@ class ContratoUsuariosService(
     const val LARGO_MAXIMO = 72
     private const val ALFABETO = "abcdefghjkmnpqrstuvwxyz23456789"
     private val FORMATO_CORREO = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
+
+    fun generarClaveTemporal(azar: SecureRandom): String =
+      (1..3).joinToString("-") { (1..4).map { ALFABETO[azar.nextInt(ALFABETO.length)] }.joinToString("") }
   }
 }

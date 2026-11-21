@@ -404,3 +404,13 @@ resincroniza al reconectar.
       `V9`, sin cambiar nada si ya existen.
     - Con una ventana abierta, la noche toma solo el evento de esa ventana. Un tipo elegido a mano
       y distinto del evento se respeta, y un evento ya empezado no se desliga al editar el calendario.
+
+24. Plataforma (RF-064, ADR-29), **hecha por el equipo de frontend el 2026-11-21** (D16): tabla
+    `superadmin` (V10) y rutas `/plataforma/*`, con su cookie `rockola_plataforma`.
+    - La primera cuenta sale de `ROCKOLA_SUPERADMIN_CORREO` y `ROCKOLA_SUPERADMIN_CLAVE`, solo si
+      no hay ninguna, y debe cambiar la clave. Claves de al menos 12 caracteres *(propuesto)*.
+    - Crear un bar es todo o nada: bar, configuración (3 pedidos, 600 s, 60 min), QR y primer
+      Administrador. El bar nace sin horario: su Administrador lo define.
+    - Si una clave temporal se pierde, la plataforma da otra: cierra las sesiones de esa cuenta.
+    - Durante el bloqueo (5 fallos, 15 min) todo intento responde igual, con clave buena o mala.
+    - **`TBD`:** desactivar bares y editar cuentas desde la plataforma.

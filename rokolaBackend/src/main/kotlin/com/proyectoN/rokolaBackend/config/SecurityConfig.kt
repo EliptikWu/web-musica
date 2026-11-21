@@ -37,6 +37,8 @@ class SecurityConfig {
           "/api/bares/*/pantalla/reproducciones/*/error",
           // La sesión administrativa se valida por cookie dentro del contrato.
           "/api/panel/**",
+          // La plataforma valida su propia cookie (SameSite=Strict) en cada ruta.
+          "/api/plataforma/**",
         )
       }
       .authorizeHttpRequests {
@@ -54,7 +56,7 @@ class SecurityConfig {
           "/api/bares/*/pantalla/reproducciones/*/inicio",
           "/api/bares/*/pantalla/reproducciones/*/fin",
           "/api/bares/*/pantalla/reproducciones/*/error").permitAll()
-        it.requestMatchers("/api/panel/**").permitAll()
+        it.requestMatchers("/api/panel/**", "/api/plataforma/**").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/establecimientos/*/codigos-qr/generar").authenticated()
         it.anyRequest().authenticated()
       }

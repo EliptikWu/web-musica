@@ -1,3 +1,4 @@
+import type { BarPlataforma } from '@rockola/contrato';
 import type { AccionAdmin, DuracionBloqueo, EventoBar, Franja, ModoQr, Rol, Tema, TipoAccion, UmbralesAnalitica } from '@rockola/contrato';
 
 /**
@@ -107,6 +108,13 @@ export type SesionNocheSim = { id: string; apertura: number; tipo_evento: string
 
 export type AccionSim = Omit<AccionAdmin, 'fecha'> & { fecha: number };
 
+/** La plataforma de la simulación (RF-064): se siembra al usarla. */
+export type PlataformaSim = {
+  superadmin: { id: string; nombre: string; correo: string; clave: string; debe_cambiar_clave: boolean };
+  sesiones: string[];
+  bares: BarPlataforma[];
+};
+
 export type EstadoSim = {
   esquema: 2;
   escenario: string;
@@ -145,6 +153,7 @@ export type EstadoSim = {
   acciones: AccionSim[];
   usuarios: UsuarioSim[];
   sesiones_panel: Record<string, string>;
+  plataforma?: PlataformaSim;
   /** Pantallas del bar vinculadas (RF-058); `token` es el valor de su cookie. */
   pantallas: PantallaSim[];
   /** Códigos que una pantalla pidió y nadie ha confirmado todavía, por token de su cookie. */

@@ -94,6 +94,19 @@
 | `recomendacionesAnalitica` | `GET /panel/analitica/recomendaciones?noche&desde&hasta&dia_semana` | `ListaRecomendaciones` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-054 |
 | `cuboAnalitica` | `GET /panel/analitica/cubo?eje` | `CuboAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-063 |
 
+## Plataforma
+
+| Operación | Método y ruta | Cuerpo → respuesta | Rol | Errores | RF |
+|---|---|---|---|---|---|
+| `entrarPlataforma` | `POST /plataforma/sesion` | `CuerpoEntrar` → `YoPlataforma` | superadmin | `credenciales_invalidas`, `datos_invalidos` | RF-064 |
+| `salirPlataforma` | `DELETE /plataforma/sesion` | 204 | superadmin | — | RF-064 |
+| `yoPlataforma` | `GET /plataforma/yo` | `YoPlataforma` | superadmin | `no_autenticado` | RF-064 |
+| `cambiarClavePlataforma` | `PUT /plataforma/yo/clave` | `CuerpoClavePlataforma` → 204 | superadmin | `no_autenticado`, `credenciales_invalidas`, `datos_invalidos` | RF-064 |
+| `baresPlataforma` | `GET /plataforma/bares` | `ListaBaresPlataforma` | superadmin | `no_autenticado`, `debe_cambiar_clave` | RF-064 |
+| `crearBarPlataforma` | `POST /plataforma/bares` | `CuerpoBarNuevo` → `BarCreado` | superadmin | `no_autenticado`, `debe_cambiar_clave`, `datos_invalidos`, `conflicto` | RF-064 |
+| `crearCuentaPlataforma` | `POST /plataforma/bares/{id}/cuentas` | `CuerpoCuentaBar` → `CuentaCreada` | superadmin | `no_autenticado`, `debe_cambiar_clave`, `datos_invalidos`, `no_encontrado`, `conflicto` | RF-064 |
+| `claveCuentaPlataforma` | `POST /plataforma/cuentas/{id}/clave-temporal` | `ClaveCuentaBar` | superadmin | `no_autenticado`, `debe_cambiar_clave`, `no_encontrado` | RF-064 |
+
 ## Tiempo real
 
 `GET /bares/{slug}/eventos` (SSE). Cada mensaje: `event: <tipo>`, `data: <EventoTiempoReal en JSON>`, `id: <version>`.

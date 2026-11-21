@@ -4,6 +4,7 @@ import { preparar } from './almacen';
 import { manejadoresCliente } from './handlers/cliente';
 import { manejadoresAnalitica } from './handlers/analitica';
 import { manejadoresGestion } from './handlers/gestion';
+import { manejadoresPlataforma } from './handlers/plataforma';
 import { manejadoresPanel } from './handlers/panel';
 import { manejadoresPantalla } from './handlers/pantalla';
 import { manejadorTiempoReal } from './handlers/tiempo-real';
@@ -22,6 +23,6 @@ export async function arrancar(): Promise<void> {
     throw new Error('La simulación necesita Service Workers: abre la app en localhost o por https.');
   }
   await preparar(new URLSearchParams(location.search));
-  const worker = setupWorker(manejadorTiempoReal, ...manejadoresCliente, ...manejadoresPantalla, ...manejadoresPanel, ...manejadoresGestion, ...manejadoresAnalitica, noImplementado);
+  const worker = setupWorker(manejadorTiempoReal, ...manejadoresCliente, ...manejadoresPantalla, ...manejadoresPanel, ...manejadoresGestion, ...manejadoresAnalitica, ...manejadoresPlataforma, noImplementado);
   await worker.start({ onUnhandledFrame: 'bypass', quiet: true, serviceWorker: { url: '/mockServiceWorker.js' } });
 }

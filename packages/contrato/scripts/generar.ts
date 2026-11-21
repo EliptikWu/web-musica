@@ -92,7 +92,7 @@ for (const [nombre, e] of lista) {
     summary: e.resumen,
     tags: [e.superficie],
     description: `Requisitos: ${e.rf.join(', ')}.${e.rol ? ` Rol mínimo: ${e.rol}.` : ''}`,
-    ...(e.rol ? { security: [{ sesionPanel: [] }] } : 'pantalla' in e && e.pantalla ? { security: [{ sesionPantalla: [] }] } : {}),
+    ...(e.rol ? { security: [{ sesionPanel: [] }] } : 'pantalla' in e && e.pantalla ? { security: [{ sesionPantalla: [] }] } : e.superficie === 'plataforma' && nombre !== 'entrarPlataforma' && nombre !== 'salirPlataforma' ? { security: [{ sesionPlataforma: [] }] } : {}),
     parameters: [...parametrosRuta, ...parametrosConsulta, ...cabeceras],
     ...(cuerpo ? { requestBody: { required: true, content: { 'application/json': { schema: ref(cuerpo) } } } } : {}),
     responses: {
@@ -113,6 +113,7 @@ const openapi = {
   components: {
     securitySchemes: {
       sesionPanel: { type: 'apiKey', in: 'cookie', name: 'rockola_panel', description: 'Cookie httpOnly que pone el backend al entrar' },
+      sesionPlataforma: { type: 'apiKey', in: 'cookie', name: 'rockola_plataforma', description: 'Cookie httpOnly y SameSite=Strict de la plataforma (RF-064)' },
       sesionPantalla: { type: 'apiKey', in: 'cookie', name: 'rockola_pantalla', description: 'Cookie httpOnly que pone el backend al pedir el código; vale cuando el Administrador lo confirma (RF-058)' },
     },
     schemas: componentes,
@@ -127,13 +128,13 @@ const md: string[] = [
   '> Esquemas completos en `openapi.json`. Errores: `{ codigo, mensaje, detalle? }` (`ErrorApi`).',
   '',
 ];
-for (const superficie of ['cliente', 'pantalla', 'panel'] as const) {
+for (const superficie of ['cliente', 'pantalla', 'panel', 'plataforma'] as const) {
   md.push(`## ${nombrePascal(superficie)}`, '', '| Operación | Método y ruta | Cuerpo → respuesta | Rol | Errores | RF |', '|---|---|---|---|---|---|');
   for (const [nombre, e] of lista.filter(([, x]) => x.superficie === superficie)) {
     const { cuerpo, respuesta } = ids.get(nombre)!;
     const consulta = e.consulta ? `?${Object.keys(e.consulta.shape).join('&')}` : '';
     md.push(
-      `| \`${nombre}\`${e.idempotente ? ' (idempotente)' : ''} | \`${e.metodo} ${e.ruta}${consulta}\` | ${cuerpo ? `\`${cuerpo}\` → ` : ''}${e.estado === 204 ? '204' : `\`${respuesta}\``} | ${e.rol ?? ('pantalla' in e && e.pantalla ? 'pantalla vinculada' : 'público')} | ${e.errores.map((c) => `\`${c}\``).join(', ') || '—'} | ${e.rf.join(', ')} |`,
+      `| \`${nombre}\`${e.idempotente ? ' (idempotente)' : ''} | \`${e.metodo} ${e.ruta}${consulta}\` | ${cuerpo ? `\`${cuerpo}\` → ` : ''}${e.estado === 204 ? '204' : `\`${respuesta}\``} | ${e.rol ?? ('pantalla' in e && e.pantalla ? 'pantalla vinculada' : e.superficie === 'plataforma' ? 'superadmin' : 'público')} | ${e.errores.map((c) => `\`${c}\``).join(', ') || '—'} | ${e.rf.join(', ')} |`,
     );
   }
   md.push('');

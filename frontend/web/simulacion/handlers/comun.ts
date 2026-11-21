@@ -6,6 +6,7 @@ import type { EstadoSim } from '../tipos';
 
 export const COOKIE_PANEL = 'rockola_panel';
 export const COOKIE_PANTALLA = 'rockola_pantalla';
+export const COOKIE_PLATAFORMA = 'rockola_plataforma';
 
 export type Peticion = {
   estado: EstadoSim;
@@ -17,6 +18,8 @@ export type Peticion = {
   personal: (Personal & { rol: Rol }) | null;
   /** Valor de la cookie `rockola_pantalla` (RF-058). */
   tokenPantalla: string | null;
+  /** Valor de la cookie `rockola_plataforma` (RF-064). */
+  tokenPlataforma: string | null;
 };
 
 /** `/bares/{slug}/ahora` → `/api/bares/:slug/ahora` */
@@ -57,6 +60,7 @@ export function manejar<N extends NombreEndpoint>(nombre: N, fn: (p: Peticion) =
     const dispositivo = request.headers.get('X-Rockola-Dispositivo');
     const token = cookies[COOKIE_PANEL];
     const tokenPantalla = cookies[COOKIE_PANTALLA] ?? null;
+    const tokenPlataforma = cookies[COOKIE_PLATAFORMA] ?? null;
 
     const resultado = await conEstado((estado, ahora) => {
       if ('slug' in parametros && parametros.slug !== estado.bar.slug) {
@@ -86,7 +90,7 @@ export function manejar<N extends NombreEndpoint>(nombre: N, fn: (p: Peticion) =
           ? ({ ok: false, estado: guardada.estado, ...(guardada.cuerpo as { codigo: never; mensaje: string }) } as Resultado<unknown>)
           : ({ ok: true, estado: guardada.estado as 200, cuerpo: guardada.cuerpo } as Resultado<unknown>);
       }
-      const r = fn({ estado, ahora, parametros, consulta: url.searchParams, cuerpo, dispositivo, personal, tokenPantalla });
+      const r = fn({ estado, ahora, parametros, consulta: url.searchParams, cuerpo, dispositivo, personal, tokenPantalla, tokenPlataforma });
       if (pantalla && r.ok) {
         pantalla.ultimo_reporte = ahora;
         estado.version++;

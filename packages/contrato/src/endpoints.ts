@@ -12,11 +12,12 @@ import {
   ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, type Rol, UsuarioCreado, UsuarioPanel,
   YoPanel, Bloqueo,
 } from './panel.ts';
+import { BarCreado, ClaveCuentaBar, CuentaCreada, CuerpoBarNuevo, CuerpoClavePlataforma, CuerpoCuentaBar, ListaBaresPlataforma, YoPlataforma } from './plataforma.ts';
 import { CuerpoVincularPantalla, ListaPantallas, PantallaVinculada, ReportePantalla, VinculoPantalla } from './pantalla.ts';
 import { CuerpoCambioVoto, CuerpoSolicitud, QrPublico, ResolucionQr, RespuestaRetiroPedido, RespuestaSolicitud, RespuestaVoto } from './solicitudes.ts';
 
 export type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type Superficie = 'cliente' | 'pantalla' | 'panel';
+export type Superficie = 'cliente' | 'pantalla' | 'panel' | 'plataforma';
 
 /**
  * Un endpoint del contrato. Es la única definición: de aquí salen el cliente de la app, los
@@ -141,6 +142,16 @@ export const endpoints = {
   compararAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/comparacion', resumen: 'Indicadores por noche, día de la semana o tipo de evento', superficie: 'panel', rf: ['RF-053'], consulta: z.object({ agrupar: z.enum(['noche', 'dia', 'evento']), noches: z.string().optional().describe('IDs separados por coma (con agrupar=noche)'), desde: z.string().optional(), hasta: z.string().optional() }), respuesta: ComparacionAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   recomendacionesAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/recomendaciones', resumen: 'Recomendaciones para la operación (no se aplican solas)', superficie: 'panel', rf: ['RF-054'], consulta: FiltroAnalitica, respuesta: ListaRecomendaciones, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   cuboAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/cubo', resumen: 'Cubo de KPI por género, franja y día o tipo de evento', superficie: 'panel', rf: ['RF-063'], consulta: z.object({ eje: z.enum(['dia', 'evento']).optional() }), respuesta: CuboAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
+
+  // Plataforma (RF-064, ADR-29): su propia cookie `rockola_plataforma`; el rol del panel no aplica.
+  entrarPlataforma: definir({ metodo: 'POST', ruta: '/plataforma/sesion', resumen: 'Entrar a la plataforma', superficie: 'plataforma', rf: ['RF-064'], cuerpo: CuerpoEntrar, respuesta: YoPlataforma, estado: 200, errores: ['credenciales_invalidas', 'datos_invalidos'] }),
+  salirPlataforma: definir({ metodo: 'DELETE', ruta: '/plataforma/sesion', resumen: 'Salir de la plataforma', superficie: 'plataforma', rf: ['RF-064'], respuesta: SinContenido, estado: 204, errores: [] }),
+  yoPlataforma: definir({ metodo: 'GET', ruta: '/plataforma/yo', resumen: 'Cuenta de la plataforma', superficie: 'plataforma', rf: ['RF-064'], respuesta: YoPlataforma, estado: 200, errores: ['no_autenticado'] }),
+  cambiarClavePlataforma: definir({ metodo: 'PUT', ruta: '/plataforma/yo/clave', resumen: 'Cambiar la clave de la plataforma', superficie: 'plataforma', rf: ['RF-064'], cuerpo: CuerpoClavePlataforma, respuesta: SinContenido, estado: 204, errores: ['no_autenticado', 'credenciales_invalidas', 'datos_invalidos'] }),
+  baresPlataforma: definir({ metodo: 'GET', ruta: '/plataforma/bares', resumen: 'Bares con sus cuentas', superficie: 'plataforma', rf: ['RF-064'], respuesta: ListaBaresPlataforma, estado: 200, errores: ['no_autenticado', 'debe_cambiar_clave'] }),
+  crearBarPlataforma: definir({ metodo: 'POST', ruta: '/plataforma/bares', resumen: 'Crear un bar con su primer Administrador', superficie: 'plataforma', rf: ['RF-064'], cuerpo: CuerpoBarNuevo, respuesta: BarCreado, estado: 201, errores: ['no_autenticado', 'debe_cambiar_clave', 'datos_invalidos', 'conflicto'] }),
+  crearCuentaPlataforma: definir({ metodo: 'POST', ruta: '/plataforma/bares/{id}/cuentas', resumen: 'Crear una cuenta en un bar', superficie: 'plataforma', rf: ['RF-064'], cuerpo: CuerpoCuentaBar, respuesta: CuentaCreada, estado: 201, errores: ['no_autenticado', 'debe_cambiar_clave', 'datos_invalidos', 'no_encontrado', 'conflicto'] }),
+  claveCuentaPlataforma: definir({ metodo: 'POST', ruta: '/plataforma/cuentas/{id}/clave-temporal', resumen: 'Dar una clave temporal nueva a una cuenta de bar', superficie: 'plataforma', rf: ['RF-064'], respuesta: ClaveCuentaBar, estado: 200, errores: ['no_autenticado', 'debe_cambiar_clave', 'no_encontrado'] }),
 } as const satisfies Record<string, Endpoint>;
 
 export type Endpoints = typeof endpoints;
