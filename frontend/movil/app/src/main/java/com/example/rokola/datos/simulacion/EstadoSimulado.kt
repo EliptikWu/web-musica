@@ -107,7 +107,7 @@ internal enum class FalloConexion { BIEN, CORTADA }
 
 internal class EstadoSim(
     var escenario: Escenario,
-    var version: Int,
+    var version: Long,
     var reloj: RelojSim,
     val bar: BarSim,
     var modoQr: ModoQr,

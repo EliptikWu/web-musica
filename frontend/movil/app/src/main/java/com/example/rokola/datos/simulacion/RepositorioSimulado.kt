@@ -86,7 +86,7 @@ class RepositorioSimulado(
      * cada segundo si terminó la canción. Con la conexión cortada, falla sin mandar foto.
      */
     override fun observarAhora(): Flow<Ahora> = flow {
-        var ultima = Int.MIN_VALUE
+        var ultima = Long.MIN_VALUE
         while (true) {
             val (cortada, foto) = conEstado { e, a -> (e.falloConexion == FalloConexion.CORTADA) to construirAhora(e, a) }
             if (cortada) throw FalloRockola(ErrorRockola(CodigoError.SIN_CONEXION, "Sin conexión en vivo"))

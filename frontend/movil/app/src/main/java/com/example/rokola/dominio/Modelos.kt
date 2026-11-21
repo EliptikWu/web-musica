@@ -86,7 +86,7 @@ data class ListaCasaResumen(val nombre: String, val totalCanciones: Int)
 
 /** La foto que se envía por tiempo real. */
 data class Ahora(
-    val version: Int,
+    val version: Long,
     val servidorAhora: Instant,
     val servicio: Servicio,
     val reproduccion: Reproduccion?,

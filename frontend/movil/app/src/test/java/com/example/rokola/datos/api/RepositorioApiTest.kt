@@ -58,6 +58,13 @@ class RepositorioApiTest {
     }
 
     @Test
+    fun `acepta la versión del backend, que es una marca de tiempo en milisegundos`() = runBlocking {
+        responder(200, AHORA.replace("\"version\":12", "\"version\":1795366800000"))
+        val foto = (repo.ahora() as Resultado.Exito).valor
+        assertEquals(1_795_366_800_000L, foto.version)
+    }
+
+    @Test
     fun `lee la foto de la noche con sus fechas y la cola`() = runBlocking {
         responder(200, AHORA)
         val ahora = (repo.ahora() as Resultado.Exito).valor

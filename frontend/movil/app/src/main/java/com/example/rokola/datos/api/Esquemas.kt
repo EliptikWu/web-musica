@@ -200,7 +200,7 @@ data class ListaCasaJson(val nombre: String, @SerialName("total_canciones") val 
 
 @Serializable
 data class AhoraJson(
-    val version: Int,
+    val version: Long,
     @SerialName("servidor_ahora") val servidorAhora: String,
     val servicio: ServicioJson,
     val reproduccion: ReproduccionJson?,
@@ -208,7 +208,7 @@ data class AhoraJson(
     @SerialName("lista_casa") val listaCasa: ListaCasaJson?,
 ) {
     fun aDominio() = Ahora(
-        version = noNegativo(version, "version"),
+        version = version.also { require(it >= 0) { "version debe ser positiva o cero" } },
         servidorAhora = fecha(servidorAhora),
         servicio = servicio.aDominio(),
         reproduccion = reproduccion?.aDominio(),

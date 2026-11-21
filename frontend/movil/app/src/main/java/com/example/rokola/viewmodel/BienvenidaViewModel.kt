@@ -70,7 +70,7 @@ class BienvenidaViewModel(private val repositorio: RepositorioRockola) : ViewMod
             var miYo = yo.await().valorO { _estado.value = EstadoPantalla.Error(it); return@launch }
             var lasDestacadas = destacadas.await().valorO { _estado.value = EstadoPantalla.Error(it); return@launch }
 
-            var version: Int? = null
+            var version: Long? = null
             repositorio.ahoraEnVivo().collect { evento ->
                 when (evento) {
                     is EventoEnVivo.Foto -> {

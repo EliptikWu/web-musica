@@ -102,7 +102,7 @@ private fun momentoB(p: String): EstadoSim {
 
     return EstadoSim(
         escenario = Escenario.MOMENTO_B,
-        version = 1,
+        version = 1L,
         reloj = RelojSim(anclaSim = ahora, anclaReal = 0, velocidad = 1.0),
         bar = BarSim(
             id = "e-demo",
