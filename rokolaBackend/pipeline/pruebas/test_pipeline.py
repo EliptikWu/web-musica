@@ -40,6 +40,8 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(carga.noches_distintas("votos", {1: 5, 2: 7}, {1: 5, 2: 6}, conciliacion), [1, 2])
         # Un rechazo en la noche 1 no disculpa teléfonos perdidos en la noche 2.
         self.assertEqual(carga.noches_distintas("telefonos", {1: 5, 2: 9}, {1: 4, 2: 8}, conciliacion), [2])
+        # Una noche que cerró después de la ingesta no cuenta como diferencia.
+        self.assertEqual(carga.noches_distintas("votos", {1: 4, 3: 9}, {1: 4}, {"quitados": {}, "telefonos": {}, "noches": {1}}), [])
 
     def test_franjas_de_la_noche(self):
         df = self.spark.createDataFrame([(20,), (21,), (22,), (23,), (0,), (1,), (5,), (12,)], ["h"])

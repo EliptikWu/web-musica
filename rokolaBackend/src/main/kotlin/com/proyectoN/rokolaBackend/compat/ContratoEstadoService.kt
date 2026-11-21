@@ -206,22 +206,35 @@ class ContratoEstadoService(
     vigente: Ventana?, proxima: Ventana?,
   ): Map<String, Any?> {
     val modo = bar.modoActual
+    // RF-037: abierta a mano fuera del horario, atiende hasta que se cierre.
+    val aManoDesde = idSesion?.let { aperturaFueraDeHorario(it) }
     val estado = when {
       modo == "mantenimiento" -> "mantenimiento"
       modo == "pausado" -> "en_pausa"
-      idSesion == null -> "en_pausa" // Sin noche abierta no se pueden aceptar pedidos.
+      aManoDesde != null -> "abierto"
       vigente == null -> "fuera_de_horario"
+      idSesion == null -> "en_pausa" // Sin noche abierta no se pueden aceptar pedidos.
       else -> "abierto"
     }
-    val modoQr = if (modo == "pausado") "pausado" else "automatico"
+    val modoQr = when {
+      modo == "pausado" -> "pausado"
+      aManoDesde != null -> "forzado_activo"
+      else -> "automatico"
+    }
     return mapOf(
       "estado" to estado,
       "modo_qr" to modoQr,
-      "desde" to if (estado == "abierto") vigente?.inicio else null,
-      "hasta" to if (estado == "abierto") vigente?.fin else null,
+      "desde" to if (estado == "abierto") (aManoDesde ?: vigente?.inicio) else null,
+      // Abierta a mano no cierra con el horario: sigue hasta que la cierren.
+      "hasta" to if (estado == "abierto" && aManoDesde == null) vigente?.fin else null,
       "proxima_apertura" to if (estado == "fuera_de_horario") proxima?.inicio else null,
     )
   }
+
+  private fun aperturaFueraDeHorario(idSesion: Long): OffsetDateTime? = jdbc.query(
+    "SELECT fecha_apertura FROM public.sesion WHERE id_sesion = ? AND fuera_de_horario",
+    { rs, _ -> rs.getObject(1, OffsetDateTime::class.java) }, idSesion,
+  ).firstOrNull()
 
   private fun listaCasa(idBar: Long): Map<String, Any>? = jdbc.query(
     """

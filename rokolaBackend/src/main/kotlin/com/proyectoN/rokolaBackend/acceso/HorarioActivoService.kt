@@ -2,6 +2,7 @@ package com.proyectoN.rokolaBackend.acceso
 
 import com.proyectoN.rokolaBackend.establecimiento.HorarioOperacion
 import com.proyectoN.rokolaBackend.establecimiento.HorarioOperacionRepository
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import java.time.Clock
 import java.time.LocalTime
@@ -11,7 +12,16 @@ import java.time.ZoneId
 @Service
 class HorarioActivoService(
     private val horarios: HorarioOperacionRepository,
+    private val jdbc: JdbcTemplate,
 ) {
+    /** Si el bar atiende ahora: por su horario, o por una noche abierta a mano fuera de él (RF-037). */
+    fun atiende(idEstablecimiento: Long, zonaHoraria: String): Boolean =
+        estaEnHorario(idEstablecimiento, zonaHoraria) || jdbc.queryForObject(
+            """SELECT EXISTS (SELECT 1 FROM public.sesion
+               WHERE id_establecimiento = ? AND estado = 'abierta' AND fuera_de_horario)""",
+            Boolean::class.javaObjectType, idEstablecimiento,
+        ) == true
+
     fun estaEnHorario(idEstablecimiento: Long, zonaHoraria: String, clock: Clock = Clock.systemUTC()): Boolean {
         val ahora = clock.instant().atZone(ZoneId.of(zonaHoraria))
         val diaActual = ahora.dayOfWeek.value

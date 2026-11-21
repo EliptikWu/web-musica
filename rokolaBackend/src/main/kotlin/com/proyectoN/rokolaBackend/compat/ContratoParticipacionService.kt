@@ -422,7 +422,7 @@ class ContratoParticipacionService(
     ).firstOrNull() ?: error(HttpStatus.LOCKED, "servicio_no_disponible", "Servicio sin configuración")
     if (config.estado != "disponible")
       error(HttpStatus.LOCKED, "servicio_no_disponible", "El servicio está pausado o en mantenimiento")
-    if (!horarios.estaEnHorario(idBar, bar.zonaHoraria))
+    if (!horarios.atiende(idBar, bar.zonaHoraria))
       error(HttpStatus.LOCKED, "servicio_no_disponible", "Fuera del horario de operación")
     return config
   }

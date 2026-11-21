@@ -35,7 +35,7 @@ class AccesoService(
       sesiones.findFirstByEstablecimientoIdAndEstadoOrderByFechaAperturaDesc(
         idEstablecimiento, EstadoSesion.ABIERTA,
       ) == null -> "No hay una sesión musical abierta"
-      !horarioActivo.estaEnHorario(idEstablecimiento, establecimiento.zonaHoraria) -> "Fuera del horario de operación"
+      !horarioActivo.atiende(idEstablecimiento, establecimiento.zonaHoraria) -> "Fuera del horario de operación"
       else -> null
     }
     return AccesoQrResponse(

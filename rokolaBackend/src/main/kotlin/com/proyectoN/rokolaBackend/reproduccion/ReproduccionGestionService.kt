@@ -44,7 +44,7 @@ class ReproduccionGestionService(
     if (config.estadoManual != EstadoServicio.DISPONIBLE) {
       throw ResponseStatusException(HttpStatus.CONFLICT, "El servicio no esta disponible")
     }
-    if (!horario.estaEnHorario(idEstablecimiento, sesion.establecimiento.zonaHoraria)) {
+    if (!horario.atiende(idEstablecimiento, sesion.establecimiento.zonaHoraria)) {
       throw ResponseStatusException(HttpStatus.CONFLICT, "El establecimiento esta fuera de horario")
     }
     if (actuales.actual(idSesion) != null) {
@@ -101,7 +101,7 @@ class ReproduccionGestionService(
     val config = configuraciones.findByEstablecimientoId(idBar)
       ?: throw ResponseStatusException(HttpStatus.CONFLICT, "Falta configuración del bar")
     if (config.estadoManual != EstadoServicio.DISPONIBLE ||
-      !horario.estaEnHorario(idBar, sesion.establecimiento.zonaHoraria))
+      !horario.atiende(idBar, sesion.establecimiento.zonaHoraria))
       throw ResponseStatusException(HttpStatus.CONFLICT, "Servicio no disponible")
     if (actuales.actual(idSesion) != null || cola.listarPendientes(idSesion).isNotEmpty())
       throw ResponseStatusException(HttpStatus.CONFLICT, "Hay una reproducción o solicitud prioritaria")

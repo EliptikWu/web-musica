@@ -61,7 +61,9 @@ def conciliar(spark: SparkSession, datos: str, plata: dict[str, DataFrame]) -> d
         quitados[nombre] = {n: antes[n] - despues.get(n, 0) for n in antes if antes[n] != despues.get(n, 0)}
     participantes = plata["solicitudes"].select("id_sesion", "dispositivo_seud").unionByName(plata["votos"].select("id_sesion", "dispositivo_seud"))
     telefonos = {int(f.id_sesion): int(f.n) for f in participantes.groupBy("id_sesion").agg(F.countDistinct("dispositivo_seud").alias("n")).collect()}
-    return {"quitados": quitados, "telefonos": telefonos}
+    # Una noche que cierre mientras corre Spark entra en la próxima carga: no se audita en esta.
+    noches = {int(f.id_sesion) for f in leer_bronce(spark, datos, "sesiones").select("id_sesion").collect()}
+    return {"quitados": quitados, "telefonos": telefonos, "noches": noches}
 
 
 def limpiar(spark: SparkSession, datos: str) -> tuple[dict[str, DataFrame], dict[str, dict[str, int]]]:

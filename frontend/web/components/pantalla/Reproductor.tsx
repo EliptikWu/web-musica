@@ -2,7 +2,9 @@
 
 import type { Reproduccion } from '@rockola/contrato';
 import { Icono } from '@rockola/ui';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { TV } from '@/lib/textos/pantalla';
+import { decidirAudio, decidirGuardia, GUARDIA_INICIAL, type PruebaAudio, pruebaInicial } from './guardia-reproduccion';
 
 /**
  * El reproductor de la pantalla del bar (RF-019, RNF-011). Con un ID de YouTube real usa el
@@ -21,6 +23,8 @@ export type PropsReproductor = {
   onError: (reproduccionId: string, posicionSeg: number, codigoYoutube: number) => void;
   /** RF-062: lo fija el panel; la TV lo aplica en cuanto llega. */
   volumen: number;
+  /** El navegador solo dejó sonar en silencio: hace falta un toque para el audio. */
+  onSinSonido?: (sinSonido: boolean) => void;
 };
 
 export const esIdSimulado = (videoId: string) => videoId.startsWith('sim-');
@@ -57,6 +61,7 @@ type ReproductorYT = {
   setVolume(volumen: number): void;
   mute(): void;
   unMute(): void;
+  isMuted(): boolean;
   destroy(): void;
 };
 
@@ -76,7 +81,7 @@ type ApiYT = {
       host?: string;
       videoId: string;
       playerVars?: Record<string, number | string>;
-      events?: { onReady?: () => void; onStateChange?: (e: { data: number }) => void; onError?: (e: { data: number }) => void };
+      events?: { onReady?: () => void; onStateChange?: (e: { data: number }) => void; onError?: (e: { data: number }) => void; onAutoplayBlocked?: () => void };
     },
   ) => ReproductorYT;
 };
@@ -124,8 +129,9 @@ const REINTENTAR_FIN_MS = 12000;
  *   última foto: si el servidor ya avanzó, un fin tardío no salta otra canción.
  * - La pausa del panel manda también al encender; nunca se le dice «play» a un video terminado.
  * - El desfase se revisa cada 5 s, no en cada render.
+ * - Si YouTube o el navegador lo detienen sin que el panel lo pida, se retoma solo (guardia).
  */
-function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError, volumen }: PropsReproductor) {
+function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError, volumen, onSinSonido }: PropsReproductor) {
   const contenedor = useRef<HTMLDivElement>(null);
   const reproductor = useRef<ReproductorYT | null>(null);
   const listo = useRef(false);
@@ -134,13 +140,55 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
   const ultimoFinEnviado = useRef<{ id: string; instante: number } | null>(null);
   const finalDetectado = useRef<{ id: string; desde: number } | null>(null);
   const deseado = useRef({ reproduccion, posicionSeg, volumen });
-  const llamadas = useRef({ onInicio, onFin, onError });
+  const llamadas = useRef({ onInicio, onFin, onError, onSinSonido });
+  const guardia = useRef(GUARDIA_INICIAL);
+  const silencioForzado = useRef(false);
+  const pruebaAudio = useRef<PruebaAudio | null>(null);
+  const conError = useRef(new Set<string>());
+  const [sinAudio, setSinAudio] = useState(false);
   useEffect(() => {
     deseado.current = { reproduccion, posicionSeg, volumen };
-    llamadas.current = { onInicio, onFin, onError };
+    llamadas.current = { onInicio, onFin, onError, onSinSonido };
   });
 
   const posicionReal = () => Math.floor(reproductor.current?.getCurrentTime() ?? 0);
+
+  /** Con el audio bloqueado, quitar el silencio volvería a detener el video. */
+  const ponerVolumen = useCallback((r: ReproductorYT, valor: number) => {
+    if (silencioForzado.current) r.setVolume(Math.max(valor, 1));
+    else aplicarVolumen(r, valor);
+  }, []);
+
+  const sonarEnSilencio = useCallback(() => {
+    const r = reproductor.current;
+    if (!r || deseado.current.reproduccion.estado !== 'sonando') return;
+    r.mute();
+    r.playVideo();
+    if (!silencioForzado.current) {
+      silencioForzado.current = true;
+      pruebaAudio.current = pruebaInicial(Date.now());
+      setSinAudio(true);
+      llamadas.current.onSinSonido?.(true);
+    }
+  }, []);
+
+  const terminarSilencio = useCallback(() => {
+    if (!silencioForzado.current) return;
+    silencioForzado.current = false;
+    pruebaAudio.current = null;
+    guardia.current = GUARDIA_INICIAL;
+    setSinAudio(false);
+    llamadas.current.onSinSonido?.(false);
+  }, []);
+
+  /** Con un toque el navegador ya deja sonar con audio. */
+  const recuperarAudio = useCallback(() => {
+    const r = reproductor.current;
+    if (!r || !silencioForzado.current) return;
+    terminarSilencio();
+    aplicarVolumen(r, deseado.current.volumen);
+    if (deseado.current.reproduccion.estado === 'sonando') r.playVideo();
+  }, [terminarSilencio]);
 
   // El mismo ID/tipo siempre se informa con la misma posición (duración completa).
   // Así las retransmisiones conservan el cuerpo exigido por la clave idempotente del backend.
@@ -175,7 +223,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
               listo.current = true;
               const r = reproductor.current!;
               const { reproduccion: rep, posicionSeg: pos } = deseado.current;
-              aplicarVolumen(r, deseado.current.volumen);
+              ponerVolumen(r, deseado.current.volumen);
               // Si mientras cargaba el servidor cambió de canción, se carga la vigente.
               if (rep.id !== idCargado.current) {
                 idCargado.current = rep.id;
@@ -197,8 +245,12 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
               if (e.data === TERMINADO) avisarFin(id);
             },
             onError: (e) => {
-              if (idCargado.current) llamadas.current.onError(idCargado.current, posicionReal(), e.data);
+              if (!idCargado.current) return;
+              // YouTube ya lo rechazó: la guardia no debe insistir mientras el servidor avanza.
+              conError.current.add(idCargado.current);
+              llamadas.current.onError(idCargado.current, posicionReal(), e.data);
             },
+            onAutoplayBlocked: sonarEnSilencio,
           },
         });
       })
@@ -209,9 +261,58 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
       reproductor.current?.destroy();
       reproductor.current = null;
       idCargado.current = null;
+      guardia.current = GUARDIA_INICIAL;
+      terminarSilencio();
       destino.remove();
     };
-  }, [encendida, avisarFin]);
+  }, [encendida, avisarFin, ponerVolumen, sonarEnSilencio, terminarSilencio]);
+
+  // Guardia: si debería sonar y quedó detenido, se retoma sin que nadie toque la pantalla.
+  useEffect(() => {
+    if (!encendida) return;
+    const temporizador = window.setInterval(() => {
+      const r = reproductor.current;
+      if (!r || !listo.current) return;
+      const { reproduccion: rep, posicionSeg: pos } = deseado.current;
+      // Al final de la canción manda la recuperación del fin, no esta.
+      const debeSonar = idCargado.current === rep.id && rep.estado === 'sonando' && !conError.current.has(rep.id) && pos < rep.cancion.duracion_seg - 1;
+      const ahora = Date.now();
+      const estadoYT = r.getPlayerState();
+      const { guardia: siguiente, accion } = decidirGuardia(guardia.current, { estadoYT, debeSonar, ahora });
+      guardia.current = siguiente;
+      if (accion === 'reanudar') r.playVideo();
+      else if (accion === 'recargar') r.loadVideoById({ videoId: rep.cancion.video_id, startSeconds: Math.floor(pos) });
+      else if (accion === 'silenciar') sonarEnSilencio();
+
+      // En silencio por un corte pasajero, el bar no se queda mudo: se vuelve a probar con audio.
+      if (!silencioForzado.current || !pruebaAudio.current || !debeSonar) return;
+      if (deseado.current.volumen <= 0) {
+        terminarSilencio();
+        return;
+      }
+      const { prueba, accion: audio } = decidirAudio(pruebaAudio.current, { estadoYT, silenciado: r.isMuted(), ahora });
+      pruebaAudio.current = prueba;
+      if (audio === 'probar') aplicarVolumen(r, deseado.current.volumen);
+      else if (audio === 'confirmar') terminarSilencio();
+      else if (audio === 'volver') {
+        guardia.current = GUARDIA_INICIAL;
+        r.mute();
+        r.playVideo();
+      }
+    }, 1000);
+    return () => window.clearInterval(temporizador);
+  }, [encendida, sonarEnSilencio, terminarSilencio]);
+
+  // Un toque o una tecla devuelve el audio que el navegador había bloqueado.
+  useEffect(() => {
+    if (!encendida) return;
+    window.addEventListener('pointerdown', recuperarAudio);
+    window.addEventListener('keydown', recuperarAudio);
+    return () => {
+      window.removeEventListener('pointerdown', recuperarAudio);
+      window.removeEventListener('keydown', recuperarAudio);
+    };
+  }, [encendida, recuperarAudio]);
 
   // Otra canción: se carga desde donde vaya (por si la pantalla se une tarde).
   const { id, estado } = reproduccion;
@@ -236,8 +337,8 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
   // Volumen desde el panel (RF-062).
   useEffect(() => {
     const r = reproductor.current;
-    if (r && listo.current) aplicarVolumen(r, volumen);
-  }, [volumen]);
+    if (r && listo.current) ponerVolumen(r, volumen);
+  }, [volumen, ponerVolumen]);
 
   // Recuperación cuando el navegador llega al final sin emitir el evento ENDED.
   // IMPORTANTE: no concluye una canción mientras YouTube sigue reproduciendo lejos del final.
@@ -294,6 +395,8 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
           Video de YouTube
         </span>
       ) : null}
+      {/* Un toque dentro del iframe no llega a esta página: esta capa lo recibe y toma el foco del control remoto. */}
+      {sinAudio ? <button type="button" className="video__tocar" aria-label={TV.activarSonido} autoFocus onClick={recuperarAudio} /> : null}
     </div>
   );
 }

@@ -36,6 +36,7 @@ export function PantallaBar({ slug }: { slug: string }) {
   const instante = useAhoraServidor();
   const { caida } = useConexionCaida();
   const [encendida, setEncendida] = useState(false);
+  const [sinSonido, setSinSonido] = useState(false);
   const consultas = useQueryClient();
   const reporte = useMutation({
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
@@ -97,7 +98,7 @@ export function PantallaBar({ slug }: { slug: string }) {
 
   return (
     <LienzoTv apagada={apagada}>
-      {caida ? <p className="tv-banner" role="status">{conexion.reconectando}</p> : null}
+      {caida ? <p className="tv-banner" role="status">{conexion.reconectando}</p> : sinSonido ? <p className="tv-banner" role="status">{TV.sinSonido}</p> : null}
       <div className="tv">
         <section className="tv__izq" aria-label="Suena ahora">
           <Arco apagado={apagada}>
@@ -108,6 +109,7 @@ export function PantallaBar({ slug }: { slug: string }) {
                 posicionSeg={posicion}
                 encendida={encendida}
                 volumen={foto.volumen}
+                onSinSonido={setSinSonido}
                 onInicio={(id, p) => reporte.mutate({ tipo: 'reportarInicio', id, posicion: p, codigo: null })}
                 onFin={(id, p) => reporte.mutate({ tipo: 'reportarFin', id, posicion: p, codigo: null })}
                 onError={(id, p, codigo) => reporte.mutate({ tipo: 'reportarError', id, posicion: p, codigo })}

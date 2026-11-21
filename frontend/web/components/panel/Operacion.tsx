@@ -82,7 +82,8 @@ export function Operacion() {
                 {acciones.pausarSolicitudes}
               </Tecla>
             ) : null}
-            {n.servicio.estado === 'en_pausa' && puede(rol, 'pausarSolicitudes') ? (
+            {/* Sin noche abierta no hay solicitudes que reanudar, salvo que las hayan pausado a mano. */}
+            {n.servicio.estado === 'en_pausa' && (n.sesion || n.servicio.modo_qr === 'pausado') && puede(rol, 'pausarSolicitudes') ? (
               <Tecla variante="cereza" ocupada={servicio.isPending} onClick={() => servicio.mutate({ cuerpo: { modo_qr: 'automatico' } }, alTerminar)}>
                 {acciones.reanudarSolicitudes}
               </Tecla>
@@ -92,7 +93,7 @@ export function Operacion() {
                 {acciones.reanudarSolicitudes}
               </Tecla>
             ) : null}
-            {n.servicio.estado === 'fuera_de_horario' && puede(rol, 'abrirCerrarNoche') ? (
+            {!n.sesion && n.servicio.estado !== 'mantenimiento' && n.servicio.modo_qr !== 'pausado' && puede(rol, 'abrirCerrarNoche') ? (
               <Tecla variante="cereza" ocupada={abrir.isPending} onClick={() => abrir.mutate({ cuerpo: { tipo_evento: 'normal' } }, alTerminar)}>
                 {acciones.abrirNoche}
               </Tecla>

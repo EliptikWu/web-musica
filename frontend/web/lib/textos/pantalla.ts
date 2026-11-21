@@ -44,4 +44,6 @@ export const TV = {
     detalle: 'El navegador necesita un toque para poner la música con sonido. Después la cola avanza sola.',
     boton: 'Encender',
   },
+  sinSonido: 'El video va en silencio. Toca la pantalla o presiona una tecla para activar el sonido.',
+  activarSonido: 'Activar el sonido',
 };

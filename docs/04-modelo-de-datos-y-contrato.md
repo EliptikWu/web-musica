@@ -314,6 +314,13 @@ resincroniza al reconectar.
     - **`TBD`:** los nombres reales de `evento_analitico.fecha_evento` y de las columnas marcadas
       como supuesto en el esquema reconstruido.
     - `actualizado_en` de `OrigenDatos` pasa a admitir `null`: todavía no ha corrido ninguna carga.
-18. La tabla `pantalla_vinculo` y la columna `codigo_qr.url_publica` las usa el código, pero
-    ninguna migración ni el esquema reconstruido las crean (visto el 2026-11-20): en una base
-    nueva dan 500 `GET /panel/pantallas` y `GET /bares/{slug}/qr-publico`.
+18. ~~`pantalla_vinculo` y `codigo_qr.url_publica` sin migración~~ Resuelto el 2026-11-21 con
+    `V6__pantalla_y_noche_manual.sql`, con `IF NOT EXISTS` por si la base real ya las tiene.
+    **`TBD`:** comparar sus columnas con las de Railway cuando vuelva a estar disponible.
+19. Abrir y cerrar la noche a mano (RF-037), **hecho por el equipo de frontend el 2026-11-21**
+    (D14): `POST /panel/sesiones` y `POST /panel/sesiones/actual/cierre`, solo Administrador.
+    Abierta fuera del horario, atiende hasta que se cierre (`sesion.fuera_de_horario`,
+    `modo_qr: forzado_activo`). Al cerrar, lo que suena queda `saltada` con los segundos que alcanzó
+    y lo pendiente pasa a `expirada`. Sin noche abierta, `version` es la última emitida (antes 0:
+    los clientes descartaban esa foto y no se enteraban del cierre). **Falta:** que la noche se abra y cierre sola según el horario
+    (también es RF-037); hoy el backend solo la abre a mano.

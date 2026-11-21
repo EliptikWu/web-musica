@@ -111,7 +111,7 @@ class ReproduccionAutomaticaService(
             { rs, _ -> SesionActiva(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getInt(4)) },
             idSesion,
         ).firstOrNull() ?: return
-        if (!horarios.estaEnHorario(sesion.barId, sesion.zona)) return
+        if (!horarios.atiende(sesion.barId, sesion.zona)) return
 
         // Primero solicitudes por votos; desempate por antigüedad ya fijado en ColaRepository.
         val primera = cola.listarPendientes(idSesion).firstOrNull()

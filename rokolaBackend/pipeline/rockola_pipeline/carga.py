@@ -87,6 +87,8 @@ def noches_distintas(nombre: str, operativa: dict[int, int], modelo: dict[int, i
     """Las noches que no cuadran. Cada noche solo tolera lo que la limpieza quitó en esa noche."""
     quitados = conciliacion["quitados"]
     noches = set(operativa) | set(modelo)
+    if "noches" in conciliacion:
+        noches &= conciliacion["noches"]
     if nombre != "telefonos":
         tolerado = quitados.get(nombre, {})
         return sorted(n for n in noches if operativa.get(n, 0) - modelo.get(n, 0) != tolerado.get(n, 0))
@@ -101,6 +103,7 @@ def auditar(conexion, conciliacion: dict) -> dict:
     indicadores: dict[str, dict] = {}
     for nombre, (operativa, modelo) in AUDITORIA.items():
         a, b = _por_noche(conexion, operativa), _por_noche(conexion, modelo)
+        a = {n: v for n, v in a.items() if n in conciliacion["noches"]}
         distintas = noches_distintas(nombre, a, b, conciliacion)
         indicadores[nombre] = {
             "operativa": sum(a.values()), "modelo": sum(b.values()), "noches_revisadas": len(set(a) | set(b)),
