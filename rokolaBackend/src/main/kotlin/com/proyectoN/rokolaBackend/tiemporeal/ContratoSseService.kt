@@ -16,6 +16,9 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.ConcurrentHashMap
 
+/** Cambió el servicio de un bar sin noche abierta: no hay sesión por la que avisar. */
+data class CambioServicioEvent(val slug: String)
+
 /** El evento panel sólo anuncia recursos (nunca devuelve datos de administración). */
 data class CambioPanelEvent(val slug: String, val recursos: Set<String>)
 
@@ -72,15 +75,29 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
     fun cambioCola(evento: CambioColaEvent) {
         try {
             val slug = instantaneas.slugDeSesion(evento.sesionId) ?: return
-            val canal = canales[slug] ?: return
-            synchronized(canal) {
-                if (canal.clientes.isEmpty()) return
-                val estado = instantaneas.ahora(slug)
-                canal.clientes.toList().forEach { enviarAhora(canal, it, estado) }
-            }
+            enviarFoto(slug)
         } catch (e: Exception) {
             // Fallos de la red SSE no deben fallar un INSERT ya confirmado en PostgreSQL.
             log.warn("No se pudo publicar actualización SSE de cola, tipo={}", e.javaClass.simpleName)
+        }
+    }
+
+    @Order(100)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun cambioServicio(evento: CambioServicioEvent) {
+        try {
+            enviarFoto(evento.slug)
+        } catch (e: Exception) {
+            log.warn("No se pudo publicar actualización SSE del servicio, tipo={}", e.javaClass.simpleName)
+        }
+    }
+
+    private fun enviarFoto(slug: String) {
+        val canal = canales[slug] ?: return
+        synchronized(canal) {
+            if (canal.clientes.isEmpty()) return
+            val estado = instantaneas.ahora(slug)
+            canal.clientes.toList().forEach { enviarAhora(canal, it, estado) }
         }
     }
 

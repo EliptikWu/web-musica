@@ -103,8 +103,8 @@ export const manejadoresPanel = [
   manejar('cerrarSesion', (p) => cerrarSesionManual(p.estado, quien(p), p.ahora)),
   manejar('cambiarServicio', (p) => {
     const modo = (p.cuerpo as { modo_qr: EstadoSim['modo_qr'] }).modo_qr;
-    // Forzar la apertura y salir del mantenimiento son del Administrador (D9).
-    if (p.personal!.rol !== 'administrador' && (modo === 'forzado_activo' || p.estado.mantenimiento)) {
+    // Forzar la apertura, quitarla (cierra la noche) y salir del mantenimiento son del Administrador (D9).
+    if (p.personal!.rol !== 'administrador' && (modo === 'forzado_activo' || p.estado.mantenimiento || (modo === 'automatico' && p.estado.modo_qr === 'forzado_activo'))) {
       return error(403, 'sin_permiso', 'Tu rol no permite esta acción');
     }
     return cambiarModoQr(p.estado, modo, quien(p), p.ahora);

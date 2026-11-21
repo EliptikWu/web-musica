@@ -9,7 +9,7 @@ red=()
 if [ -n "${ROCKOLA_DOCKER_RED:-}" ]; then red=(--network "$ROCKOLA_DOCKER_RED"); fi
 
 # Las claves pasan por nombre: docker las toma del entorno y no quedan en la línea de comandos.
-MSYS_NO_PATHCONV=1 docker run --rm --user 0 "${red[@]}" \
+MSYS_NO_PATHCONV=1 docker run --rm --user 0 ${red[@]+"${red[@]}"} \
   -e ANALITICA_JDBC_URL -e DB_USERNAME -e DB_PASSWORD -e ROCKOLA_SEUDONIMO_CLAVE \
   -e ANALITICA_DATOS=/datos -e PYTHONPATH=/pipeline -e HOME=/tmp \
   -v "$aqui:/pipeline:ro" -v rockola-analitica:/datos \

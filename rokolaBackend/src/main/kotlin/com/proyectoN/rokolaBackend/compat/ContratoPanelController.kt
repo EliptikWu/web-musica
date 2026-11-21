@@ -73,6 +73,23 @@ class ContratoPanelController(
     return ResponseEntity.noContent().build()
   }
 
+  /** RF-039: el Operador pausa y reanuda; forzar y salir de mantenimiento lo decide el servicio. */
+  @PutMapping("/servicio")
+  fun cambiarServicio(
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ): ResponseEntity<Void> {
+    sesionesNoche.cambiarServicio(acceso.exigir(token), cuerpo)
+    return ResponseEntity.noContent().build()
+  }
+
+  /** RF-038: solo el Administrador (matriz D9, doc 04). */
+  @PostMapping("/servicio/mantenimiento")
+  fun mantenimiento(@CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?): ResponseEntity<Void> {
+    sesionesNoche.mantenimiento(acceso.exigir(token, rolMinimo = "administrador"))
+    return ResponseEntity.noContent().build()
+  }
+
   @PostMapping("/reproduccion/{id}/salto")
   fun saltar(
     @PathVariable id: String,

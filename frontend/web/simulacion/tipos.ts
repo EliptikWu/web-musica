@@ -134,6 +134,8 @@ export type EstadoSim = {
   sesion: SesionNocheSim | null;
   /** Si el personal cerró la noche a mano dentro del horario, no se reabre sola hasta esta hora. */
   sin_apertura_automatica_hasta: number | null;
+  /** Pausada estando forzada: al reanudar vuelve a forzada, como en el backend. */
+  pausa_forzada?: boolean;
   catalogo: Record<string, CancionSim>;
   solicitudes: SolicitudSim[];
   reproduccion: ReproduccionSim | null;

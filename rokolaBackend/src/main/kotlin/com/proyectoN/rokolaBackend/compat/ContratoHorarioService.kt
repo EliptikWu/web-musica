@@ -124,6 +124,13 @@ object ReglasHorario {
     return ahora.withSecond(0).withNano(0).plusMinutes((vigente.duracion - dentro).toLong())
   }
 
+  /** Como [cierre], pero sigue por las franjas pegadas: viernes hasta 00:00 y sábado desde 00:00 son una noche. */
+  fun cierreContiguo(franjas: List<Franja>, ahora: ZonedDateTime): ZonedDateTime? {
+    var fin = cierre(franjas, ahora) ?: return null
+    repeat(franjas.size) { fin = cierre(franjas, fin) ?: return fin }
+    return fin
+  }
+
   private fun hora(f: Map<String, Any?>, campo: String): LocalTime {
     val texto = f[campo] as? String ?: ContratoCuerpo.invalido("Falta $campo")
     if (!FORMATO_HORA.matches(texto)) ContratoCuerpo.invalido("$campo debe ser HH:mm")

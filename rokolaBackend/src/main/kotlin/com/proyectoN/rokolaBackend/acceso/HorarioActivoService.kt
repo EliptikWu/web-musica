@@ -14,11 +14,10 @@ class HorarioActivoService(
     private val horarios: HorarioOperacionRepository,
     private val jdbc: JdbcTemplate,
 ) {
-    /** Si el bar atiende ahora: por su horario, o por una noche abierta a mano fuera de él (RF-037). */
+    /** Si el bar atiende ahora: por su horario, o porque lo abrieron a mano fuera de él (RF-037). */
     fun atiende(idEstablecimiento: Long, zonaHoraria: String): Boolean =
         estaEnHorario(idEstablecimiento, zonaHoraria) || jdbc.queryForObject(
-            """SELECT EXISTS (SELECT 1 FROM public.sesion
-               WHERE id_establecimiento = ? AND estado = 'abierta' AND fuera_de_horario)""",
+            "SELECT forzado_abierto FROM public.configuracion_servicio WHERE id_establecimiento = ?",
             Boolean::class.javaObjectType, idEstablecimiento,
         ) == true
 

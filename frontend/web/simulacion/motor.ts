@@ -229,7 +229,7 @@ export function avanzar(estado: EstadoSim, ahora: number): boolean {
     const inicio = franja && cierre ? Math.max(ahora - 24 * 3600_000, cierre.getTime() - duracionMs(franja)) : ahora;
     abrirSesionInterna(estado, Math.min(inicio, ahora), enHorario ? 'horario' : 'manual');
     tocar(estado);
-  } else if (estado.sesion && !enHorario && estado.modo_qr !== 'forzado_activo') {
+  } else if (estado.sesion && !enHorario && estado.modo_qr !== 'forzado_activo' && !estado.pausa_forzada) {
     // Fuera de horario y sin apertura forzada, la noche se cierra, la haya abierto el horario o el personal.
     cerrarSesionInterna(estado, ahora, null);
     tocar(estado);
@@ -676,7 +676,9 @@ export function extenderBloqueo(estado: EstadoSim, bloqueoId: string, duracion: 
 export function cambiarModoQr(estado: EstadoSim, modo: EstadoSim['modo_qr'], quien: Personal, ahora: number): Resultado<null> {
   const salirDeMantenimiento = estado.mantenimiento;
   if (estado.modo_qr === modo && !salirDeMantenimiento) return bien(null, 204);
-  estado.modo_qr = modo;
+  const reanudaForzada = modo === 'automatico' && estado.modo_qr === 'pausado' && estado.pausa_forzada === true;
+  estado.pausa_forzada = modo === 'pausado' && (estado.modo_qr === 'forzado_activo' || estado.pausa_forzada === true);
+  estado.modo_qr = reanudaForzada ? 'forzado_activo' : modo;
   estado.mantenimiento = false;
   const tipo: TipoAccion = modo === 'pausado' ? 'pausar_solicitudes' : modo === 'forzado_activo' ? 'forzar_apertura' : 'reanudar_solicitudes';
   accion(estado, ahora, quien, tipo, { tipo: 'servicio', nombre: 'Solicitudes', detalle: null });
@@ -688,6 +690,7 @@ export function cambiarModoQr(estado: EstadoSim, modo: EstadoSim['modo_qr'], qui
 export function activarMantenimiento(estado: EstadoSim, quien: Personal, ahora: number): Resultado<null> {
   if (estado.mantenimiento) return bien(null, 204);
   estado.mantenimiento = true;
+  estado.pausa_forzada = false;
   cerrarSesionInterna(estado, ahora, quien, 'mantenimiento');
   tocar(estado);
   return bien(null, 204);
@@ -706,6 +709,7 @@ export function abrirSesionManual(estado: EstadoSim, tipoEvento: string, quien: 
 export function cerrarSesionManual(estado: EstadoSim, quien: Personal, ahora: number): Resultado<null> {
   if (!estado.sesion) return mal(409, 'conflicto', 'No hay una noche abierta');
   cerrarSesionInterna(estado, ahora, quien);
+  estado.pausa_forzada = false;
   if (estado.modo_qr === 'forzado_activo') estado.modo_qr = 'automatico';
   // Cerrada a mano dentro del horario: no se reabre sola hasta que acabe esta franja.
   const cierre = cierreDeFranja(estado.horario, new Date(ahora), estado.bar.zona_horaria);

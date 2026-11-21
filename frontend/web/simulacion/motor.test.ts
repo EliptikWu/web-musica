@@ -266,6 +266,19 @@ describe('la noche abierta y cerrada a mano (barrido de la iteración 0)', () =>
   });
 });
 
+describe('una noche forzada', () => {
+  it('pausarla y reanudarla no la cierra', () => {
+    const { estado } = escena('fuera-de-horario');
+    const ahora = ahoraSim(estado, REAL);
+    abrirSesionManual(estado, 'normal', ADMIN, ahora);
+    cambiarModoQr(estado, 'pausado', ADMIN, ahora + 1000);
+    expect(estado.sesion).not.toBeNull();
+    cambiarModoQr(estado, 'automatico', ADMIN, ahora + 2000);
+    expect(estado.modo_qr).toBe('forzado_activo');
+    expect(estado.sesion).not.toBeNull();
+  });
+});
+
 describe('el almacén no crece sin límite', () => {
   it('recorta historial, bitácora y solicitudes terminadas, pero no lo vigente', () => {
     const { estado, ahora } = escena();

@@ -1,6 +1,7 @@
 package com.proyectoN.rokolaBackend.compat
 
 import com.proyectoN.rokolaBackend.tiemporeal.CambioColaEvent
+import com.proyectoN.rokolaBackend.tiemporeal.CambioServicioEvent
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.transaction.event.TransactionPhase
@@ -28,6 +29,13 @@ class ContratoVersionService {
     val nueva = versiones.computeIfAbsent(evento.sesionId) { AtomicLong(siguiente()) }
       .updateAndGet { anterior -> maxOf(anterior + 1, System.currentTimeMillis()) }
     ultima.accumulateAndGet(nueva, ::maxOf)
+  }
+
+  /** Cambió el servicio de un bar sin noche abierta: su foto también es nueva. */
+  @Order(-100)
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  fun alCambiarServicio(@Suppress("UNUSED_PARAMETER") evento: CambioServicioEvent) {
+    siguiente()
   }
 
   private fun siguiente(): Long = ultima.updateAndGet { maxOf(it + 1, System.currentTimeMillis()) }

@@ -16,7 +16,7 @@ class ContratoNocheService(
   private val jdbc: JdbcTemplate,
   private val estados: ContratoEstadoService,
 ) {
-  private data class SesionFila(val id: Long, val apertura: OffsetDateTime, val tipoEvento: String?)
+  private data class SesionFila(val id: Long, val apertura: OffsetDateTime, val tipoEvento: String?, val origen: String)
   private data class Pedido(val hash: String, val fecha: OffsetDateTime)
 
   private val tiposAccion = setOf(
@@ -64,8 +64,7 @@ class ContratoNocheService(
       "version" to ahora["version"],
       "servidor_ahora" to ahora["servidor_ahora"],
       "sesion" to sesion?.let {
-        // El modelo no distingue cómo se abrió la noche: hoy solo se abre a mano.
-        mapOf("id" to it.id.toString(), "apertura" to it.apertura, "tipo_evento" to (it.tipoEvento ?: ""), "origen" to "manual")
+        mapOf("id" to it.id.toString(), "apertura" to it.apertura, "tipo_evento" to (it.tipoEvento ?: ""), "origen" to it.origen)
       },
       "servicio" to servicio,
       "reproduccion" to reproduccion,
@@ -81,10 +80,10 @@ class ContratoNocheService(
   }
 
   private fun sesionAbierta(idBar: Long): SesionFila? = jdbc.query(
-    """SELECT id_sesion, fecha_apertura, tipo_evento FROM public.sesion
+    """SELECT id_sesion, fecha_apertura, tipo_evento, origen FROM public.sesion
        WHERE id_establecimiento = ? AND estado = 'abierta'
        ORDER BY fecha_apertura DESC, id_sesion DESC LIMIT 1""",
-    { rs, _ -> SesionFila(rs.getLong(1), rs.getObject(2, OffsetDateTime::class.java), rs.getString(3)) }, idBar,
+    { rs, _ -> SesionFila(rs.getLong(1), rs.getObject(2, OffsetDateTime::class.java), rs.getString(3), rs.getString("origen")) }, idBar,
   ).firstOrNull()
 
   private fun pedidos(idSesion: Long): Map<Long, Pedido> = jdbc.query(

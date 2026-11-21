@@ -320,7 +320,7 @@ resincroniza al reconectar.
       se guarda en `api_idempotencia`); repetirla responde 409 `conflicto`.
     - La clave temporal tiene 12 caracteres al azar; la clave propia, de 10 caracteres a
       72 bytes (lo que usa bcrypt) *(propuesto)*.
-    - Siguen en el 404 «aún no existe»: sesiones a mano, servicio y mantenimiento, retirar con
+    - Siguen en el 404 «aún no existe»: retirar con
       motivo, QR del panel, bitácora completa, eventos y analítica.
     - Quedan de la revisión de código: la búsqueda del panel gasta el mismo presupuesto diario de
       YouTube que la de los clientes; cambiar la clave propia no cierra las otras sesiones del
@@ -338,10 +338,22 @@ resincroniza al reconectar.
 19. ~~`pantalla_vinculo` y `codigo_qr.url_publica` sin migración~~ Resuelto el 2026-11-21 con
     `V7__pantalla_y_noche_manual.sql`, con `IF NOT EXISTS` por si la base real ya las tiene.
     **`TBD`:** comparar sus columnas con las de Railway cuando vuelva a estar disponible.
-20. Abrir y cerrar la noche a mano (RF-037), **hecho por el equipo de frontend el 2026-11-21**
-    (D14): `POST /panel/sesiones` y `POST /panel/sesiones/actual/cierre`, solo Administrador.
-    Abierta fuera del horario, atiende hasta que se cierre (`sesion.fuera_de_horario`,
-    `modo_qr: forzado_activo`). Al cerrar, lo que suena queda `saltada` con los segundos que alcanzó
-    y lo pendiente pasa a `expirada`. Sin noche abierta, `version` es la última emitida (antes 0:
-    los clientes descartaban esa foto y no se enteraban del cierre). **Falta:** que la noche se abra y cierre sola según el horario
-    (también es RF-037); hoy el backend solo la abre a mano.
+20. La noche y el servicio (RF-036 a RF-039, RN-09), **hechos por el equipo de frontend el
+    2026-11-21** (D14): `POST /panel/sesiones`, `POST /panel/sesiones/actual/cierre`,
+    `PUT /panel/servicio` y `POST /panel/servicio/mantenimiento` (`ContratoSesionesService`).
+    - Un ciclo cada 15 s abre la noche al entrar en una franja y la cierra al salir. Si hay un
+      evento del calendario vigente, la noche queda asociada a él.
+    - `configuracion_servicio.forzado_abierto` (V8): atiende fuera del horario hasta que la
+      cierren (`modo_qr: forzado_activo`). Pausar y reanudar no le quita lo forzado.
+    - `sin_apertura_hasta` (V8): cerrada a mano dentro de una franja, no se reabre sola hasta
+      que esa franja y las que sigan pegadas terminen. `sesion.origen` (V8) dice cómo se abrió.
+    - Forzar la apertura, quitarla (cierra la noche) y salir de mantenimiento son solo del
+      Administrador (D9).
+    - Al cerrar, lo que suena queda `saltada` con los segundos que alcanzó y lo pendiente pasa a
+      `expirada`. Sin noche abierta, `version` es la última emitida (antes 0: los clientes
+      descartaban esa foto y no se enteraban del cierre).
+    - **`TBD`:** que `accion_admin.tipo` admita `abrir_sesion`, `cerrar_sesion`,
+      `pausar_solicitudes`, `reanudar_solicitudes`, `forzar_apertura` y `mantenimiento`; que
+      `accion_admin.id_usuario` admita `NULL` (lo que hace el horario, sin persona); y los nombres
+      de `evento_calendario.fecha_inicio` y `fecha_fin`, supuestos en el esquema reconstruido. Si
+      fallan, la noche igual se abre, pero sin asociarse al evento.

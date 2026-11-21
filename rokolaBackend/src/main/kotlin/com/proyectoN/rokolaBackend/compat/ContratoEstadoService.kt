@@ -27,6 +27,8 @@ class ContratoEstadoService(
     val modoActual: String?,
     /** RF-062 (migración V4); sin configuración, 80 como el contrato. */
     val volumen: Int,
+    /** RF-037 (migración V7): atiende aunque esté fuera del horario. */
+    val forzado: Boolean,
   )
   private data class Franja(
     val dia: Int,
@@ -153,7 +155,8 @@ class ContratoEstadoService(
 
   private fun bar(slug: String): Bar = jdbc.query(
     """
-        SELECT e.id_establecimiento, e.zona_horaria, c.estado_manual, COALESCE(c.volumen, 80) AS volumen
+        SELECT e.id_establecimiento, e.zona_horaria, c.estado_manual, COALESCE(c.volumen, 80) AS volumen,
+               COALESCE(c.forzado_abierto, FALSE) AS forzado
         FROM public.establecimiento e
         LEFT JOIN public.configuracion_servicio c ON c.id_establecimiento = e.id_establecimiento
         WHERE e.slug = ? AND e.activo = TRUE
@@ -163,6 +166,7 @@ class ContratoEstadoService(
       rs.getString("zona_horaria"),
       rs.getString("estado_manual"),
       rs.getInt("volumen"),
+      rs.getBoolean("forzado"),
     ) }, slug,
   ).firstOrNull()?.also {
     if (it.modoActual == null) throw ContratoApiException(
@@ -207,7 +211,7 @@ class ContratoEstadoService(
   ): Map<String, Any?> {
     val modo = bar.modoActual
     // RF-037: abierta a mano fuera del horario, atiende hasta que se cierre.
-    val aManoDesde = idSesion?.let { aperturaFueraDeHorario(it) }
+    val aManoDesde = idSesion?.takeIf { bar.forzado }?.let(::aperturaDe)
     val estado = when {
       modo == "mantenimiento" -> "mantenimiento"
       modo == "pausado" -> "en_pausa"
@@ -231,8 +235,8 @@ class ContratoEstadoService(
     )
   }
 
-  private fun aperturaFueraDeHorario(idSesion: Long): OffsetDateTime? = jdbc.query(
-    "SELECT fecha_apertura FROM public.sesion WHERE id_sesion = ? AND fuera_de_horario",
+  private fun aperturaDe(idSesion: Long): OffsetDateTime? = jdbc.query(
+    "SELECT fecha_apertura FROM public.sesion WHERE id_sesion = ?",
     { rs, _ -> rs.getObject(1, OffsetDateTime::class.java) }, idSesion,
   ).firstOrNull()
 

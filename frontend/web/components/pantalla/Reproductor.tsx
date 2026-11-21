@@ -227,6 +227,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
               // Si mientras cargaba el servidor cambió de canción, se carga la vigente.
               if (rep.id !== idCargado.current) {
                 idCargado.current = rep.id;
+                guardia.current = GUARDIA_INICIAL;
                 if (rep.estado === 'pausada') r.cueVideoById({ videoId: rep.cancion.video_id, startSeconds: Math.floor(pos) });
                 else r.loadVideoById({ videoId: rep.cancion.video_id, startSeconds: Math.floor(pos) });
                 return;
@@ -321,6 +322,7 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
     const r = reproductor.current;
     if (!r || !listo.current || idCargado.current === id) return;
     idCargado.current = id;
+    guardia.current = GUARDIA_INICIAL;
     const desde = Math.floor(deseado.current.posicionSeg);
     if (deseado.current.reproduccion.estado === 'pausada') r.cueVideoById({ videoId, startSeconds: desde });
     else r.loadVideoById({ videoId, startSeconds: desde });
