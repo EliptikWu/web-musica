@@ -422,5 +422,6 @@ resincroniza al reconectar.
     - Con `ROKOLA_WEB_URL`, el `/q/{token}` del backend redirige a la web, que aplica el destino.
       Si se retira el instalador, al arrancar los bares en `app` vuelven a `web`.
     - **`TBD`:** publicar el APK firmado y definir `ROKOLA_APK_URL` y `ROKOLA_WEB_URL`.
-    - **`TBD`:** el dominio de la app y `/.well-known/assetlinks.json`, para que el QR abra la app
-      ya instalada sin pasar por la pantalla de descarga.
+    - La web ya sirve `/.well-known/assetlinks.json` con las huellas de `ROCKOLA_ANDROID_SHA256`
+      (servicio web). Sin esa variable publica una lista vacía y Android pregunta con qué abrir.
+    - **`TBD`:** la huella de la firma y compilar el APK con el dominio definitivo de la web.
