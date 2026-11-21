@@ -352,5 +352,15 @@ resincroniza al reconectar.
       sigue `en_pausa` (`ContratoEstadoService`).
     - `evento_calendario` guarda día y horas en la zona del bar: si la hora de fin es menor, el
       evento termina al día siguiente. Por eso un evento dura menos de 24 h *(propuesto)*.
-      `tipo` guarda el `tipo_evento` del contrato. Una noche no se liga todavía a su evento
-      (`sesion.id_evento_calendario`).
+      `tipo` guarda el `tipo_evento` del contrato.
+20. Eventos que cambian el horario y noches ligadas a su evento, **hechos por el equipo de
+    frontend el 2026-11-21** (D14), a pedido del usuario. Para que lo revise el backend:
+    - **El día de un evento, el bar abre con las horas del evento y no con sus franjas** (un día
+      con varios eventos abre en cada uno). Lo calcula `HorarioEfectivoService` (paquete
+      `acceso`), que usan `ahora` (estado, `hasta` y `proxima_apertura`), pedir y la
+      reproducción automática (`HorarioActivoService` ahora delega en él) y «hasta el fin de la
+      noche» de los bloqueos. `GET /bares/{slug}` sigue mandando el horario semanal sin eventos.
+    - **Cada noche se liga al evento de hoy**: el que está en curso o, si no hay, el próximo que
+      empieza hoy (fecha del bar) *(propuesto)*. La noche toma su `tipo_evento` aunque se abra
+      como «normal». Al crear, editar o eliminar un evento se religa la noche abierta; si deja
+      de haber evento hoy, vuelve a «normal». Un tipo puesto a mano sin evento se respeta.

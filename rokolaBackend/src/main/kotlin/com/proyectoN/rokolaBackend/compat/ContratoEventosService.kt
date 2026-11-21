@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.tiemporeal.CambioColaPublisher
 import com.proyectoN.rokolaBackend.tiemporeal.CambioPanelPublisher
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
@@ -20,6 +21,10 @@ import java.time.format.DateTimeParseException
  * Si la hora de fin es menor que la de inicio, el evento termina al día siguiente. Por eso un
  * evento dura menos de 24 h *(propuesto)*: lo que la tabla puede guardar.
  *
+ * Un evento cambia el horario de su día (`HorarioEfectivoService`) y la noche de hoy se liga a él
+ * (`ContratoServicioService.ligarNocheAbierta`): cada cambio del calendario avisa al teléfono, a
+ * la TV y al panel.
+ *
  * Hecho por el equipo de frontend (2026-11-21, D14).
  */
 @Service
@@ -27,6 +32,8 @@ class ContratoEventosService(
   private val jdbc: JdbcTemplate,
   private val bitacora: ContratoBitacora,
   private val panel: CambioPanelPublisher,
+  private val servicio: ContratoServicioService,
+  private val cola: CambioColaPublisher,
 ) {
   private data class Evento(
     val id: Long, val nombre: String, val tipo: String,
@@ -57,7 +64,7 @@ class ContratoEventosService(
       Long::class.javaObjectType, p.barId, nombre, descripcion, fecha, desde, hasta, tipo,
     )!!
     bitacora.anotar(p, "editar_evento", "evento", id, nombre, "creado")
-    panel.publicar(p.barSlug, setOf("eventos", "bitacora"))
+    cambioDeHorario(p)
     return porId(p, id)!!.aContrato()
   }
 
@@ -82,7 +89,7 @@ class ContratoEventosService(
       nombre, descripcion, fecha, desde, hasta, tipo, e.id, p.barId,
     )
     bitacora.anotar(p, "editar_evento", "evento", e.id, nombre, "editado")
-    panel.publicar(p.barSlug, setOf("eventos", "bitacora"))
+    cambioDeHorario(p)
     return porId(p, e.id)!!.aContrato()
   }
 
@@ -90,10 +97,24 @@ class ContratoEventosService(
   fun eliminar(p: ContratoPanelAcceso.Personal, idTexto: String) {
     val e = existente(p, idTexto, bloquear = true)
     if (e.inicio.isBefore(OffsetDateTime.now())) ContratoCuerpo.conflicto("Un evento que ya empezó no se elimina")
-    // Una noche ligada al evento queda sin él (fk_sesion_evento: ON DELETE SET NULL).
+    // La noche ligada a este evento vuelve a ser normal (la FK solo deja el id en NULL).
+    jdbc.update(
+      "UPDATE public.sesion SET id_evento_calendario = NULL, tipo_evento = 'normal' WHERE id_evento_calendario = ? AND estado = 'abierta'",
+      e.id,
+    )
     jdbc.update("DELETE FROM public.evento_calendario WHERE id_evento_calendario = ? AND id_establecimiento = ?", e.id, p.barId)
     bitacora.anotar(p, "editar_evento", "evento", e.id, e.nombre, "eliminado")
-    panel.publicar(p.barSlug, setOf("eventos", "bitacora"))
+    cambioDeHorario(p)
+  }
+
+  /** El horario de hoy pudo cambiar: se religa la noche abierta y se avisa a todos. */
+  private fun cambioDeHorario(p: ContratoPanelAcceso.Personal) {
+    servicio.ligarNocheAbierta(p)
+    jdbc.query(
+      "SELECT id_sesion FROM public.sesion WHERE id_establecimiento = ? AND estado = 'abierta'",
+      { rs, _ -> rs.getLong(1) }, p.barId,
+    ).forEach { cola.publicar(it, "horario") }
+    panel.publicar(p.barSlug, setOf("eventos", "noche", "bitacora"))
   }
 
   private fun tipo(datos: Map<String, Any?>): String? =

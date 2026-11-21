@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.acceso.HorarioEfectivoService
 import com.proyectoN.rokolaBackend.cola.ColaService
 import com.proyectoN.rokolaBackend.reproduccion.ReproduccionActualResponse
 import com.proyectoN.rokolaBackend.reproduccion.ReproduccionConsultaRepository
@@ -7,8 +8,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 
@@ -20,6 +19,7 @@ class ContratoEstadoService(
   private val reproducciones: ReproduccionConsultaRepository,
   private val versiones: ContratoVersionService,
   private val posiciones: ContratoPosicionesService,
+  private val horarioEfectivo: HorarioEfectivoService,
 ) {
   private data class Bar(
     val id: Long,
@@ -28,12 +28,6 @@ class ContratoEstadoService(
     /** RF-062 (migración V4); sin configuración, 80 como el contrato. */
     val volumen: Int,
   )
-  private data class Franja(
-    val dia: Int,
-    val inicio: LocalTime,
-    val fin: LocalTime,
-  )
-  private data class Ventana(val inicio: OffsetDateTime, val fin: OffsetDateTime)
   private data class DestacadaFila(
     val solicitudId: Long,
     val estado: String,
@@ -52,7 +46,8 @@ class ContratoEstadoService(
     val bar = bar(slug)
     val idSesion = sesionAbierta(bar.id)
     val ahora = OffsetDateTime.now(ZoneId.of(bar.zona))
-    val horario = ventanas(bar.id, ahora, ZoneId.of(bar.zona))
+    // El horario de la semana, salvo el día con evento, que usa las horas del evento (RF-045).
+    val horario = horarioEfectivo.ventanas(bar.id, ZoneId.of(bar.zona))
     val vigente = horario.firstOrNull { !ahora.isBefore(it.inicio) && ahora.isBefore(it.fin) }
     val proxima = horario.firstOrNull { it.inicio.isAfter(ahora) }
 
@@ -176,34 +171,9 @@ class ContratoEstadoService(
     { rs, _ -> rs.getLong("id_sesion") }, idBar,
   ).firstOrNull()
 
-  /** Una franja nocturna termina en el día siguiente, según la zona horaria real del bar. */
-  private fun ventanas(idBar: Long, ahora: OffsetDateTime, zona: ZoneId): List<Ventana> {
-    val franjas: List<Franja> = jdbc.query(
-      """SELECT dia_semana, hora_inicio, hora_fin FROM public.horario_operacion
-               WHERE id_establecimiento = ? AND activo = TRUE""",
-      { rs, _ -> Franja(
-        rs.getInt("dia_semana"),
-        rs.getObject("hora_inicio", LocalTime::class.java),
-        rs.getObject("hora_fin", LocalTime::class.java),
-      ) }, idBar,
-    )
-    val hoy = ahora.toLocalDate()
-    return (-1L..8L).flatMap { dias ->
-      val fecha = hoy.plusDays(dias)
-      franjas.asSequence().filter { it.dia == fecha.dayOfWeek.value && it.inicio != it.fin }
-        .map { franja ->
-          val diaFin: LocalDate = if (franja.fin.isAfter(franja.inicio)) fecha else fecha.plusDays(1)
-          Ventana(
-            fecha.atTime(franja.inicio).atZone(zona).toOffsetDateTime(),
-            diaFin.atTime(franja.fin).atZone(zona).toOffsetDateTime(),
-          )
-        }.toList()
-    }.sortedBy { it.inicio }
-  }
-
   private fun servicio(
     bar: Bar, idSesion: Long?,
-    vigente: Ventana?, proxima: Ventana?,
+    vigente: HorarioEfectivoService.Ventana?, proxima: HorarioEfectivoService.Ventana?,
   ): Map<String, Any?> {
     val modo = bar.modoActual
     val estado = when {

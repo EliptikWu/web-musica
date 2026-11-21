@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.acceso.HorarioEfectivoService
 import com.proyectoN.rokolaBackend.reproduccion.FinalizarReproduccionRequest
 import com.proyectoN.rokolaBackend.reproduccion.ReproduccionGestionService
 import com.proyectoN.rokolaBackend.tiemporeal.CambioColaPublisher
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneId
 
 /**
  * El servicio del QR desde el panel: `PUT /panel/servicio` (RF-036, RF-039; Operador y
@@ -18,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional
  * Mantenimiento, como la simulación (`activarMantenimiento`): corta lo que suena, expira los
  * pedidos pendientes y cierra la noche. El historial queda. Se sale con «Reanudar solicitudes»
  * (`modo_qr = automatico`): como el backend no abre noches solo, reanudar abre una si no hay.
+ *
+ * Cada noche se liga al evento de hoy del calendario (RF-045): el que está en curso o el próximo
+ * de hoy. La noche toma su `tipo_evento`; si el evento deja de ser de hoy, vuelve a `normal`.
  *
  * `forzado_activo` todavía no abre fuera del horario: `estado_manual` no tiene ese valor y se
  * trata como `automatico` (doc 04, «Pendiente del backend»).
@@ -31,6 +36,7 @@ class ContratoServicioService(
   private val bitacora: ContratoBitacora,
   private val cola: CambioColaPublisher,
   private val panel: CambioPanelPublisher,
+  private val horarioEfectivo: HorarioEfectivoService,
 ) {
   @Transactional
   fun cambiar(p: ContratoPanelAcceso.Personal, cuerpo: Map<String, Any?>?) {
@@ -53,6 +59,7 @@ class ContratoServicioService(
         "INSERT INTO public.sesion (id_establecimiento, estado) VALUES (?, 'abierta') RETURNING id_sesion",
         Long::class.javaObjectType, p.barId,
       )!!
+      ligarNocheAbierta(p)
       bitacora.anotar(p, "abrir_sesion", "sesion", sesion, "Noche", "al reanudar")
     }
     val tipo = when {
@@ -99,7 +106,8 @@ class ContratoServicioService(
       "INSERT INTO public.sesion (id_establecimiento, estado, tipo_evento) VALUES (?, 'abierta', ?) RETURNING id_sesion",
       Long::class.javaObjectType, p.barId, tipoEvento,
     )!!
-    bitacora.anotar(p, "abrir_sesion", "sesion", sesion, "Noche", "manual")
+    val evento = ligarNocheAbierta(p)
+    bitacora.anotar(p, "abrir_sesion", "sesion", sesion, "Noche", if (evento != null) "manual, evento ${evento.tipo}" else "manual")
     avisar(p, sesion)
   }
 
@@ -114,6 +122,28 @@ class ContratoServicioService(
     val expirados = cerrarNoche(sesion, "Noche cerrada")
     bitacora.anotar(p, "cerrar_sesion", "sesion", sesion, "Noche", textoExpirados(expirados))
     avisar(p, sesion)
+  }
+
+  /**
+   * Liga la noche abierta al evento de hoy, o la desliga si ya no hay. Devuelve el evento ligado.
+   * La llaman abrir la noche y los cambios del calendario.
+   */
+  fun ligarNocheAbierta(p: ContratoPanelAcceso.Personal): HorarioEfectivoService.EventoDeHoy? {
+    val sesion = sesionAbierta(p.barId) ?: return null
+    val evento = horarioEfectivo.eventoDeHoy(p.barId, ZoneId.of(p.barZona))
+    if (evento != null) {
+      jdbc.update(
+        "UPDATE public.sesion SET id_evento_calendario = ?, tipo_evento = ? WHERE id_sesion = ? AND id_evento_calendario IS DISTINCT FROM ?",
+        evento.id, evento.tipo, sesion, evento.id,
+      )
+    } else {
+      // Solo si estaba ligada: un tipo puesto a mano sin evento se respeta.
+      jdbc.update(
+        "UPDATE public.sesion SET id_evento_calendario = NULL, tipo_evento = 'normal' WHERE id_sesion = ? AND id_evento_calendario IS NOT NULL",
+        sesion,
+      )
+    }
+    return evento
   }
 
   /** Corta lo que suena, expira los pedidos pendientes y cierra la noche. Devuelve cuántos expiraron. */

@@ -7,7 +7,6 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalTime
-import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 /**
@@ -112,16 +111,6 @@ object ReglasHorario {
         throw ContratoApiException(HttpStatus.CONFLICT, "conflicto", "Hay franjas que se pisan")
       }
     }
-  }
-
-  /** Cuándo cierra la franja activa que contiene [ahora] (en la zona del bar), o null si está cerrado. */
-  fun cierre(franjas: List<Franja>, ahora: ZonedDateTime): ZonedDateTime? {
-    val minuto = Math.floorMod((ahora.dayOfWeek.value - 1) * DIA + ahora.hour * 60 + ahora.minute, SEMANA)
-    val vigente = franjas.firstOrNull { f ->
-      f.activo && f.duracion > 0 && Math.floorMod(minuto - f.inicioEnSemana, SEMANA) < f.duracion
-    } ?: return null
-    val dentro = Math.floorMod(minuto - vigente.inicioEnSemana, SEMANA)
-    return ahora.withSecond(0).withNano(0).plusMinutes((vigente.duracion - dentro).toLong())
   }
 
   private fun hora(f: Map<String, Any?>, campo: String): LocalTime {

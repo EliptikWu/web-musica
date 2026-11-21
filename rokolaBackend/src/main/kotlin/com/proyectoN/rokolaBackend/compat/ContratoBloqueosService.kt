@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.acceso.HorarioEfectivoService
 import com.proyectoN.rokolaBackend.reproduccion.FinalizarReproduccionRequest
 import com.proyectoN.rokolaBackend.reproduccion.ReproduccionGestionService
 import com.proyectoN.rokolaBackend.tiemporeal.CambioColaPublisher
@@ -19,7 +20,7 @@ import java.time.ZonedDateTime
  * Como en la simulación de la web (`motor.ts`, `bloquear`): bloquear lo que ya está bloqueado
  * devuelve el bloqueo vigente; si la canción suena, se corta, y sus pedidos pendientes de la
  * noche quedan `bloqueada` con el motivo. «Hasta el fin de la noche» termina cuando cierra la
- * franja del horario vigente; sin franja (bar abierto a mano), a las 12 h *(propuesto)*.
+ * franja (o el evento) vigente; sin ninguna (bar abierto a mano), a las 12 h *(propuesto)*.
  *
  * Hecho por el equipo de frontend (2026-11-21, D14).
  */
@@ -27,7 +28,7 @@ import java.time.ZonedDateTime
 class ContratoBloqueosService(
   private val jdbc: JdbcTemplate,
   private val canciones: ContratoCanciones,
-  private val horario: ContratoHorarioService,
+  private val horarioEfectivo: HorarioEfectivoService,
   private val gestion: ReproduccionGestionService,
   private val bitacora: ContratoBitacora,
   private val cola: CambioColaPublisher,
@@ -141,7 +142,7 @@ class ContratoBloqueosService(
     val ahora = ZonedDateTime.now(ZoneId.of(p.barZona))
     return when (duracion) {
       "horas" -> ahora.plusHours(horas!!.toLong()).toOffsetDateTime()
-      "fin_sesion" -> (ReglasHorario.cierre(horario.franjas(p.barId), ahora) ?: ahora.plusHours(HORAS_SIN_FRANJA)).toOffsetDateTime()
+      "fin_sesion" -> horarioEfectivo.cierre(p.barId, ahora.zone) ?: ahora.plusHours(HORAS_SIN_FRANJA).toOffsetDateTime()
       else -> null
     }
   }
