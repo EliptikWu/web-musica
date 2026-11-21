@@ -282,7 +282,8 @@
   .qr-destino .grupo-teclas .tecla { width: 100%; }
   .qr-destino__nota { font-size: 14px; color: var(--crema-2); }
   .qr-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: auto; }
-  .qr-acciones > * { width: 100%; }
+  .qr-acciones > * { width: 100%; padding-inline: 8px; }
+  .qr-acciones svg { flex: none; }
   .qr-acciones > :last-child { grid-column: 1 / -1; }
   @media (min-width: 640px) and (max-width: 1099px) {
     .qr-acciones { grid-template-columns: repeat(3, minmax(0, 1fr)); }

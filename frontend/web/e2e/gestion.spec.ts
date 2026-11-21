@@ -159,9 +159,9 @@ test('destino del QR: el mismo código abre la web o, en Android, ofrece la app 
   await page.goto('/panel/establecimiento');
   const qr = page.getByRole('region', { name: 'Código QR de las mesas' });
   const url = (await qr.locator('.qr-grande__url').textContent())!;
-  await expect(qr.getByRole('radio', { name: 'Abrir la web' })).toBeChecked();
+  await expect(qr.getByRole('radio', { name: 'La web' })).toBeChecked();
   await sinViolaciones(page, 'destino del QR');
-  await qr.getByRole('radio', { name: 'Descargar la app' }).check();
+  await qr.getByRole('radio', { name: 'La app' }).check();
   await expect(qr.getByText('Listo: el QR ahora ofrece la app.')).toBeVisible();
   await expect(qr.locator('.qr-grande__url')).toHaveText(url);
   const estado = await page.evaluate(() => localStorage.getItem('rockola.sim.v1'));
@@ -187,7 +187,7 @@ test('destino del QR: el mismo código abre la web o, en Android, ofrece la app 
     await contexto.close();
   }
 
-  await qr.getByRole('radio', { name: 'Abrir la web' }).check();
+  await qr.getByRole('radio', { name: 'La web' }).check();
   await expect(qr.getByText('Listo: el QR ahora abre la web.')).toBeVisible();
 });
 

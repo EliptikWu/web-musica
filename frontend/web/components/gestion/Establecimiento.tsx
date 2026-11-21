@@ -261,12 +261,12 @@ function ElegirDestino({ qr }: { qr: QrEstablecimiento }) {
   return (
     <div className="qr-destino">
       <GrupoTeclas
-        leyenda="Al escanear el QR"
+        leyenda="El QR lleva a"
         nombre="destino-qr"
         valor={valor}
         opciones={[
-          { valor: 'web', texto: 'Abrir la web' },
-          { valor: 'app', texto: 'Descargar la app', deshabilitada: !qr.apk_disponible },
+          { valor: 'web', texto: 'La web' },
+          { valor: 'app', texto: 'La app', deshabilitada: !qr.apk_disponible },
         ]}
         onCambio={(destino) => {
           if (cambiar.isPending || destino === qr.destino) return;
