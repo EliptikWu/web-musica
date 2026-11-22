@@ -1,0 +1,143 @@
+/*
+ * temas/panel-afiche.css — el panel y el tablero en Afiche (D19, RF-059), de
+ * prototipos/afiche/panel-admin.html: reglas gruesas de tinta, recuadros de cartel y letra de
+ * cartel para lo grande. Mismo marcado que Rockola. Acotado a `.panel-raiz`, sin capa como
+ * afiche.css: tiene que ganarle a panel.css y analitica.css. Solo usa tokens.
+ */
+[data-tema="afiche"] .panel-raiz {
+  /* ── Teclas: afiche.css les da un ancho de teléfono; aquí mide lo que dice ── */
+  & .tecla:not(.tecla--grande) { width: auto; min-width: 44px; height: 44px; padding-inline: 14px; font-size: 21px; white-space: nowrap; }
+  & :is(.qr-acciones > *, .qr-destino .tecla, .cubo-operaciones .tecla, .grupo-teclas--figuras .tecla, .cola-tarjetas__acciones .tecla) { width: 100%; padding-inline: 6px; }
+  & .orden-teclas .tecla { width: 44px; padding: 0; }
+  & .volumen__mandos .tecla { flex: none; padding-inline: 8px; }
+  & .actual__acciones .tecla { width: 140px; }
+  @container (max-width: 560px) { & .actual__acciones .tecla { flex: 1; width: auto; min-width: 100px; } }
+  @media (min-width: 640px) { & .lista-gestion__acciones--columnas > * { width: 100%; padding-inline: 6px; } }
+  & .tecla--hundida { transform: none; }
+  & .tecla--hundida:is(button, a):active { transform: translateY(1px); }
+  & .grupo-teclas input { border-radius: var(--radio-tecla); }
+  & .grupo-teclas input:checked ~ .tecla { background: var(--afiche-tinta); color: var(--afiche-amarillo); box-shadow: none; transform: none; }
+  & .grupo-teclas input:focus-visible, & .campo__entrada:focus { outline: 3px solid var(--afiche-tinta); outline-offset: 3px; }
+
+  /* ── Cabecera y navegación ──────────────────────────────────────────────── */
+  & .panel-cabeza { padding-bottom: 8px; border-bottom: 3px solid var(--afiche-tinta); }
+  & .panel-marca__bar { font-size: 38px; line-height: 1; padding-top: .1em; }
+  & .panel-nav a, & .panel-nav button { border-radius: var(--afiche-radio-fino); color: var(--afiche-tinta); font-weight: 700; }
+  & .panel-nav a[aria-current="page"] { background: var(--afiche-tinta); color: var(--afiche-amarillo); }
+  & .panel-usuario { border: 2.5px solid var(--afiche-tinta); border-radius: var(--afiche-radio-fino); background: none; box-shadow: none; }
+  & .panel-usuario__inicial { border-radius: var(--afiche-radio-fino); background: var(--afiche-tinta); color: var(--afiche-amarillo); font-family: var(--fuente-cartel-afiche); font-size: 20px; font-weight: 400; }
+  & :is(.panel-subnav a, .analitica-nav a) {
+    border: 2px solid var(--afiche-tinta); border-radius: var(--afiche-radio-fino); background: none; box-shadow: none;
+    color: var(--afiche-tinta); font-stretch: normal; font-weight: 700; letter-spacing: 0; text-transform: none;
+  }
+  & :is(.panel-subnav a, .analitica-nav a):hover { background: var(--hueco); color: var(--afiche-tinta); }
+  & :is(.panel-subnav a, .analitica-nav a)[aria-current="page"] { background: var(--afiche-tinta); color: var(--afiche-amarillo); box-shadow: none; transform: none; }
+
+  /* ── Franja de estado: tinta partida; apagada, papel rayado ─────────────── */
+  & .estado-bar { padding: 0; border-radius: var(--afiche-radio-fino); background: none; box-shadow: none; }
+  & .estado-bar__luz { padding: 12px 16px 12px 20px; border-radius: var(--afiche-radio-fino); background: var(--luz); }
+  & .estado-bar .ventana { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--afiche-tinta); }
+  & .estado-bar__titulo { font-family: var(--fuente-cartel-afiche); font-size: 36px; font-weight: 400; font-stretch: normal; line-height: .98; text-transform: uppercase; }
+  & .estado-bar__sub { font-weight: 700; color: var(--afiche-tinta); }
+  & .estado-bar .tecla { background: var(--afiche-papel-velo); color: var(--afiche-tinta); }
+  & .estado-bar .tecla:first-child { border-color: var(--afiche-tinta); background: var(--afiche-tinta); color: var(--afiche-amarillo); }
+  & .estado-bar--apagada .estado-bar__luz { background: var(--afiche-papel); box-shadow: inset 0 0 0 3px var(--afiche-tinta); }
+  & .foco { width: 12px; height: 12px; background: var(--afiche-tinta); box-shadow: 0 0 0 3px var(--afiche-tinta-18); }
+  & .estado-bar--apagada .foco { background: transparent; border: 2px solid var(--afiche-tinta); box-shadow: none; }
+
+  /* ── Cajas: recuadros de cartel ─────────────────────────────────────────── */
+  & .caja { border: 3px solid var(--afiche-tinta); border-radius: 0; background: none; box-shadow: none; }
+  & .caja .caja { border-width: 2px; }
+  & .caja__cabeza { padding-bottom: 6px; border-bottom: 3px solid var(--afiche-tinta); }
+  & .caja__cabeza h2, & .gestion-cabeza h1 { font-family: var(--fuente-cartel-afiche); font-weight: 400; font-stretch: normal; line-height: 1; text-transform: uppercase; }
+  & .caja__cabeza h2 { font-size: 28px; }
+  & .gestion-cabeza h1 { font-size: 44px; }
+  & .caja__cabeza > :is(span, p) { font-weight: 600; color: var(--afiche-tinta-2); }
+
+  /* ── Canción actual ─────────────────────────────────────────────────────── */
+  & .actual .tarjeta { grid-template-columns: 1fr 84px; }
+  & .actual .tarjeta__centro { padding-top: 0; }
+  & .actual__etiqueta { font-family: var(--fuente-cartel-afiche); font-size: 22px; font-weight: 400; line-height: 1; text-transform: uppercase; color: var(--afiche-tinta); }
+  & .actual__titulo { padding: .08em 0 0; font-family: var(--fuente-cartel-afiche); font-size: 52px; font-weight: 400; font-stretch: normal; line-height: .95; text-transform: uppercase; text-shadow: var(--afiche-sombra-rosa); }
+  & .actual .avance { padding: 6px 0 0; color: var(--afiche-tinta); }
+  & .actual .tarjeta__votos { font-size: 46px; }
+  & :is(.casa, .bloqueadas) .tarjeta { grid-template-columns: 1fr; }
+  & .bloqueadas .tarjeta__titulo { font-size: 15px; font-weight: 800; }
+  & .bloqueadas .tarjeta__artista { padding: 0; font-size: 13px; }
+  & .volumen, & .lista-gestion > li, & .registro li { border-top: 1.5px dashed var(--afiche-punteado); }
+  & .lista-gestion > li:first-child, & .registro li:first-child { border-top: 0; }
+  & .registro time { font-weight: 700; color: var(--afiche-tinta); }
+  & .volumen__mandos input[type="range"] { accent-color: var(--afiche-tinta); }
+
+  /* ── Cola: renglones con línea de corte ─────────────────────────────────── */
+  & .tabla-cola { border-collapse: collapse; border-spacing: 0; margin-top: 0; }
+  & .tabla-cola th { padding: 6px 12px; border-bottom: 1.5px solid var(--afiche-tinta); font-weight: 700; color: var(--afiche-tinta-2); }
+  & .tabla-cola td, & .tabla-cola td:first-child, & .tabla-cola td:nth-last-child(2) { height: 50px; border-radius: 0; border-bottom: 1.5px dashed var(--afiche-punteado); background: none; color: var(--afiche-tinta); box-shadow: none; }
+  & .tabla-cola td.pos { border-right: 0; font-family: var(--fuente-cartel-afiche); font-size: 30px; font-stretch: normal; font-weight: 400; color: var(--afiche-tinta); }
+  & .tabla-cola td.cancion b { font-stretch: normal; font-weight: 800; font-size: 16px; }
+  & .tabla-cola td.cancion span { border-radius: 0; background: var(--afiche-tinta); color: var(--afiche-amarillo); }
+  & .tabla-cola td.votos { font-family: var(--fuente-cartel-afiche); font-size: 30px; font-stretch: normal; font-weight: 400; }
+
+  /* ── Cifras: número de cartel ───────────────────────────────────────────── */
+  & .metrica { border: 2px solid var(--afiche-tinta); border-radius: 0; background: none; box-shadow: none; }
+  & .metrica dt { font-weight: 700; color: var(--afiche-tinta); }
+  & .metrica dd { font-family: var(--fuente-cartel-afiche); font-size: 42px; font-stretch: normal; font-weight: 400; line-height: 1.05; color: var(--afiche-tinta); }
+  & .metrica--texto dd { font-size: 28px; line-height: 1.05; text-transform: none; }
+  & .metrica dd small { font-family: var(--fuente); font-size: 15px; font-stretch: normal; font-weight: 700; color: var(--afiche-tinta-2); }
+  & .cifra-grande { font-family: var(--fuente-cartel-afiche); font-size: 38px; font-stretch: normal; font-weight: 400; color: var(--afiche-tinta); }
+  & .manual-pasos li::marker { color: var(--afiche-sello); }
+  & .panel-conexion { background: var(--afiche-tinta); color: var(--afiche-amarillo); }
+
+  /* ── Formularios ────────────────────────────────────────────────────────── */
+  & .campo__etiqueta { font-weight: 700; color: var(--afiche-tinta); }
+  & .campo__ayuda { color: var(--afiche-tinta-2); }
+  & .campo__entrada { border: 2.5px solid var(--afiche-tinta); border-radius: var(--afiche-radio-fino); background: var(--afiche-papel-claro); color: var(--afiche-tinta); box-shadow: none; }
+  & .campo__entrada::placeholder { color: var(--afiche-tinta-2); }
+  & .campo__entrada[aria-invalid="true"] { border: 3px solid var(--afiche-sello); box-shadow: none; }
+  & .campo__entrada--codigo { font-stretch: normal; font-weight: 800; }
+  & .campo__error { color: var(--afiche-sello); }
+  & .campo__error svg { color: var(--afiche-sello); }
+  & :is(.interruptor, .cubo-separar, .seleccion-noches) input { accent-color: var(--afiche-tinta); }
+  & :is(.horario-dia, .qr-destino) { border: 1.5px dashed var(--afiche-punteado); border-radius: 0; background: none; }
+  & .grupo-teclas__figura { border-radius: 0; box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
+  & .grupo-teclas--figuras input:checked ~ .grupo-teclas__figura { box-shadow: 0 0 0 4px var(--afiche-tinta); }
+  & .qr-grande__codigo { border-radius: 0; box-shadow: 0 0 0 3px var(--afiche-tinta); }
+  & .alerta-panel { border-radius: 0; background: var(--afiche-tinta); color: var(--afiche-papel); }
+  & .alerta-panel svg { color: var(--afiche-amarillo); }
+  & .alerta-panel a { color: var(--afiche-amarillo); }
+  & .etiqueta { border-radius: var(--afiche-radio-fino); color: var(--afiche-tinta); }
+  & .etiqueta--luz { background: var(--afiche-amarillo); color: var(--afiche-tinta); }
+  & .etiqueta--cereza { background: var(--afiche-tinta); color: var(--afiche-amarillo); }
+  & .dialogo { background: var(--afiche-papel); }
+  & .dialogo__titulo { font-family: var(--fuente-cartel-afiche); font-size: 32px; font-stretch: normal; font-weight: 400; line-height: 1; text-transform: uppercase; }
+  & .manual-figura img { border-radius: 0; box-shadow: 0 0 0 2px var(--afiche-tinta); }
+
+  /* ── Tablero ────────────────────────────────────────────────────────────── */
+  & .grafico-tip { border-radius: 0; background: var(--afiche-tinta); box-shadow: none; }
+  & .grafico-tip b { color: var(--afiche-papel); }
+  & .grafico-tip span { color: var(--afiche-papel-sobre-tinta); }
+  & .grafico .g-marca:focus-visible .g-foco { stroke: var(--afiche-tinta); }
+  & .leyenda i { border-radius: 0; }
+
+  /* ── Cubo: el resaltador sobre papel ────────────────────────────────────── */
+  & .cubo-kpi { border-radius: 0; background: none; box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
+  & .cubo-kpi > span { font-weight: 600; color: var(--afiche-tinta); }
+  & .cubo-kpi > b { font-family: var(--fuente-cartel-afiche); font-size: 36px; font-stretch: normal; font-weight: 400; line-height: 1; color: var(--afiche-tinta); }
+  & .cubo-kpi > .cubo-kpi__texto { font-size: 26px; }
+  & .cubo-kpi small { font-family: var(--fuente); font-stretch: normal; color: var(--afiche-tinta-2); }
+  & .cubo-kpi[aria-pressed="true"] { background: var(--afiche-tinta); box-shadow: none; }
+  & .cubo-kpi[aria-pressed="true"] > span, & .cubo-kpi[aria-pressed="true"] small { color: var(--afiche-papel); }
+  & .cubo-kpi[aria-pressed="true"] > b { color: var(--afiche-amarillo); }
+  & :is(.cubo-kpi, .cubo-miembro, .cubo-vistas button, .cubo-tabla-marco, .ver-tabla__marco):focus-visible { outline-color: var(--afiche-tinta); }
+  & .cubo-escena { background: var(--afiche-grano), var(--afiche-papel-hondo); }
+  & .cubo-escena:focus-visible { outline-color: var(--afiche-tinta); }
+  & .cubito > i { font-stretch: normal; font-weight: 700; box-shadow: inset 0 0 0 1px var(--afiche-tinta-22); }
+  & .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
+  & .cubo-rotulo { font-stretch: normal; font-weight: 700; color: var(--afiche-tinta); }
+  & .cubo-pie { border-top: 2px solid var(--afiche-tinta); }
+  & .cubo-operaciones { border-top: 2px solid var(--afiche-tinta); }
+  & :is(.cubo-vistas button, .cubo-miembro) { border-radius: var(--afiche-radio-fino); background: none; color: var(--afiche-tinta); box-shadow: inset 0 0 0 2px var(--afiche-tinta); font-stretch: normal; font-weight: 700; }
+  & .cubo-miembro[aria-pressed="true"] { background: var(--afiche-tinta); color: var(--afiche-amarillo); box-shadow: none; }
+  & .tabla-datos th, & .tabla-datos td { border-bottom-color: var(--afiche-punteado); }
+  & .tabla-datos th { color: var(--afiche-tinta); font-weight: 700; }
+}

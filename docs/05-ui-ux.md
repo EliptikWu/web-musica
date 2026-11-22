@@ -6,11 +6,12 @@ capturas. Este doc manda sobre los prototipos cuando chocan, y registra cada cam
 
 **Tres diseños (D13, RF-059, ADR-25).** El Administrador elige con qué diseño ven los
 clientes su bar: Rockola, **Vidrio** (Tema #1, `prototipos/vidrio/`) o **Afiche** (Tema #3,
-`prototipos/afiche/`). El tema cambia el teléfono y la TV; el panel es siempre Rockola. Cada
+`prototipos/afiche/`). El tema cambia el teléfono, la TV y el panel con sesión (D19, ADR-31);
+entrar, cambiar la clave y la plataforma siguen en Rockola porque no pertenecen a un bar. Cada
 tema son valores en `tokens.css` bajo `[data-tema=…]` y reglas de forma en
 `packages/ui/src/temas/`: el marcado y los textos son los mismos. Lo que este doc dice de
-Rockola (identidad, tokens, «Reglas para que no parezca una plantilla») vale para Rockola y
-el panel; Vidrio y Afiche siguen su prototipo y su fila de `prototipos/decisiones-de-diseno.md`,
+Rockola (identidad, tokens, «Reglas para que no parezca una plantilla») vale para Rockola;
+Vidrio y Afiche siguen su prototipo y su fila de `prototipos/decisiones-de-diseno.md`,
 fieles a él (decisión del usuario), con las mismas reglas de accesibilidad y de textos.
 
 ## Identidad
@@ -202,7 +203,7 @@ Método de la skill `dataviz`, con los tokens Rockola:
 
 ## Reglas para que no parezca una plantilla
 
-Valen para Rockola y el panel. Vidrio usa vidrio esmerilado, un degradado pastel y
+Valen para Rockola. Vidrio usa vidrio esmerilado, un degradado pastel y
 píldoras por diseño (D13): ahí estas reglas 1 y 2 las reemplaza su prototipo.
 
 1. Solo tokens Rockola.
@@ -282,3 +283,4 @@ píldoras por diseño (D13): ahí estas reglas 1 y 2 las reemplaza su prototipo.
 | 2026-11-21 | Plataforma | Pantalla nueva en el sistema Rockola con el armazón de gestión: entrar, cambiar la clave inicial, bares con sus cuentas, crear bar y clave temporal en un diálogo que se ve una vez | RF-064 |
 | 2026-11-21 | App Android | Vidrio y Afiche en el teléfono, con los tokens de `tokens.css` y las formas de `temas/`. Diferencias con la web: Vidrio sin desenfoque de fondo (superficie translúcida, contraste medido sin él), Afiche sin grano de papel y sin color bajo la barra de estado. Con letra grande, los títulos de cartel se reducen para no partir palabras y los días del horario crecen hasta 1,25× | RF-059, ADR-25 |
 | 2026-11-21 | Bar y QR | Interruptor del destino del QR con el grupo de teclas. Auditoría de posiciones: entradas de una fila a la misma altura, acciones del QR parejas, teclas de Personal y Listas en columnas, secciones del panel sin recorte desde 768 px, días del horario de igual alto y cubo que cabe en su escena | RF-035, RF-065 |
+| 2026-11-21 | Panel y tablero | Vidrio y Afiche también en el panel, según `panel-admin.html` de cada prototipo (D19, ADR-31). Gráficas: Vidrio `#D96F62` y `#7C74C8`, Afiche `#B0105D` y `#8C7B28`, validadas con la skill dataviz. Cubo: durazno en Vidrio y resaltador amarillo bajo tinta en Afiche, porque el amarillo no llega a 3:1 como marca sobre papel | El usuario pidió coherencia entre vistas: un bar en Afiche no debe saltar a madera al entrar al panel |

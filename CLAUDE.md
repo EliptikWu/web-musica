@@ -120,9 +120,9 @@ La identidad y las reglas completas están en `docs/05-ui-ux.md`. Lo esencial:
   en `packages/ui`, solo los que tienen función.
 - **El acento es escaso:** la luz ámbar solo en la acción principal, «Tu canción» y la
   franja «Abierto».
-- **Tres diseños elegibles (D13, RF-059, ADR-25):** lo de arriba es Rockola, la base y el
-  único diseño del panel. El Administrador puede poner **Vidrio** o **Afiche** en el
-  teléfono y la TV de su bar. Esos temas siguen fielmente `prototipos/vidrio|afiche/`
+- **Tres diseños elegibles (D13, D19, RF-059, ADR-25, ADR-31):** lo de arriba es Rockola, la
+  base. El Administrador puede poner **Vidrio** o **Afiche** en el teléfono, la TV y el panel
+  de su bar (entrar, cambiar la clave y `/plataforma` siguen en Rockola). Esos temas siguen fielmente `prototipos/vidrio|afiche/`
   (Vidrio sí usa vidrio esmerilado, degradado pastel y píldoras) con valores bajo
   `[data-tema=…]` en el mismo `tokens.css` y formas en `packages/ui/src/temas/`. Mismo
   marcado y mismas reglas de accesibilidad para los tres.

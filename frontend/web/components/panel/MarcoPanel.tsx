@@ -5,9 +5,11 @@ import { Icono } from '@rockola/ui';
 import { useRouter } from 'next/navigation';
 import { createContext, type ReactNode, useContext, useEffect } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
+import { useTemaDelBar } from '@/components/comun/useTemaDelBar';
 import { codigoDe } from '@/lib/api/errores';
 import { useTiempoRealBar } from '@/lib/api/hooks-cliente';
 import { useSalir, useYoPanel } from '@/lib/api/hooks-panel';
+import { CLAVE_TEMA_PANEL, olvidarTemaPanel } from '@/lib/tema';
 import { errores, P, ROL } from '@/lib/textos/panel';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
 import { NavPanel } from './NavPanel';
@@ -33,8 +35,11 @@ export function MarcoPanel({ children }: { children: ReactNode }) {
   const codigo = codigoDe(yo.error);
 
   useEffect(() => {
+    const debeCambiar = codigo === 'debe_cambiar_clave' || yo.data?.usuario.debe_cambiar_clave;
+    // Entrar y cambiar la clave van en Rockola (D19): el script previo pudo haber puesto el tema.
+    if (codigo === 'no_autenticado' || debeCambiar) olvidarTemaPanel();
     if (codigo === 'no_autenticado') router.replace('/panel/entrar?motivo=caducada');
-    if (codigo === 'debe_cambiar_clave' || yo.data?.usuario.debe_cambiar_clave) router.replace('/panel/cambiar-clave');
+    if (debeCambiar) router.replace('/panel/cambiar-clave');
   }, [codigo, router, yo.data]);
 
   if (yo.isError && codigo !== 'no_autenticado' && codigo !== 'debe_cambiar_clave') {
@@ -67,10 +72,11 @@ export function MarcoPanel({ children }: { children: ReactNode }) {
 
 function PanelConVivo({ yo, children }: { yo: YoPanel; children: ReactNode }) {
   useTiempoRealBar(yo.establecimiento.slug);
+  useTemaDelBar(yo.establecimiento.slug, CLAVE_TEMA_PANEL);
   const { caida } = useConexionCaida();
   return (
-    <div className="madera min-h-dvh">
-      <p role="status" className={caida ? 'bg-cereza px-4 py-2 text-[14px] font-medium text-crema sm:px-8' : 'solo-lector'}>
+    <div className="madera panel-raiz min-h-dvh">
+      <p role="status" className={caida ? 'panel-conexion px-4 py-2 text-[14px] font-medium sm:px-8' : 'solo-lector'}>
         {caida ? conexion.reconectando : null}
       </p>
       <div className="mx-auto max-w-[1440px] px-4 pt-5 pb-8 sm:px-8">

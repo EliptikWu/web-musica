@@ -2,6 +2,7 @@
 
 import type { NombreEndpoint, Respuesta } from '@rockola/contrato';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { olvidarTemaPanel } from '@/lib/tema';
 import { salida } from '../sesion-panel';
 import { useConexion } from '../tiempo-real/estado';
 import { claves } from './claves';
@@ -65,7 +66,10 @@ export function useSalir() {
     },
     // Carga completa a propósito: al salir no queda nada del panel en memoria.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    onSuccess: () => window.location.assign('/panel/entrar'),
+    onSuccess: () => {
+      olvidarTemaPanel();
+      window.location.assign('/panel/entrar');
+    },
   });
 }
 

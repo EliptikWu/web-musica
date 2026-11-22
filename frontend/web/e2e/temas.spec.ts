@@ -80,5 +80,51 @@ for (const tema of ['afiche', 'vidrio'] as const) {
       });
       expect(contraste).toBeGreaterThan(7);
     });
+
+    test('panel: el tema del bar en sus estados, el tablero y el diálogo; al salir vuelve a Rockola (D19)', async ({ page }) => {
+      // Al salir, la consulta de la noche que iba en curso responde 401; la ruta inexistente, 404.
+      const errores = vigilarConsola(page, { permitir: [401, 404] });
+      for (const escenario of ['momento-b', 'en-pausa', 'fuera-de-horario', 'cola-vacia', 'sin-lista-activa']) {
+        await abrir(page, `/panel/entrar?tema=${tema}`, escenario);
+        await expect(page.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+        await page.getByLabel('Correo').fill('admin@rockola.demo');
+        await page.getByLabel('Clave', { exact: true }).fill('rockola-demo');
+        await page.getByRole('button', { name: 'Entrar' }).click();
+        await page.getByRole('region', { name: 'Estado del servicio' }).waitFor();
+        await expect(page.locator('html')).toHaveAttribute('data-tema', tema);
+        await sinViolaciones(page, `${tema}: panel, ${escenario}`);
+        await objetivosDe44(page);
+        await page.getByRole('button', { name: 'Salir' }).click();
+        await page.waitForURL('**/panel/entrar');
+        await expect(page.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+        expect(await page.evaluate(() => localStorage.getItem('rockola.tema-panel'))).toBeNull();
+      }
+
+      await abrir(page, `/panel/entrar?tema=${tema}`);
+      await page.getByLabel('Correo').fill('admin@rockola.demo');
+      await page.getByLabel('Clave', { exact: true }).fill('rockola-demo');
+      await page.getByRole('button', { name: 'Entrar' }).click();
+      const estado = page.getByRole('region', { name: 'Estado del servicio' });
+      await estado.waitFor();
+      await estado.getByRole('button', { name: 'Modo mantenimiento' }).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await sinViolaciones(page, `${tema}: diálogo del panel`);
+      await page.keyboard.press('Escape');
+
+      // Recargar no pasa por Rockola: el script previo ya sabe el diseño.
+      await page.goto('/panel/analitica/cubo');
+      await page.locator('.cubito').first().waitFor();
+      await expect(page.locator('html')).toHaveAttribute('data-tema', tema);
+      await sinViolaciones(page, `${tema}: cubo`);
+      await page.getByRole('group', { name: 'KPI de lo elegido' }).getByRole('button', { name: /^Votos/ }).click();
+      await page.getByRole('button', { name: 'Urbano', exact: true }).click();
+      await sinViolaciones(page, `${tema}: cubo recortado`);
+
+      // Una dirección que no existe no se queda a medio tema.
+      await page.goto('/panel/ruta-que-no-existe');
+      await expect(page.getByRole('heading', { name: 'Aquí no hay ninguna rockola' })).toBeVisible();
+      await expect(page.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+      expect(errores).toEqual([]);
+    });
   });
 }

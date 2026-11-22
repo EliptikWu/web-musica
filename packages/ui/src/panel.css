@@ -19,6 +19,9 @@
   .panel-usuario__inicial { width: 32px; height: 32px; flex: none; border-radius: 6px; display: grid; place-items: center; background: var(--papel); color: var(--tinta); font-size: 14px; font-weight: 800; }
   .panel-usuario__rol { font-size: 12px; color: var(--crema-2); }
 
+  /* AÑADIDO (D19): se perdió la conexión en vivo. Cada tema pone sus colores. */
+  .panel-conexion { background: var(--cereza); color: var(--crema); }
+
   /* Franja de estado: la luz encendida o apagada (horizontal). */
   .estado-bar { margin-top: 14px; padding: 3px; border-radius: 16px; background: var(--cromo); box-shadow: 0 0 50px -10px rgba(245, 165, 36, .5); }
   .estado-bar__luz { display: flex; align-items: center; gap: 14px; padding: 9px; border-radius: 13px; background: var(--tubos), var(--luz-horizontal); }
@@ -61,6 +64,12 @@
   .volumen__mandos input[type="range"] { flex: 1; min-width: 0; height: 44px; accent-color: var(--crema); cursor: pointer; }
   .volumen__valor { flex: none; width: 4.5em; text-align: right; font-size: 18px; }
   .actual__acciones .tecla { width: 152px; }
+  /* En una caja angosta la barra va en su propia línea: entre las dos teclas casi no quedaba. */
+  @container (max-width: 420px) {
+    .volumen__mandos { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
+    .volumen__mandos input[type="range"] { grid-column: 1 / -1; grid-row: 1; width: 100%; }
+    .volumen__valor { grid-column: 2; grid-row: 2; width: auto; text-align: center; }
+  }
   @container (max-width: 560px) {
     .actual { flex-direction: column; align-items: stretch; }
     .actual__acciones { flex-direction: row; flex-wrap: wrap; }

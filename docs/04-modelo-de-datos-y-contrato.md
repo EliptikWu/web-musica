@@ -32,7 +32,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | Entidad | Campos | Notas |
 |---|---|---|
 | `Cancion` | `video_id`, `titulo`, `artista`, `duracion_seg`, `miniatura_url` | `artista` se deriva del canal o del título: `TBD` cómo |
-| `Bar` (público) | `slug`, `nombre`, `zona_horaria`, `pedidos_maximos` (3), `duracion_max_seg` (600), `ventana_no_repeticion_min` (60), `tema` (`rockola`), `horario[]` | De `Establecimiento` y `Horario`. `tema`: el diseño con que se ve el teléfono y la TV (RF-059) |
+| `Bar` (público) | `slug`, `nombre`, `zona_horaria`, `pedidos_maximos` (3), `duracion_max_seg` (600), `ventana_no_repeticion_min` (60), `tema` (`rockola`), `horario[]` | De `Establecimiento` y `Horario`. `tema`: el diseño con que se ven el teléfono, la TV y el panel con sesión (RF-059, D19, ADR-31) |
 | `Franja` (horario) | `dia_semana` (1 = lunes … 7 = domingo), `hora_inicio`, `hora_fin` (`"20:00"`, `"02:00"`), `activo` | Una franja que cruza medianoche pertenece al día en que empieza |
 | `Servicio` | `estado`, `modo_qr`, `desde`, `hasta`, `proxima_apertura` | Ver «Estado del servicio» |
 | `Reproduccion` | `id`, `cancion`, `origen` (`solicitud` \| `lista_casa`), `solicitud_id`, `votos`, `inicio`, `posicion_seg`, `estado` (`sonando` \| `pausada`) | El avance se calcula con `posicion_seg` y el reloj del servidor |

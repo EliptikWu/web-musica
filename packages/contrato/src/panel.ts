@@ -213,7 +213,7 @@ export const Establecimiento = z
     pedidos_maximos: z.int().min(1).max(10),
     duracion_max_seg: z.int().min(60).max(3600),
     ventana_no_repeticion_min: z.int().min(0).max(600),
-    tema: Tema.default('rockola').describe('RF-059: diseño del teléfono y la TV; solo lo cambia el Administrador'),
+    tema: Tema.default('rockola').describe('RF-059: diseño del teléfono, la TV y el panel; solo lo cambia el Administrador'),
   })
   .meta({ id: 'Establecimiento' });
 export type Establecimiento = z.infer<typeof Establecimiento>;

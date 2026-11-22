@@ -4,6 +4,7 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@ta
 import { type ReactNode, useState } from 'react';
 import { ErrorApiCliente } from '@/lib/api/errores';
 import { salida } from '@/lib/sesion-panel';
+import { olvidarTemaPanel } from '@/lib/tema';
 
 /** Un error 4xx no se arregla reintentando: se muestra. La red y el 5xx sí se reintentan (doc 03). */
 function reintentar(fallos: number, error: unknown): boolean {
@@ -20,11 +21,13 @@ function alErrorDeSesion(error: unknown) {
   if (typeof window === 'undefined' || !(error instanceof ErrorApiCliente)) return;
   const ruta = window.location.pathname;
   if (!ruta.startsWith('/panel') || ruta.startsWith('/panel/entrar') || salida.enCurso) return;
+  if (error.codigo !== 'no_autenticado' && error.codigo !== 'debe_cambiar_clave') return;
+  olvidarTemaPanel();
   // Carga completa a propósito: sin sesión no debe quedar nada del panel en memoria.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
   if (error.codigo === 'no_autenticado') window.location.assign('/panel/entrar?motivo=caducada');
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-  else if (error.codigo === 'debe_cambiar_clave' && !ruta.startsWith('/panel/cambiar-clave')) window.location.assign('/panel/cambiar-clave');
+  else if (!ruta.startsWith('/panel/cambiar-clave')) window.location.assign('/panel/cambiar-clave');
 }
 
 export function Providers({ children }: { children: ReactNode }) {

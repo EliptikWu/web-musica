@@ -7,7 +7,7 @@
  *   ficha → boleta                               luz → punto de tinta
  * Solo usa tokens (tokens.css, bloque `data-tema="afiche"`). No va en una capa a propósito:
  * tiene que ganarle a las utilidades de Tailwind del marcado (tamaños de Rockola), y todo
- * está acotado a `[data-tema="afiche"]`, que solo ponen el teléfono y la TV.
+ * está acotado a `[data-tema="afiche"]`, que ponen el teléfono, la TV y el panel (D19).
  */
 
 /* ── Suelo de papel ───────────────────────────────────────────────────────── */

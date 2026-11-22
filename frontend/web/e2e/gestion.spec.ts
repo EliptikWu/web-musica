@@ -210,11 +210,12 @@ test('diseño de la rockola: el Administrador lo elige y el teléfono lo toma (R
   await caja.getByRole('button', { name: 'Guardar diseño' }).click();
   await expect(caja.getByText(/^Diseño guardado\./)).toBeVisible();
   await expect(caja.getByText('En uso: Afiche')).toBeVisible();
+  // El panel lo toma enseguida (D19).
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'afiche');
   await page.goto('/b/demo');
   await expect(page.locator('html')).toHaveAttribute('data-tema', 'afiche');
-  // El panel no cambia de diseño.
   await page.goto('/panel/establecimiento');
-  await expect(page.locator('html')).not.toHaveAttribute('data-tema', /.*/);
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'afiche');
 });
 
 test('guardar el diseño no borra lo que se escribe en «Datos del bar» (RF-059)', async ({ page }) => {

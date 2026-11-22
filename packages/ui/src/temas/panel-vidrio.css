@@ -1,0 +1,149 @@
+/*
+ * temas/panel-vidrio.css — el panel y el tablero en Vidrio (D19, RF-059), de
+ * prototipos/vidrio/panel-admin.html. Mismo marcado que Rockola. Acotado a `.panel-raiz`, sin capa
+ * como vidrio.css: tiene que ganarle a panel.css y analitica.css. Solo usa tokens.
+ */
+[data-tema="vidrio"] .panel-raiz {
+  /* ── Teclas: vidrio.css les da un ancho de teléfono; aquí mide lo que dice ── */
+  & .tecla:not(.tecla--grande) { width: auto; min-width: 44px; padding-inline: 16px; white-space: nowrap; }
+  & :is(.qr-acciones > *, .qr-destino .tecla, .cubo-operaciones .tecla, .grupo-teclas--figuras .tecla, .cola-tarjetas__acciones .tecla) { width: 100%; padding-inline: 8px; }
+  & .orden-teclas .tecla { width: 44px; padding: 0; }
+  & .volumen__mandos .tecla { flex: none; padding-inline: 10px; }
+  & .actual__acciones .tecla { width: 152px; }
+  @container (max-width: 560px) { & .actual__acciones .tecla { flex: 1; width: auto; min-width: 100px; } }
+  @media (min-width: 640px) { & .lista-gestion__acciones--columnas > * { width: 100%; padding-inline: 8px; } }
+  & .grupo-teclas input { border-radius: var(--radio-tecla); }
+  & .grupo-teclas--figuras input { border-radius: var(--radio-tarjeta); }
+  & .grupo-teclas input:checked ~ .tecla { background: var(--vidrio-votado); border-color: var(--vidrio-votado-borde); box-shadow: none; transform: none; }
+  & .grupo-teclas input:focus-visible, & .campo__entrada:focus { outline: 2px solid var(--vidrio-texto); outline-offset: 3px; }
+
+  /* ── Cabecera y navegación: píldoras ────────────────────────────────────── */
+  & .panel-marca__bar { font-size: 22px; }
+  & .panel-nav a, & .panel-nav button { border-radius: var(--radio-tecla); }
+  & .panel-nav a[aria-current="page"] { background: var(--vidrio-superficie-alta); }
+  & .panel-usuario { border: 1px solid var(--vidrio-borde); border-radius: var(--radio-tecla); background: var(--vidrio-superficie); box-shadow: none; }
+  & .panel-usuario__inicial { border-radius: 50%; background: var(--vidrio-pista); color: var(--vidrio-texto); font-weight: 600; }
+  & :is(.panel-subnav a, .analitica-nav a) {
+    border: 1px solid var(--vidrio-borde); border-radius: var(--radio-tecla); background: var(--vidrio-superficie); box-shadow: none;
+    color: var(--vidrio-texto-2); font-stretch: normal; font-weight: 500; letter-spacing: 0; text-transform: none;
+  }
+  & :is(.panel-subnav a, .analitica-nav a):hover { color: var(--vidrio-texto); }
+  & :is(.panel-subnav a, .analitica-nav a)[aria-current="page"] {
+    border-color: var(--vidrio-votado-borde); background: var(--vidrio-votado); color: var(--vidrio-texto); font-weight: 600; box-shadow: none; transform: none;
+  }
+
+  /* ── Franja de estado: el degradado; apagada, vidrio ────────────────────── */
+  & .estado-bar { padding: 0; border-radius: var(--vidrio-radio-franja); background: none; box-shadow: var(--vidrio-sombra-acento); }
+  & .estado-bar__luz { padding: 14px 16px 14px 24px; border-radius: var(--vidrio-radio-franja); background: var(--vidrio-acento); }
+  & .estado-bar:not(.estado-bar--apagada) { --tinta: var(--vidrio-tinta); --tinta-2: var(--vidrio-tinta-2); --crema: var(--vidrio-tinta); --crema-2: var(--vidrio-tinta-2); }
+  & .estado-bar .ventana { padding: 0; border: 0; border-radius: 0; background: none; color: var(--tinta); }
+  & .estado-bar__titulo { font-size: 21px; font-weight: 600; font-stretch: normal; letter-spacing: -.01em; }
+  & .estado-bar .tecla { height: 44px; padding-inline: 18px; font-size: 15px; }
+  & .estado-bar:not(.estado-bar--apagada) .tecla { border: 1.5px solid var(--vidrio-tinta-2); background: none; color: var(--vidrio-tinta); box-shadow: none; }
+  & .estado-bar:not(.estado-bar--apagada) .tecla:first-child { border-color: var(--vidrio-tinta); background: var(--vidrio-tinta); color: var(--vidrio-texto); }
+  & .estado-bar :focus-visible { outline-color: var(--vidrio-tinta); }
+  & .estado-bar--apagada { box-shadow: none; }
+  & .estado-bar--apagada .estado-bar__luz {
+    border: 1px solid var(--vidrio-borde); background: var(--vidrio-superficie);
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .estado-bar--apagada .tecla--cereza { --tinta: var(--vidrio-tinta); }
+  & .foco { width: 12px; height: 12px; background: var(--vidrio-tinta); box-shadow: 0 0 0 5px var(--vidrio-halo); }
+  & .estado-bar--apagada .foco { background: var(--vidrio-apagado); box-shadow: none; }
+
+  /* ── Cajas: grupos de vidrio ────────────────────────────────────────────── */
+  & .caja {
+    border: 1px solid var(--vidrio-borde); border-radius: var(--radio-caja);
+    background: var(--vidrio-superficie); box-shadow: none;
+    -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
+  }
+  & .caja .caja { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  & .caja__cabeza h2 { font-size: 18px; font-weight: 600; font-stretch: normal; }
+  & .gestion-cabeza h1 { font-size: 26px; }
+  & .filas { -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+  /* ── Canción actual ─────────────────────────────────────────────────────── */
+  & .actual .tarjeta { grid-template-columns: 1fr 76px; }
+  & .actual .tarjeta__centro { padding-top: 0; }
+  & .actual__etiqueta { font-size: 14px; font-weight: 500; color: var(--vidrio-texto-2); }
+  & .actual__titulo { padding: 0; font-size: 28px; font-stretch: normal; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+  & .actual .avance { padding: 8px 0 0; color: var(--vidrio-texto-2); }
+  & .actual .tarjeta__votos { font-size: 26px; }
+  & :is(.casa, .bloqueadas) .tarjeta { grid-template-columns: 1fr; padding-left: 0; }
+  & .bloqueadas .tarjeta__titulo { font-size: 15px; }
+  & .bloqueadas .tarjeta__artista { padding: 0; font-size: 13px; }
+  & .volumen, & .lista-gestion > li, & .registro li { border-top-style: solid; border-top-color: var(--vidrio-separador); }
+  & .lista-gestion > li:first-child, & .registro li:first-child { border-top: 0; }
+  & .volumen__mandos input[type="range"] { accent-color: var(--vidrio-durazno-claro); }
+
+  /* ── Cola: tabla con separadores, sin tiras de papel ────────────────────── */
+  & .tabla-cola { border-collapse: collapse; border-spacing: 0; margin-top: 0; }
+  & .tabla-cola th { padding: 0 12px 10px; border-bottom: 1px solid var(--vidrio-separador); color: var(--vidrio-texto-2); }
+  & .tabla-cola td, & .tabla-cola td:first-child, & .tabla-cola td:nth-last-child(2) { height: 52px; border-radius: 0; border-bottom: 1px solid var(--vidrio-separador); background: none; color: var(--vidrio-texto); box-shadow: none; }
+  & .tabla-cola tr:last-child td { border-bottom: 0; }
+  & .tabla-cola td.pos { border-right: 0; font-stretch: normal; font-weight: 600; font-size: 15px; color: var(--vidrio-texto-2); }
+  & .tabla-cola td.cancion b { font-stretch: normal; font-weight: 600; font-size: 15px; }
+  & .tabla-cola td.cancion span { border-radius: var(--radio-tecla); background: var(--vidrio-votado); color: var(--vidrio-texto); }
+  & .tabla-cola td.votos { font-stretch: normal; font-weight: 700; font-size: 17px; }
+
+  /* ── Cifras ─────────────────────────────────────────────────────────────── */
+  & .metrica { border: 1px solid var(--vidrio-separador); border-radius: var(--radio-dia); background: var(--hueco); box-shadow: none; }
+  & .metrica dd { font-stretch: normal; font-weight: 600; font-size: 30px; line-height: 1.1; letter-spacing: -.02em; color: var(--vidrio-texto); }
+  & .metrica--texto dd { font-size: 20px; line-height: 1.2; letter-spacing: -.01em; }
+  & .metrica dd small { font-stretch: normal; letter-spacing: 0; }
+  & .cifra-grande { font-stretch: normal; font-weight: 600; color: var(--vidrio-texto); }
+  & .manual-pasos li::marker { color: var(--vidrio-durazno-claro); }
+  & .panel-conexion { border-bottom: 1px solid var(--vidrio-rosa); background: var(--vidrio-velo); color: var(--vidrio-texto); }
+
+  /* ── Formularios ────────────────────────────────────────────────────────── */
+  & .campo__entrada { border: 1px solid var(--vidrio-tecla-borde); border-radius: var(--radio-dia); background: var(--vidrio-superficie-alta); color: var(--vidrio-texto); box-shadow: none; }
+  & .campo__entrada option { background: var(--vidrio-carbon); color: var(--vidrio-texto); }
+  & .campo__entrada::placeholder { color: var(--vidrio-texto-2); }
+  & .campo__entrada[aria-invalid="true"] { border: 2px solid var(--vidrio-rosa); box-shadow: none; }
+  & .campo__entrada--codigo { font-stretch: normal; font-weight: 600; }
+  & .campo__error svg { color: var(--vidrio-rosa); }
+  & :is(.interruptor, .cubo-separar, .seleccion-noches) input { accent-color: var(--vidrio-durazno-claro); }
+  & :is(.horario-dia, .qr-destino) { border-radius: var(--radio-dia); }
+  & .grupo-teclas__figura { border-radius: var(--radio-dia); }
+  & .grupo-teclas--figuras input:checked ~ .grupo-teclas__figura { box-shadow: 0 0 0 3px var(--vidrio-votado-borde); }
+  & .qr-grande__codigo { border-radius: var(--radio-tarjeta); box-shadow: none; }
+  & .alerta-panel { border: 1px solid var(--vidrio-rosa); background: var(--vidrio-superficie-alta); color: var(--vidrio-texto); }
+  & .alerta-panel svg { color: var(--vidrio-rosa); }
+  & .alerta-panel a { color: var(--vidrio-texto); }
+  & .etiqueta--luz { background: var(--vidrio-acento); color: var(--vidrio-tinta); }
+  & .etiqueta--cereza { background: var(--vidrio-votado); color: var(--vidrio-texto); }
+  & .dialogo { background: var(--vidrio-carbon); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
+  & .dialogo__titulo { font-stretch: normal; font-weight: 600; letter-spacing: -.01em; }
+  & .manual-figura img { box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
+
+  /* ── Tablero ────────────────────────────────────────────────────────────── */
+  & .grafico-tip { background: var(--vidrio-carbon); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
+  & .grafico .g-marca:focus-visible .g-foco { stroke: var(--vidrio-texto); }
+
+  /* ── Cubo ───────────────────────────────────────────────────────────────── */
+  & .cubo-kpi { border-radius: var(--radio-dia); background: var(--hueco); box-shadow: inset 0 0 0 1px var(--vidrio-separador); }
+  & .cubo-kpi > b { font-stretch: normal; font-weight: 600; font-size: 25px; letter-spacing: -.02em; color: var(--vidrio-texto); }
+  & .cubo-kpi > .cubo-kpi__texto { font-size: 18px; letter-spacing: -.01em; }
+  & .cubo-kpi small { letter-spacing: 0; }
+  & .cubo-kpi[aria-pressed="true"] { background: var(--vidrio-acento); box-shadow: none; }
+  & .cubo-kpi[aria-pressed="true"] > :is(span, b), & .cubo-kpi[aria-pressed="true"] small { color: var(--vidrio-tinta); }
+  & :is(.cubo-kpi, .cubo-miembro, .cubo-vistas button, .cubo-escena, .cubo-tabla-marco, .ver-tabla__marco):focus-visible { outline-color: var(--vidrio-texto); }
+  & .cubo-kpi[aria-pressed="true"]:focus-visible { outline-offset: 3px; }
+  & .cubo-escena { background: var(--vidrio-manchas), var(--vidrio-carbon); }
+  /* El desenfoque aplana el 3D de lo que tiene dentro: la caja del cubo no lo lleva. */
+  & .cubo-escena-caja { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  & .cubito > i { font-stretch: normal; font-weight: 600; box-shadow: inset 0 0 0 1px var(--vidrio-separador); }
+  & .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--vidrio-texto); }
+  & .cubito[data-encendido][data-activo] > i { box-shadow: inset 0 0 0 2px var(--vidrio-tinta); }
+  & .cubito[data-total][data-activo] > i { box-shadow: inset 0 0 0 2px var(--cubo-total-activo-texto); }
+  & .cubo-rotulo { font-stretch: normal; font-weight: 500; }
+  & :is(.cubo-vistas button, .cubo-miembro) { border-radius: var(--radio-tecla); font-stretch: normal; font-weight: 500; box-shadow: inset 0 0 0 1px var(--vidrio-tecla-borde); }
+  & .cubo-miembro { background: var(--vidrio-superficie); }
+  & .cubo-miembro[aria-pressed="true"] { background: var(--vidrio-votado); color: var(--vidrio-texto); box-shadow: inset 0 0 0 1px var(--vidrio-votado-borde); font-weight: 600; }
+}
+
+/* La hoja del QR se imprime en papel blanco: el texto claro de Vidrio no se vería. */
+@media print {
+  :root[data-tema="vidrio"] { --tinta: var(--qr-tinta); --tinta-2: var(--qr-tinta); --crema: var(--qr-tinta); --crema-2: var(--qr-tinta); }
+  [data-tema="vidrio"] .panel-raiz .ventana { border-color: var(--qr-tinta); background: var(--qr-fondo); color: var(--qr-tinta); }
+}

@@ -215,7 +215,7 @@
           },
           "tema": {
             "default": "rockola",
-            "description": "RF-059: diseño del teléfono y la TV",
+            "description": "RF-059: diseño del teléfono, la TV y el panel",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Tema"
@@ -1545,7 +1545,7 @@
           },
           "tema": {
             "default": "rockola",
-            "description": "RF-059: diseño del teléfono y la TV; solo lo cambia el Administrador",
+            "description": "RF-059: diseño del teléfono, la TV y el panel; solo lo cambia el Administrador",
             "allOf": [
               {
                 "$ref": "#/components/schemas/Tema"

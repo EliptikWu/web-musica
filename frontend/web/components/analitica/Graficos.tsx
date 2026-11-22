@@ -297,29 +297,31 @@ export function TablaDatos({
   return (
     <details className="ver-tabla" open={abierta}>
       <summary>Ver como tabla</summary>
-      <table className="tabla-datos">
-        <caption className="solo-lector">{titulo}</caption>
-        <thead>
-          <tr>
-            {columnas.map((c) => (
-              <th key={c.titulo} scope="col" className={c.num ? 'num' : undefined}>
-                {c.titulo}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filas.map((f) => (
-            <tr key={f.clave} data-marcada={f.marcada || undefined}>
-              {f.celdas.map((c, i) => (
-                <td key={i} className={columnas[i]?.num ? 'num' : undefined}>
-                  {c}
-                </td>
+      <div className="ver-tabla__marco" tabIndex={0} role="group" aria-label={`${titulo}, se desplaza de lado`}>
+        <table className="tabla-datos">
+          <caption className="solo-lector">{titulo}</caption>
+          <thead>
+            <tr>
+              {columnas.map((c) => (
+                <th key={c.titulo} scope="col" className={c.num ? 'num' : undefined}>
+                  {c.titulo}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filas.map((f) => (
+              <tr key={f.clave} data-marcada={f.marcada || undefined}>
+                {f.celdas.map((c, i) => (
+                  <td key={i} className={columnas[i]?.num ? 'num' : undefined}>
+                    {c}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </details>
   );
 }

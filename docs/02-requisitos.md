@@ -129,8 +129,8 @@ prototipos del equipo: **Rockola** (Tema #2, la de siempre), **Vidrio** (Tema #1
 - Se elige en el panel, en «Bar y QR», con una vista previa de cada diseño. Solo el
   Administrador la cambia (`editar_establecimiento`); el servidor lo comprueba y el cambio
   queda en la bitácora (RNF-014).
-- El diseño cambia el teléfono y la pantalla del bar. El panel del personal sigue en
-  Rockola.
+- El diseño cambia el teléfono, la pantalla del bar y, desde D19, el panel con sesión y el
+  tablero. Entrar, cambiar la clave y la plataforma siguen en Rockola: no pertenecen a un bar.
 - Cambiarlo no toca la cola, los votos ni las reglas: es solo la apariencia. Un teléfono o
   una TV abiertos lo toman la próxima vez que piden los datos del bar.
 - Todos los diseños cumplen lo mismo: contraste AA, objetivos de 44 px, estados vacío,

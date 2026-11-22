@@ -18,6 +18,16 @@
   --dato-contexto: #85715F;
   --rejilla: rgba(244, 231, 203, .10);
   --eje: rgba(244, 231, 203, .28);
+  /* AÑADIDO (RF-059, D19): el cubo y su mapa de calor. Opacos, porque se mezclan con color-mix y
+     una columna fija no debe dejar ver lo que pasa por debajo. */
+  --cubo-dato: var(--dato);
+  --cubo-base: var(--madera-clara);
+  --cubo-tabla-base: var(--madera);
+  --cubo-texto-encendido: var(--tinta);
+  --cubo-total: var(--papel-sombra);
+  --cubo-total-texto: var(--tinta);
+  --cubo-total-activo: var(--papel);
+  --cubo-total-activo-texto: var(--tinta);
 
   /* Papel y texto */
   --crema: #F4E7CB;
@@ -138,6 +148,20 @@
   --luz: var(--afiche-rodillo), var(--afiche-partida);
   --luz-horizontal: var(--afiche-partida);
   --video-fondo: #2A2420;
+  /* Gráficas (D19): validadas con la skill dataviz sobre #E2DED4. El amarillo no llega a 3:1 en
+     papel, así que solo va en el cubo, como resaltador bajo letra de tinta. */
+  --dato: var(--afiche-sello);
+  --dato-contexto: #8C7B28;
+  --rejilla: var(--afiche-tinta-12);
+  --eje: rgba(23, 18, 15, .4);
+  --cubo-dato: var(--afiche-amarillo);
+  --cubo-base: #D6D1C6;
+  --cubo-tabla-base: var(--afiche-papel);
+  --cubo-texto-encendido: var(--afiche-tinta);
+  --cubo-total: var(--afiche-tinta);
+  --cubo-total-texto: var(--afiche-papel);
+  --cubo-total-activo: var(--afiche-amarillo);
+  --cubo-total-activo-texto: var(--afiche-tinta);
   --fuente: var(--fuente-franklin, 'Libre Franklin'), system-ui, sans-serif;
   --radio-insignia: 3px;
   --radio-tarjeta: 0;
@@ -228,6 +252,19 @@
   --luz: var(--vidrio-acento);
   --luz-horizontal: var(--vidrio-acento);
   --video-fondo: var(--vidrio-carbon-video);
+  /* Gráficas (D19): validadas con la skill dataviz sobre #25222B. */
+  --dato: #D96F62;
+  --dato-contexto: #7C74C8;
+  --rejilla: rgba(255, 255, 255, .1);
+  --eje: rgba(255, 255, 255, .28);
+  --cubo-dato: var(--vidrio-durazno-claro);
+  --cubo-base: #2B2733;
+  --cubo-tabla-base: #25222B;
+  --cubo-texto-encendido: var(--vidrio-tinta);
+  --cubo-total: #D8D0E8;
+  --cubo-total-texto: var(--vidrio-tinta);
+  --cubo-total-activo: var(--vidrio-texto);
+  --cubo-total-activo-texto: var(--vidrio-tinta);
   --fuente: var(--fuente-vidrio);
   --radio-insignia: 999px;
   --radio-tarjeta: 20px;
@@ -236,6 +273,7 @@
   --radio-aviso: 20px;
   --radio-caja: 20px;
   --radio-marco: 28px;
+  --vidrio-radio-franja: 24px; /* la franja de estado del panel (prototipo) */
 
   color-scheme: dark;
 }

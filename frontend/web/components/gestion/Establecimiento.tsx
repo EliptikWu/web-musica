@@ -159,7 +159,7 @@ const OPCIONES_TEMA: Opcion<Tema>[] = (Object.keys(TEMAS) as Tema[]).map((valor)
   figura: <img src={`/temas/${valor}.webp`} alt="" width={360} height={504} loading="lazy" />,
 }));
 
-/** El diseño con que los clientes ven la rockola del bar: teléfono y TV (RF-059, ADR-25). */
+/** El diseño del bar: teléfono, TV y panel (RF-059, ADR-25, ADR-31). */
 function ElegirTema({
   bar,
   guardar,
@@ -182,7 +182,7 @@ function ElegirTema({
         guardar.mutate(
           { cuerpo: { tema } },
           {
-            onSuccess: () => setAviso({ tipo: 'luz', texto: 'Diseño guardado. Los teléfonos y la pantalla del bar lo muestran al recargar.' }),
+            onSuccess: () => setAviso({ tipo: 'luz', texto: 'Diseño guardado. El panel ya lo muestra; los teléfonos y la pantalla del bar, al recargar.' }),
             onError: (err) => setAviso({ tipo: 'error', texto: mensajeDeError(err) }),
           },
         );
@@ -192,7 +192,7 @@ function ElegirTema({
         <h2>Diseño de la rockola</h2>
         <LuzEstado encendida>En uso: {enUso}</LuzEstado>
       </div>
-      <p className="text-crema-2">Así ven tu rockola los clientes en el teléfono y en la pantalla del bar. El panel, la cola y los votos no cambian.</p>
+      <p className="text-crema-2">Se aplica en el teléfono de los clientes, en la pantalla del bar y en este panel. La cola y los votos no cambian.</p>
       <GrupoTeclas
         leyenda="Diseño"
         leyendaOculta
