@@ -44,6 +44,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D17 | 2026-11-21 | Reemplaza la parte de D13 sobre Android: la app también muestra **Vidrio** y **Afiche**, según el `tema` del bar (RF-059, ADR-25) | Usuario |
 | D18 | 2026-11-21 | Cada bar elige si su QR abre la web o ofrece descargar la app, con un interruptor y sin reimprimir (RF-065, ADR-30) | Usuario |
 | D19 | 2026-11-21 | Reemplaza la parte de D13 sobre el panel: el panel con sesión y el tablero también muestran el diseño del bar, para que todas las vistas sean coherentes (RF-059, ADR-31). Entrar, cambiar la clave y `/plataforma` siguen en Rockola porque no pertenecen a un bar | Usuario |
+| D20 | 2026-11-21 | La app Android escanea el QR del bar con la cámara, con permiso pedido en contexto (RF-066, ADR-32) | Usuario |
 
 ## Decisiones abiertas
 

@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.rokola.ui.componentes.Arco
+import com.example.rokola.ui.componentes.Enlace
 import com.example.rokola.ui.componentes.MarcoCliente
 import com.example.rokola.ui.componentes.TamanoTecla
 import com.example.rokola.ui.componentes.Tecla
@@ -26,6 +27,7 @@ import com.example.rokola.ui.componentes.Ventana
 import com.example.rokola.ui.componentes.madera
 import com.example.rokola.ui.textos.T
 import com.example.rokola.ui.textos.TextosEntrada
+import com.example.rokola.ui.textos.TextosEscaner
 import com.example.rokola.ui.textos.TituloMeta
 import com.example.rokola.ui.theme.Condensada
 import com.example.rokola.ui.theme.Crema2
@@ -39,14 +41,15 @@ import com.example.rokola.viewmodel.Entrada
  * apagado con el mensaje y, abajo, la única salida que tenga sentido.
  */
 @Composable
-fun PantallaEntrada(estado: Entrada, onReintentar: () -> Unit, onVolver: () -> Unit) {
+fun PantallaEntrada(estado: Entrada, onReintentar: () -> Unit, onVolver: () -> Unit, onEscanear: () -> Unit) {
+    val escanear = TextosEscaner.ESCANEAR to onEscanear
     when (estado) {
         is Entrada.Lista -> Unit
         Entrada.Abriendo -> Abriendo()
-        Entrada.SinBar -> PantallaAviso(TextosEntrada.sinBar)
-        is Entrada.QrReemplazado -> PantallaAviso(TextosEntrada.reemplazado, volverSi(estado.puedeVolver, onVolver))
-        is Entrada.BarNoEncontrado -> PantallaAviso(TextosEntrada.noEncontrado, volverSi(estado.puedeVolver, onVolver))
-        is Entrada.Fallo -> PantallaAviso(TextosEntrada.fallo, T.REINTENTAR to onReintentar)
+        Entrada.SinBar -> PantallaAviso(TextosEntrada.sinBar, escanear)
+        is Entrada.QrReemplazado -> PantallaAviso(TextosEntrada.reemplazado, escanear, volverSi(estado.puedeVolver, onVolver))
+        is Entrada.BarNoEncontrado -> PantallaAviso(TextosEntrada.noEncontrado, escanear, volverSi(estado.puedeVolver, onVolver))
+        is Entrada.Fallo -> PantallaAviso(TextosEntrada.fallo, T.REINTENTAR to onReintentar, volverSi(estado.puedeVolver, onVolver) ?: escanear)
     }
 }
 
@@ -68,11 +71,14 @@ private fun Abriendo() {
 }
 
 @Composable
-private fun PantallaAviso(textos: TituloMeta, accion: Pair<String, () -> Unit>? = null) {
+private fun PantallaAviso(textos: TituloMeta, accion: Pair<String, () -> Unit>, secundaria: Pair<String, () -> Unit>? = null) {
     MarcoCliente(
         apagada = true,
         titulo = textos.titulo,
-        abajo = accion?.let { (texto, alPulsar) -> { Tecla(texto, alPulsar, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE) } },
+        abajo = {
+            Tecla(accion.first, accion.second, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE)
+            secundaria?.let { (texto, alPulsar) -> Enlace(texto, alPulsar, Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp)) }
+        },
     ) {
         Arco(
             Modifier.padding(top = 26.dp),

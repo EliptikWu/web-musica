@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.net.URI
 
 /** Un enlace que abre la app: el del QR (`/q/{token}`) o el de un bar (`/b/{slug}/…`), como en la web. */
 sealed interface Enlace {
@@ -35,6 +36,26 @@ fun leerEnlace(segmentos: List<String>): Enlace? = when {
     else -> null
 }
 
+private const val LARGO_MAXIMO_QR = 512
+
+/**
+ * Lo que dice un QR escaneado es texto de cualquiera (RF-066). Solo vale un `https` a la web de
+ * Rockola, o un `/q/<token>` impreso con la dirección del backend (ADR-30). La ruta se lee sin
+ * decodificar: `%2F` o `%2E` no pueden fabricar otra.
+ */
+fun leerQrEscaneado(texto: String, dominio: String, apiUrl: String): Enlace? {
+    val limpio = texto.trim()
+    if (limpio.isEmpty() || limpio.length > LARGO_MAXIMO_QR) return null
+    val uri = runCatching { URI(limpio) }.getOrNull() ?: return null
+    if (!uri.scheme.equals("https", ignoreCase = true) || uri.rawUserInfo != null) return null
+    val host = uri.host?.lowercase() ?: return null
+    val esWeb = host == dominio.lowercase()
+    val esApi = !esWeb && host == runCatching { URI(apiUrl).host?.lowercase() }.getOrNull()
+    if (!esWeb && !esApi) return null
+    val enlace = leerEnlace(uri.rawPath.orEmpty().removePrefix("/").removeSuffix("/").split("/"))
+    return if (esApi && enlace !is Enlace.Qr) null else enlace
+}
+
 /** Antes de las pantallas del bar: a cuál se entra, o por qué no se puede. */
 sealed interface Entrada {
     data object Abriendo : Entrada
@@ -44,8 +65,8 @@ sealed interface Entrada {
     /** [puedeVolver]: hay un bar recordado al que regresar (un QR viejo no deja a nadie atascado). */
     data class QrReemplazado(val puedeVolver: Boolean) : Entrada
     data class BarNoEncontrado(val puedeVolver: Boolean) : Entrada
-    /** No hubo respuesta; [enlace] se vuelve a intentar con «Reintentar». */
-    data class Fallo(val enlace: Enlace) : Entrada
+    /** No hubo respuesta; [enlace] se vuelve a intentar con «Reintentar». [puedeVolver]: como arriba. */
+    data class Fallo(val enlace: Enlace, val puedeVolver: Boolean = false) : Entrada
 }
 
 /**
@@ -100,7 +121,7 @@ class EntradaViewModel(
                     is Resultado.Fallo -> _estado.value = when (r.error.codigo) {
                         CodigoError.QR_REEMPLAZADO -> Entrada.QrReemplazado(hayBar())
                         CodigoError.NO_ENCONTRADO -> Entrada.BarNoEncontrado(hayBar())
-                        else -> Entrada.Fallo(enlace)
+                        else -> Entrada.Fallo(enlace, hayBar())
                     }
                 }
             }
@@ -134,7 +155,7 @@ class EntradaViewModel(
                 guardarSlug(slug)
                 Entrada.Lista(slug)
             }
-            r is Resultado.Fallo && r.error.codigo != CodigoError.NO_ENCONTRADO -> Entrada.Fallo(enlace)
+            r is Resultado.Fallo && r.error.codigo != CodigoError.NO_ENCONTRADO -> Entrada.Fallo(enlace, hayBar())
             else -> Entrada.BarNoEncontrado(hayBar())
         }
     }

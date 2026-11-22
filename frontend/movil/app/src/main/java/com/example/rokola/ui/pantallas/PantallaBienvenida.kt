@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -32,6 +33,7 @@ import com.example.rokola.dominio.ContextoDestacada
 import com.example.rokola.dominio.reglas.posicionActual
 import com.example.rokola.ui.componentes.Arco
 import com.example.rokola.ui.componentes.Avance
+import com.example.rokola.ui.componentes.Enlace
 import com.example.rokola.ui.componentes.Insignia
 import com.example.rokola.ui.componentes.MarcoCliente
 import com.example.rokola.ui.componentes.TamanoTecla
@@ -44,6 +46,7 @@ import com.example.rokola.ui.componentes.Vacio
 import com.example.rokola.ui.componentes.rememberAhoraServidor
 import com.example.rokola.ui.textos.Conexion
 import com.example.rokola.ui.textos.T
+import com.example.rokola.ui.textos.TextosEscaner
 import com.example.rokola.ui.textos.formatoDuracion
 import com.example.rokola.ui.textos.formatoHora
 import com.example.rokola.ui.theme.Condensada
@@ -68,6 +71,7 @@ fun PantallaBienvenida(
     onEntrar: () -> Unit,
     onVerQueSuena: () -> Unit,
     onPolitica: () -> Unit,
+    onEscanear: () -> Unit,
 ) {
     val datos = when (estado) {
         is EstadoPantalla.Contenido -> estado.datos
@@ -82,7 +86,7 @@ fun PantallaBienvenida(
             apagada = true,
             sinConexion = !datos.enVivo,
             titulo = datos.bar.nombre,
-            abajo = { EstadoCerradoAbajo(onVerQueSuena, onPolitica) },
+            abajo = { EstadoCerradoAbajo(onVerQueSuena, onPolitica, onEscanear) },
         ) { EstadoCerradoArriba(datos.bar, datos.ahora) }
         return
     }
@@ -110,6 +114,7 @@ fun PantallaBienvenida(
                 textAlign = TextAlign.Center,
             )
             Tecla(T.ENTRAR, onEntrar, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE)
+            Enlace(TextosEscaner.ESCANEAR_OTRO, onEscanear, Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp))
         },
     ) {
         CabeceraBar(datos.bar.nombre, if (datos.enVivo) T.EN_VIVO else Conexion.LUZ, encendida = datos.enVivo)

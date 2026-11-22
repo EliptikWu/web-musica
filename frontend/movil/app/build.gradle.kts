@@ -13,6 +13,18 @@ val apiUrl = (findProperty("rockola.apiUrl") as String?) ?: System.getenv("ROCKO
 /* Dominio de la web, donde vive el QR (https://<dominio>/q/<token>). TBD: el dominio real. */
 val dominio = (findProperty("rockola.dominio") as String?) ?: "rockola.invalid"
 
+/* Con la API real y sin dominio, el escáner rechazaría todo QR de la web (RF-066). */
+val verificarDominio = tasks.register("verificarDominioRelease") {
+    val api = apiUrl
+    val dominioFijado = dominio
+    doLast {
+        if (api.isNotEmpty() && dominioFijado == "rockola.invalid") {
+            throw GradleException("Falta -Prockola.dominio: el APK con API real necesita el dominio de la web.")
+        }
+    }
+}
+tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(verificarDominio) }
+
 android {
     namespace = "com.example.rokola"
     compileSdk {
@@ -71,6 +83,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.zxing.core)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.okhttp.mockwebserver)

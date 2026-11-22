@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.rokola.datos.simulacion.Escenario
 import com.example.rokola.datos.simulacion.RepositorioSimulado
+import com.example.rokola.escaner.EscanerActivity
 import com.example.rokola.ui.pantallas.AppRockola
 import com.example.rokola.ui.pantallas.Pantalla
 import com.example.rokola.ui.pantallas.PantallaEntrada
@@ -27,11 +29,24 @@ import com.example.rokola.viewmodel.Enlace
 import com.example.rokola.viewmodel.EntradaViewModel
 import com.example.rokola.viewmodel.PantallasDelBar
 import com.example.rokola.viewmodel.leerEnlace
+import com.example.rokola.viewmodel.leerQrEscaneado
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
     private val entrada: EntradaViewModel by viewModels { EntradaViewModel.Fabrica }
     private val pantallasDelBar: PantallasDelBar by viewModels()
+
+    /** Un doble toque no abre dos escáneres. */
+    private var escanerAbierto = false
+
+    /** Lo que trae el escáner vuelve a validarse: aquí se decide a qué bar se entra (RF-066). */
+    private val escaner = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
+        escanerAbierto = false
+        if (r.resultCode != RESULT_OK) return@registerForActivityResult
+        r.data?.getStringExtra(EscanerActivity.EXTRA_QR)
+            ?.let { leerQrEscaneado(it, BuildConfig.ROCKOLA_DOMINIO, BuildConfig.ROCKOLA_API_URL) }
+            ?.let(entrada::abrir)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Contenedor.iniciar(this)
@@ -55,18 +70,27 @@ class MainActivity : ComponentActivity() {
                 when (val e = estado) {
                     // Otro bar, otras pantallas: los ViewModel del bar anterior se cierran.
                     is Entrada.Lista -> key(e.slug) {
-                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial) }
+                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial, ::abrirEscaner) }
                     }
                     else -> {
                         LaunchedEffect(Unit) { pantallasDelBar.cerrar() }
-                        PantallaEntrada(e, onReintentar = entrada::reintentar, onVolver = entrada::volver)
+                        PantallaEntrada(e, onReintentar = entrada::reintentar, onVolver = entrada::volver, onEscanear = ::abrirEscaner)
                     }
                 }
             }
         }
     }
 
-    /** Un QR escaneado con la app ya abierta llega aquí (launchMode singleTop). */
+    private fun abrirEscaner() {
+        if (escanerAbierto) return
+        escanerAbierto = true
+        // El bar abierto, aunque no sea el recordado (el de la simulación no se guarda).
+        val slug = (entrada.estado.value as? Entrada.Lista)?.slug ?: Contenedor.almacen.slug
+        val tema = slug?.let(Contenedor.almacen::temaDe)
+        escaner.launch(Intent(this, EscanerActivity::class.java).putExtra(EscanerActivity.EXTRA_TEMA, tema))
+    }
+
+    /** Un QR abierto con la app ya abierta llega aquí, aunque el escáner esté encima (singleTask). */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

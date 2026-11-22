@@ -159,6 +159,16 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-063 | Cubo de participación (OLAP) en el tablero | Should | PB-45, PB-47, PB-48 | 15 | F+B |
 | RF-064 | Plataforma: crear bares y sus cuentas (nuevo, 2026-11-21) | Must | — | 24 | F+B |
 | RF-065 | Destino del QR: web o descargar la app (nuevo, 2026-11-21) | Should | — | 26 | F+B |
+| RF-066 | Escanear el QR del bar desde la app Android (nuevo, 2026-11-21) | Should | — | 29 | F |
+
+**RF-066 — Escanear el QR desde la app.** Añadido el 2026-11-21 (D20). La app Android abre la cámara
+con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Criterios:
+- El permiso de cámara se pide solo al tocar «Escanear QR». Si se niega, la app explica para qué
+  sirve y cómo activarlo, y sigue funcionando sin cámara.
+- La imagen se analiza en el teléfono: no se guarda, no se envía y su contenido no va a los logs.
+- Solo abre enlaces `https` de la web de Rockola (`/q/<token>`, `/b/<slug>`) o un `/q/<token>`
+  impreso con la dirección del backend. Cualquier otro QR se rechaza con un aviso y no se abre.
+- Un QR válido entra por el mismo camino que un enlace, con sus avisos de QR viejo o sin bar.
 
 **RF-065 — Destino del QR.** Añadido el 2026-11-21 (D18). El Administrador elige con un interruptor si
 el QR de su bar abre la web o ofrece descargar la app. Cambia sin reimprimir: el código es el mismo.

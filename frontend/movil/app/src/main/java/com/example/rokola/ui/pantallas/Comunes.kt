@@ -236,9 +236,10 @@ fun ColumnScope.EstadoCerradoArriba(bar: Bar, ahora: Ahora) {
 }
 
 @Composable
-fun ColumnScope.EstadoCerradoAbajo(onVerQueSuena: () -> Unit, onPolitica: () -> Unit) {
+fun ColumnScope.EstadoCerradoAbajo(onVerQueSuena: () -> Unit, onPolitica: () -> Unit, onEscanear: (() -> Unit)? = null) {
     Tecla(T.VER_QUE_SUENA, onVerQueSuena, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE)
-    EnlacePolitica(onPolitica, Modifier.padding(top = 10.dp))
+    onEscanear?.let { com.example.rokola.ui.componentes.Enlace(com.example.rokola.ui.textos.TextosEscaner.ESCANEAR_OTRO, it, Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp)) }
+    EnlacePolitica(onPolitica, Modifier.padding(top = if (onEscanear == null) 10.dp else 0.dp))
 }
 
 /**

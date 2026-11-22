@@ -3,6 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Solo para leer el QR del bar (RF-066). Sin cámara, la app se instala y funciona igual. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -17,7 +22,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:label="@string/app_name"
             android:theme="@style/Theme.Rokola"
             android:windowSoftInputMode="adjustResize">
@@ -42,6 +47,11 @@
                 <data android:pathPrefix="/b/" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".escaner.EscanerActivity"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Rokola" />
     </application>
 
 </manifest>

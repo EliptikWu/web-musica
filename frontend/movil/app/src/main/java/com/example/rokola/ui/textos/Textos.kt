@@ -198,9 +198,29 @@ object Conexion {
  */
 object TextosEntrada {
     const val ABRIENDO = "Abriendo la rockola del bar…"
-    val sinBar = TituloMeta("Escanea el QR de tu mesa", "La rockola de cada bar se abre desde su código QR. Escanéalo con la cámara del teléfono.")
+    val sinBar = TituloMeta("Escanea el QR de tu mesa", "La rockola de cada bar se abre desde su código QR. Toca «Escanear QR» y apunta al de tu mesa.")
     val reemplazado = TituloMeta("Este QR ya no está en uso", "El bar cambió su código. Escanea el QR que está ahora en tu mesa.")
     val noEncontrado = TituloMeta("Aquí no hay ninguna rockola", "El enlace no lleva a ningún bar o el QR ya no está en uso. Escanea el QR que está en tu mesa.")
     val fallo = TituloMeta("No se pudo abrir la rockola", "Revisa tu conexión e inténtalo de nuevo.")
     const val VOLVER = "Volver a la rockola"
+}
+
+/** El escáner del QR (RF-066). */
+object TextosEscaner {
+    const val ESCANEAR = "Escanear QR"
+    const val ESCANEAR_OTRO = "Escanear otro QR"
+    const val TITULO = "Escanea el QR"
+    const val INSTRUCCION = "Apunta la cámara al QR de tu mesa. Se abre solo."
+    const val PRIVACIDAD = "La cámara solo lee el QR. No toma fotos ni guarda imágenes."
+    const val VISOR = "Cámara. Apunta al QR de tu mesa."
+    const val PERMITIR = "Permitir la cámara"
+    const val ABRIR_AJUSTES = "Abrir ajustes"
+    const val REINTENTAR = "Reintentar"
+    const val CANCELAR = "Cancelar"
+    const val VOLVER = "Volver"
+    val permiso = TituloMeta("Permite usar la cámara", "La necesitas para leer el QR de tu mesa. No toma fotos ni guarda imágenes.")
+    val bloqueada = TituloMeta("La cámara está desactivada", "Actívala en Ajustes, en los permisos de Rockola, para leer el QR de tu mesa.")
+    val sinCamara = TituloMeta("Este teléfono no tiene cámara", "Abre en el navegador el enlace de la rockola del bar.")
+    val falloCamara = TituloMeta("No se pudo abrir la cámara", "Cierra las apps que la estén usando e inténtalo de nuevo.")
+    val ajeno = TituloMeta("Este QR no es de una rockola", "Apunta al QR que está en tu mesa.")
 }

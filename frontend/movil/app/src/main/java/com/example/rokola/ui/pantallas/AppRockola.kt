@@ -28,7 +28,7 @@ enum class Pantalla { INICIO, BUSCAR, COLA, POLITICA }
  * pestañas del pie; la política se abre encima y «atrás» vuelve a donde estaba.
  */
 @Composable
-fun AppRockola(inicial: Pantalla = Pantalla.INICIO) {
+fun AppRockola(inicial: Pantalla = Pantalla.INICIO, onEscanear: () -> Unit) {
     val bienvenidaVm: BienvenidaViewModel = viewModel(factory = BienvenidaViewModel.Fabrica)
     val buscarVm: BuscarViewModel = viewModel(factory = BuscarViewModel.Fabrica)
     val colaVm: ColaViewModel = viewModel(factory = ColaViewModel.Fabrica)
@@ -71,6 +71,7 @@ fun AppRockola(inicial: Pantalla = Pantalla.INICIO) {
             onEntrar = { pantalla = Pantalla.BUSCAR },
             onVerQueSuena = { pantalla = Pantalla.COLA },
             onPolitica = abrirPolitica,
+            onEscanear = onEscanear,
         )
         Pantalla.BUSCAR -> {
             val buscar by buscarVm.estado.collectAsStateWithLifecycle()

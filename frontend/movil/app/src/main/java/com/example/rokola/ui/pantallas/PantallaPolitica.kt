@@ -22,6 +22,7 @@ import com.example.rokola.ui.theme.Tinta
 private val SECCIONES = listOf(
     "Qué se registra" to "Un código anónimo que se crea en este teléfono para reconocerlo, las canciones que pides y los votos que das, con su fecha y hora.",
     "Qué no" to "No pedimos tu nombre, tu correo ni tu número de teléfono. No necesitas cuenta.",
+    "Cámara" to "Solo si la permites y para leer el QR del bar. No toma fotos, no guarda imágenes y no las envía.",
     "Para qué" to "Para respetar tu cupo de pedidos, contar un solo voto por canción y saber qué música funciona en el bar.",
     "Si borras los datos de la app" to "El código se pierde y tu teléfono cuenta como nuevo.",
 )
