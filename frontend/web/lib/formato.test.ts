@@ -54,6 +54,12 @@ describe('resumen del horario', () => {
     expect(dos.map((l) => l.dias)).toEqual(['Viernes y sábado', 'Domingo']);
   });
 
+  it('dos franjas el mismo día: repiten el día y las horas sirven de clave de la lista', () => {
+    const lineas = resumenHorario([f(5, '12:00', '15:00'), f(5, '20:00', '02:00')]);
+    expect(lineas.map((l) => l.dias)).toEqual(['Viernes', 'Viernes']);
+    expect(new Set(lineas.map((l) => l.horas)).size).toBe(2);
+  });
+
   it('sin franjas activas no hay líneas', () => {
     expect(resumenHorario([{ ...f(1), activo: false }])).toEqual([]);
   });

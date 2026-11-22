@@ -46,7 +46,7 @@ export function EstadoCerrado({ slug, bar, ahora }: { slug: string; bar: Bar; ah
           </h2>
           <DiasSemana className="mt-3" dias={DIAS.map((d, i) => ({ ...d, abre: abren.has(i + 1), hoy: hoy === i + 1 }))} />
           {lineas.map((l) => (
-            <p key={l.dias} className="secundario mt-[14px] text-center text-[16px]">
+            <p key={l.horas} className="secundario mt-[14px] text-center text-[16px]">
               {l.dias}, <b className="font-bold text-crema">{l.horas}</b>
             </p>
           ))}

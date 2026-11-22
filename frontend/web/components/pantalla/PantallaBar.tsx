@@ -175,7 +175,7 @@ function LadoDerecho({ foto, bar, avance }: { foto: Ahora; bar: Bar; avance: num
         <p>{textos.detalle}</p>
         <DiasSemana dias={DIAS.map((d, i) => ({ ...d, abre: abren.has(i + 1), hoy: hoy === i + 1 }))} />
         {resumenHorario(bar.horario).map((l) => (
-          <p key={l.dias}>
+          <p key={l.horas}>
             {l.dias}, <b className="text-tinta">{l.horas}</b>
           </p>
         ))}

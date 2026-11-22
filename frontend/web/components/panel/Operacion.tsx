@@ -295,7 +295,7 @@ export function Operacion() {
             />
             <div className="horas">
               {resumenHorario(n.horario).map((l) => (
-                <b key={l.dias}>
+                <b key={l.horas}>
                   {l.dias}, {l.horas}
                 </b>
               ))}

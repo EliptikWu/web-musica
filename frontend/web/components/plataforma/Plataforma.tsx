@@ -298,7 +298,7 @@ function FichaBar({
             </div>
             <div>
               <dt>{T.horario}</dt>
-              {horario.length === 0 ? <dd className="secundario">{T.sinHorario}</dd> : horario.map((h) => <dd key={`${h.dias}-${h.horas}`}>{h.dias}, {h.horas}</dd>)}
+              {horario.length === 0 ? <dd className="secundario">{T.sinHorario}</dd> : horario.map((h) => <dd key={h.horas}>{h.dias}, {h.horas}</dd>)}
             </div>
           </dl>
         </div>
