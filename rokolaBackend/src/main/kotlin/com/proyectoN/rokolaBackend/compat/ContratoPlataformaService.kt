@@ -19,6 +19,7 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -215,9 +216,22 @@ class ContratoPlataformaService(
          ORDER BY lower(r.nombre), lower(u.nombre)""",
       { rs, _ -> rs.getLong(1) to cuenta(rs.getLong(2), rs.getString(3), rs.getString(4), rs.getString(5), rs.getBoolean(6), rs.getBoolean(7)) },
     ).groupBy({ it.first }, { it.second })
+    // Una sola consulta para todos los bares, no una por bar.
+    val horarios = jdbc.query(
+      """SELECT id_establecimiento, dia_semana, hora_inicio, hora_fin, activo FROM public.horario_operacion
+         ORDER BY dia_semana, hora_inicio""",
+      { rs, _ ->
+        rs.getLong(1) to ReglasHorario.Franja(
+          rs.getInt(2), rs.getObject(3, LocalTime::class.java), rs.getObject(4, LocalTime::class.java), rs.getBoolean(5),
+        ).aContrato()
+      },
+    ).groupBy({ it.first }, { it.second })
     val bares = jdbc.query(
-      "SELECT id_establecimiento, slug, nombre, zona_horaria, activo FROM public.establecimiento ORDER BY lower(nombre)",
-      { rs, _ -> bar(rs.getLong(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getBoolean(5), cuentas[rs.getLong(1)].orEmpty()) },
+      "SELECT id_establecimiento, slug, nombre, zona_horaria, activo, direccion FROM public.establecimiento ORDER BY lower(nombre)",
+      { rs, _ ->
+        val id = rs.getLong(1)
+        bar(id, rs.getString(2), rs.getString(3), rs.getString(4), rs.getBoolean(5), cuentas[id].orEmpty(), rs.getString(6).orEmpty(), horarios[id].orEmpty())
+      },
     )
     return mapOf("bares" to bares)
   }
@@ -330,8 +344,13 @@ class ContratoPlataformaService(
     "estado" to if (activo) "activo" else "inactivo", "debe_cambiar_clave" to debeCambiar,
   )
 
-  private fun bar(id: Long, slug: String, nombre: String, zona: String, activo: Boolean, cuentas: List<Map<String, Any?>>): Map<String, Any?> = mapOf(
-    "id" to id.toString(), "slug" to slug, "nombre" to nombre, "zona_horaria" to zona, "activo" to activo, "cuentas" to cuentas,
+  /** Un bar recién creado aún no tiene dirección ni horario: los define su Administrador. */
+  private fun bar(
+    id: Long, slug: String, nombre: String, zona: String, activo: Boolean, cuentas: List<Map<String, Any?>>,
+    direccion: String = "", horario: List<Map<String, Any>> = emptyList(),
+  ): Map<String, Any?> = mapOf(
+    "id" to id.toString(), "slug" to slug, "nombre" to nombre, "zona_horaria" to zona, "direccion" to direccion,
+    "horario" to horario, "activo" to activo, "cuentas" to cuentas,
   )
 
   private fun coincide(clave: String, hash: String) = try {

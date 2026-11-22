@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Franja } from './bar.ts';
 import { Id, Slug } from './comunes.ts';
 import { Rol } from './panel.ts';
 
@@ -31,6 +32,10 @@ export const BarPlataforma = z
     slug: Slug,
     nombre: z.string().min(1),
     zona_horaria: z.string().describe('IANA, p. ej. America/Bogota'),
+    // Con valor por defecto: la web y el backend no se despliegan a la vez, y un backend anterior
+    // sin estos dos campos no debe tumbar la lista de bares.
+    direccion: z.string().default('').describe('Vacía si el bar no la ha escrito'),
+    horario: z.array(Franja).default([]).describe('Vacío si el bar no lo ha definido'),
     activo: z.boolean(),
     cuentas: z.array(CuentaBar),
   })

@@ -16,6 +16,19 @@ test('crear un bar y una cuenta, con la clave temporal una sola vez', async ({ p
 
   await expect(page.getByRole('heading', { name: 'Bares', exact: true })).toBeVisible();
   await sinViolaciones(page, 'lista de bares');
+  // Los bares llegan plegados, con sus datos a la vista; las cuentas se despliegan.
+  const demo = page.getByRole('region').filter({ hasText: '/b/' }).first();
+  await expect(demo.getByText('Dirección', { exact: true })).toBeVisible();
+  await expect(demo.getByText('Horario', { exact: true })).toBeVisible();
+  await expect(demo.getByRole('button', { name: /^Dar una clave nueva/ })).toHaveCount(0);
+  const desplegar = demo.getByRole('button', { name: /^Ver \d+ cuentas? de/ });
+  await expect(desplegar).toHaveAttribute('aria-expanded', 'false');
+  await desplegar.click();
+  await expect(demo.getByRole('button', { name: /^Ocultar cuentas de/ })).toHaveAttribute('aria-expanded', 'true');
+  await expect(demo.getByRole('button', { name: /^Dar una clave nueva/ }).first()).toBeVisible();
+  await sinViolaciones(page, 'bar desplegado');
+  await demo.getByRole('button', { name: /^Ocultar cuentas de/ }).click();
+  await expect(demo.getByRole('button', { name: /^Dar una clave nueva/ })).toHaveCount(0);
   await page.getByRole('button', { name: 'Crear bar' }).click();
   const dialogo = page.getByRole('dialog', { name: 'Crear bar' });
   await dialogo.getByLabel('Nombre del bar').fill('Café La Nota');

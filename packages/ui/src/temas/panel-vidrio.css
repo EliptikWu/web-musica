@@ -114,7 +114,8 @@
   & .etiqueta--cereza { background: var(--vidrio-votado); color: var(--vidrio-texto); }
   & .dialogo { background: var(--vidrio-carbon); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
   & .dialogo__titulo { font-stretch: normal; font-weight: 600; letter-spacing: -.01em; }
-  & .manual-figura img { box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
+  /* El radio de tecla de Vidrio es de píldora: en una captura la volvería un óvalo. */
+  & .manual-figura img { border-radius: var(--radio-tarjeta); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
 
   /* ── Tablero ────────────────────────────────────────────────────────────── */
   & .grafico-tip { background: var(--vidrio-carbon); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }

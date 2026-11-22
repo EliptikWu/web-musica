@@ -273,6 +273,19 @@
             "type": "string",
             "description": "IANA, p. ej. America/Bogota"
           },
+          "direccion": {
+            "default": "",
+            "description": "Vacía si el bar no la ha escrito",
+            "type": "string"
+          },
+          "horario": {
+            "default": [],
+            "description": "Vacío si el bar no lo ha definido",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Franja"
+            }
+          },
           "activo": {
             "type": "boolean"
           },
@@ -288,6 +301,8 @@
           "slug",
           "nombre",
           "zona_horaria",
+          "direccion",
+          "horario",
           "activo",
           "cuentas"
         ]

@@ -126,6 +126,13 @@ test('eventos: agregar uno próximo (PB-41)', async ({ page }) => {
   await page.goto('/panel/eventos');
   await page.getByRole('button', { name: 'Agregar evento' }).click();
   const dialogo = page.getByRole('dialog', { name: 'Agregar evento' });
+  // Las dos fechas no se montan una sobre otra ni desbordan el diálogo.
+  const [empieza, termina] = await Promise.all([dialogo.getByLabel('Empieza').boundingBox(), dialogo.getByLabel('Termina').boundingBox()]);
+  const cajaDialogo = await dialogo.boundingBox();
+  const seMontan = empieza!.x < termina!.x + termina!.width && termina!.x < empieza!.x + empieza!.width && empieza!.y < termina!.y + termina!.height && termina!.y < empieza!.y + empieza!.height;
+  expect(seMontan).toBe(false);
+  expect(termina!.x + termina!.width).toBeLessThanOrEqual(cajaDialogo!.x + cajaDialogo!.width);
+  expect(await dialogo.evaluate((d) => d.scrollWidth <= d.clientWidth)).toBe(true);
   await dialogo.getByLabel('Nombre').fill('Noche de boleros');
   await dialogo.getByLabel('Empieza').fill('2026-11-05T20:00');
   await dialogo.getByLabel('Termina').fill('2026-11-06T01:00');
@@ -138,9 +145,29 @@ test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', a
   await entrar(page, 'operador@rockola.demo');
   await expect(page.getByRole('link', { name: 'Personal' })).toHaveCount(0);
   await page.getByRole('link', { name: 'Manual de uso' }).click();
-  await expect(page.getByRole('heading', { level: 2, name: 'Bloquear una canción' })).toBeVisible();
-  await expect(page.getByRole('heading', { level: 2, name: 'Dar acceso al personal' })).toHaveCount(0);
+  // Un tema por página: se avanza, se enlaza y el Operador no ve los del Administrador.
+  await expect(page.getByRole('heading', { level: 2, name: 'Entrar al panel' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Bloquear una canción' })).toHaveCount(0);
+  await expect(page.getByText('1 de 6')).toBeVisible();
   await sinViolaciones(page, 'manual del Operador');
+  await page.getByRole('link', { name: 'Siguiente: Seguir la noche' }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'Seguir la noche' })).toBeFocused();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 2, name: 'Entrar al panel' })).toBeVisible();
+  await page.goto('/panel/manual?tema=bloquear');
+  await expect(page.getByRole('heading', { level: 2, name: 'Bloquear una canción' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Siguiente/ })).toHaveCount(0);
+  // El enlace del menú vuelve al primer tema, y Atrás regresa al que estaba abierto.
+  await page.getByRole('link', { name: 'Manual de uso' }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'Entrar al panel' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 2, name: 'Bloquear una canción' })).toBeVisible();
+  // Un tema con caracteres inválidos no rompe la pantalla.
+  await page.goto('/panel/manual?tema=%25E0%25A4%25A');
+  await expect(page.getByRole('heading', { level: 2, name: 'Entrar al panel' })).toBeVisible();
+  await page.goto('/panel/manual?tema=personal');
+  await expect(page.getByRole('heading', { level: 2, name: 'Entrar al panel' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Dar acceso al personal' })).toHaveCount(0);
   // Por URL directa: ve que no es su sección y la pantalla no pide nada al servidor.
   const pedidas: string[] = [];
   page.on('request', (r) => {

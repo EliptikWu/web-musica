@@ -30,6 +30,8 @@ function barDemo(estado: EstadoSim): BarPlataforma {
     slug: estado.bar.slug,
     nombre: estado.bar.nombre,
     zona_horaria: estado.bar.zona_horaria,
+    direccion: estado.bar.direccion,
+    horario: estado.horario,
     activo: true,
     cuentas: estado.usuarios.map((u) => ({ id: u.id, nombre: u.nombre, correo: u.correo, rol: u.rol, estado: u.estado, debe_cambiar_clave: u.debe_cambiar_clave })),
   };
@@ -86,7 +88,7 @@ export const manejadoresPlataforma = [
       const c = p.cuerpo as { nombre: string; slug: string; zona_horaria: string; administrador: { nombre: string; correo: string } };
       if (c.slug === p.estado.bar.slug || x.bares.some((b) => b.slug === c.slug)) return error(409, 'conflicto', 'Ya hay un bar con esa dirección');
       const cuenta: CuentaBar = { id: `c-${++p.estado.secuencia}`, nombre: c.administrador.nombre, correo: c.administrador.correo.toLowerCase(), rol: 'administrador', estado: 'activo', debe_cambiar_clave: true };
-      const bar: BarPlataforma = { id: `bar-${++p.estado.secuencia}`, slug: c.slug, nombre: c.nombre, zona_horaria: c.zona_horaria, activo: true, cuentas: [cuenta] };
+      const bar: BarPlataforma = { id: `bar-${++p.estado.secuencia}`, slug: c.slug, nombre: c.nombre, zona_horaria: c.zona_horaria, direccion: '', horario: [], activo: true, cuentas: [cuenta] };
       x.bares.push(bar);
       p.estado.version++;
       return ok({ bar, clave_temporal: claveDeEjemplo(p.estado) }, 201);

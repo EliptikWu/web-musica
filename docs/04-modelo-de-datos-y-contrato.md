@@ -411,6 +411,8 @@ resincroniza al reconectar.
       no hay ninguna, y debe cambiar la clave. Claves de al menos 12 caracteres *(propuesto)*.
     - Crear un bar es todo o nada: bar, configuración (3 pedidos, 600 s, 60 min), QR y primer
       Administrador. El bar nace sin horario: su Administrador lo define.
+    - `GET /plataforma/bares` devuelve también `direccion` y `horario` de cada bar (2026-11-21).
+      En el contrato tienen valor por defecto para que un backend anterior no tumbe la lista.
     - Si una clave temporal se pierde, la plataforma da otra: cierra las sesiones de esa cuenta.
     - Durante el bloqueo (5 fallos, 15 min) todo intento responde igual, con clave buena o mala.
     - **`TBD`:** desactivar bares y editar cuentas desde la plataforma.

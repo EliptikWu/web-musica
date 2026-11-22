@@ -122,6 +122,7 @@ base local (las variables de entorno ganan al `.env`).
 | 2026-11-21 | Ciclo de la noche por horario, pausa de solicitudes y mantenimiento (RF-036 a RF-039) | `compat/ContratoServicioService.kt`, `compat/ContratoVersionService.kt`, `tiemporeal/ContratoSseService.kt`, `compat/ContratoNocheService.kt`, `db/migration/V8__ciclo_de_la_noche.sql` | Con varias instancias del backend el ciclo correría en cada una: el candado por bar evita noches dobles. Doc 04, pendiente 20 |
 | 2026-11-21 | Plataforma de superadmin (RF-064, ADR-29) | `db/migration/V10__superadmin.sql`, `compat/ContratoPlataformaService.kt`, `compat/ContratoPlataformaController.kt`, `config/SecurityConfig.kt` | Definir en Railway `ROCKOLA_SUPERADMIN_CORREO` y `ROCKOLA_SUPERADMIN_CLAVE` antes del primer ingreso; crear un bar exige `ROKOLA_QR_BASE_URL`. Las sesiones viven en memoria: reiniciar las cierra |
 | 2026-11-21 | QR del panel y destino web o app (RF-035, RF-065, ADR-30) | `db/migration/V11__destino_qr.sql`, `compat/ContratoQrPanel.kt`, `compat/ContratoQrBarController.kt`, `compat/ContratoPantallaService.kt` | Publicar el APK y definir `ROKOLA_APK_URL` (https) y `ROKOLA_WEB_URL` (la web, sin ruta). `ROKOLA_QR_BASE_URL` debería ser también la web |
+| 2026-11-21 | Dirección y horario de cada bar en la lista de la plataforma (RF-064) | `compat/ContratoPlataformaService.kt` | Sin migración y solo lectura. Compilado, sin probar contra una base. Lee las columnas que ya usan `ContratoEstablecimientoService` y `ContratoHorarioService` |
 
 ## Lo que el frontend no hace
 

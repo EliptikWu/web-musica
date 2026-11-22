@@ -181,7 +181,8 @@ en `/plataforma`, ve todos los bares con sus cuentas, crea un bar con su primer 
 agrega cuentas de Operador o Administrador a un bar, y da una clave nueva a una cuenta que la
 perdió. Cada cuenta nace con una clave temporal, que se
 muestra una sola vez y obliga a cambiarla. No hay registro público. La plataforma no opera ningún
-bar ni ve datos de sus clientes, y una sesión del panel de un bar no entra en ella.
+bar ni ve datos de sus clientes, y una sesión del panel de un bar no entra en ella. La lista muestra
+cada bar plegado, con nombre, dirección web, dirección y horario; sus cuentas se despliegan.
 
 **RF-063 — Cubo de participación.** Añadido el 2026-11-20 (D15) para el Entregable 6 de la guía
 del seminario. El Administrador explora en un cubo 3D **los KPI del entregable** por género,

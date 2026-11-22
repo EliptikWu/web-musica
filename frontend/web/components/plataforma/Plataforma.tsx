@@ -10,6 +10,7 @@ import { Cargando, mensajeDeError } from '@/components/gestion/PaginaGestion';
 import { claves } from '@/lib/api/claves';
 import { pedir } from '@/lib/api/cliente';
 import { codigoDe } from '@/lib/api/errores';
+import { resumenHorario } from '@/lib/formato';
 import { MODO } from '@/lib/modo';
 import { ROL } from '@/lib/textos/panel';
 import { aSlug, plataforma as T } from '@/lib/textos/plataforma';
@@ -134,6 +135,13 @@ function Bares({ yo }: { yo: YoPlataforma }) {
   const qc = useQueryClient();
   const bares = useQuery({ queryKey: claves.plataforma.bares, queryFn: ({ signal }) => pedir('baresPlataforma', { signal }) });
   const [creandoBar, setCreandoBar] = useState(false);
+  const [abiertos, setAbiertos] = useState<ReadonlySet<string>>(new Set());
+  const alternar = (id: string) =>
+    setAbiertos((previos) => {
+      const siguientes = new Set(previos);
+      if (!siguientes.delete(id)) siguientes.add(id);
+      return siguientes;
+    });
   const [barCuenta, setBarCuenta] = useState<BarPlataforma | null>(null);
   const [clave, setClave] = useState<{ quien: string; donde: string; clave: string } | null>(null);
   const [aRestablecer, setARestablecer] = useState<{ cuenta: CuentaBar; bar: string } | null>(null);
@@ -190,39 +198,14 @@ function Bares({ yo }: { yo: YoPlataforma }) {
               ) : (
                 <>
                   {bares.data!.bares.map((b) => (
-                    <section key={b.id} className="caja mt-4" aria-label={b.nombre}>
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <h2 className="titulo-seccion text-[20px]">
-                            {b.nombre} {b.activo ? null : <span className="etiqueta etiqueta--cereza">Inactivo</span>}
-                          </h2>
-                          <p className="secundario text-[14px]"><span className="break-all">/b/{b.slug}</span> <span className="whitespace-nowrap">({b.zona_horaria})</span></p>
-                        </div>
-                        {b.activo ? <Tecla tamano="chica" aria-label={`Agregar una cuenta a ${b.nombre}`} onClick={() => setBarCuenta(b)}>{T.agregarCuenta}</Tecla> : null}
-                      </div>
-                      {b.cuentas.length === 0 ? (
-                        <p className="secundario mt-3 text-[14px]">{T.sinCuentas}</p>
-                      ) : (
-                        <ul className="lista-gestion mt-2">
-                          {b.cuentas.map((c) => (
-                            <li key={c.id}>
-                              <div className="lista-gestion__info">
-                                <p className="lista-gestion__titulo">
-                                  {c.nombre}
-                                  <span className="etiqueta">{ROL[c.rol]}</span>
-                                  {c.estado === 'inactivo' ? <span className="etiqueta etiqueta--cereza">Inactiva</span> : null}
-                                  {c.debe_cambiar_clave ? <span className="etiqueta">Clave temporal</span> : null}
-                                </p>
-                                <p className="lista-gestion__meta break-all">{c.correo}</p>
-                              </div>
-                              <div className="lista-gestion__acciones">
-                                <Tecla tamano="chica" aria-label={`Dar una clave nueva a ${c.nombre}, de ${b.nombre}`} onClick={() => setARestablecer({ cuenta: c, bar: b.nombre })}>{T.nuevaClave}</Tecla>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </section>
+                    <FichaBar
+                      key={b.id}
+                      bar={b}
+                      abierta={abiertos.has(b.id)}
+                      onAlternar={() => alternar(b.id)}
+                      onAgregarCuenta={() => setBarCuenta(b)}
+                      onNuevaClave={(cuenta) => setARestablecer({ cuenta, bar: b.nombre })}
+                    />
                   ))}
                 </>
               )
@@ -236,6 +219,8 @@ function Bares({ yo }: { yo: YoPlataforma }) {
           onCerrar={() => setCreandoBar(false)}
           onCreado={(r) => {
             setCreandoBar(false);
+            // El bar nuevo queda abierto: lo siguiente suele ser agregarle su equipo.
+            setAbiertos((previos) => new Set(previos).add(r.bar.id));
             setClave({ quien: r.bar.cuentas[0]?.nombre ?? '', donde: r.bar.nombre, clave: r.clave_temporal });
           }}
         />
@@ -279,6 +264,86 @@ function Bares({ yo }: { yo: YoPlataforma }) {
         </div>
       </Dialogo>
     </div>
+  );
+}
+
+/** Un bar plegado: nombre, dirección web, dirección y horario. Las cuentas se despliegan. */
+function FichaBar({
+  bar: b,
+  abierta,
+  onAlternar,
+  onAgregarCuenta,
+  onNuevaClave,
+}: {
+  bar: BarPlataforma;
+  abierta: boolean;
+  onAlternar: () => void;
+  onAgregarCuenta: () => void;
+  onNuevaClave: (cuenta: CuentaBar) => void;
+}) {
+  const idCuentas = `cuentas-${b.id}`;
+  const horario = resumenHorario(b.horario);
+  return (
+    <section className="caja mt-4" aria-label={b.nombre}>
+      <div className="bar-ficha">
+        <div className="bar-ficha__info">
+          <h2 className="titulo-seccion text-[20px]">
+            {b.nombre} {b.activo ? null : <span className="etiqueta etiqueta--cereza">Inactivo</span>}
+          </h2>
+          <p className="secundario text-[14px]"><span className="break-all">/b/{b.slug}</span> <span className="whitespace-nowrap">({b.zona_horaria})</span></p>
+          <dl className="bar-ficha__datos">
+            <div>
+              <dt>{T.direccion}</dt>
+              <dd className={b.direccion ? undefined : 'secundario'}>{b.direccion || T.sinDireccion}</dd>
+            </div>
+            <div>
+              <dt>{T.horario}</dt>
+              {horario.length === 0 ? <dd className="secundario">{T.sinHorario}</dd> : horario.map((h) => <dd key={`${h.dias}-${h.horas}`}>{h.dias}, {h.horas}</dd>)}
+            </div>
+          </dl>
+        </div>
+        <Tecla
+          tamano="chica"
+          variante={abierta ? 'hundida' : 'normal'}
+          className="bar-ficha__toggle"
+          aria-expanded={abierta}
+          aria-controls={idCuentas}
+          aria-label={`${abierta ? T.ocultarCuentas : T.verCuentas(b.cuentas.length)} de ${b.nombre}`}
+          onClick={onAlternar}
+        >
+          {abierta ? T.ocultarCuentas : T.verCuentas(b.cuentas.length)}
+          <Icono nombre="abajo" />
+        </Tecla>
+      </div>
+      <div id={idCuentas} className="bar-ficha__cuentas" hidden={!abierta}>
+        <div className="bar-ficha__cabeza">
+          <h3 className="titulo-seccion text-[17px]">{T.cuentas}</h3>
+          {b.activo ? <Tecla tamano="chica" aria-label={`Agregar una cuenta a ${b.nombre}`} onClick={onAgregarCuenta}>{T.agregarCuenta}</Tecla> : null}
+        </div>
+        {b.cuentas.length === 0 ? (
+          <p className="secundario text-[14px]">{T.sinCuentas}</p>
+        ) : (
+          <ul className="lista-gestion">
+            {b.cuentas.map((c) => (
+              <li key={c.id}>
+                <div className="lista-gestion__info">
+                  <p className="lista-gestion__titulo">
+                    {c.nombre}
+                    <span className="etiqueta">{ROL[c.rol]}</span>
+                    {c.estado === 'inactivo' ? <span className="etiqueta etiqueta--cereza">Inactiva</span> : null}
+                    {c.debe_cambiar_clave ? <span className="etiqueta">Clave temporal</span> : null}
+                  </p>
+                  <p className="lista-gestion__meta break-all">{c.correo}</p>
+                </div>
+                <div className="lista-gestion__acciones">
+                  <Tecla tamano="chica" aria-label={`Dar una clave nueva a ${c.nombre}, de ${b.nombre}`} onClick={() => onNuevaClave(c)}>{T.nuevaClave}</Tecla>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
   );
 }
 

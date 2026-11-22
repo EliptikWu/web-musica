@@ -1,6 +1,10 @@
 'use client';
 
 import type { Rol } from '@rockola/contrato';
+import { claseTecla, Selector } from '@rockola/ui';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import { useYoDelPanel } from '@/components/panel/MarcoPanel';
 import { PaginaGestion } from './PaginaGestion';
 
@@ -180,47 +184,119 @@ const SECCIONES: Seccion[] = [
   },
 ];
 
+/** El tema abierto vive en `?tema=` de la URL: se puede enlazar y el botón Atrás del navegador sirve. */
+const rutaDe = (id: string) => `/panel/manual?tema=${id}`;
+
+function IndiceGrupo({ titulo, temas, actual }: { titulo: string; temas: Seccion[]; actual: string }) {
+  if (temas.length === 0) return null;
+  return (
+    <>
+      <h2>{titulo}</h2>
+      <ul>
+        {temas.map((s) => (
+          <li key={s.id}>
+            <Link href={rutaDe(s.id)} prefetch={false} scroll={false} aria-current={s.id === actual ? 'page' : undefined}>
+              {s.titulo}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 export function Manual() {
   const yo = useYoDelPanel();
   const esAdmin = yo.usuario.rol === 'administrador';
   const secciones = SECCIONES.filter((s) => esAdmin || s.para === 'operador');
+  const delOperador = secciones.filter((s) => s.para === 'operador');
+  const delAdmin = secciones.filter((s) => s.para === 'administrador');
+  const router = useRouter();
+  const pedido = useSearchParams().get('tema');
+  // Un tema desconocido, o que este rol no ve, abre el primero.
+  const posicion = Math.max(0, secciones.findIndex((s) => s.id === pedido));
+  const tema = secciones[posicion]!;
+  const anterior = secciones[posicion - 1];
+  const siguiente = secciones[posicion + 1];
+
+  const titulo = useRef<HTMLHeadingElement>(null);
+  const temaPrevio = useRef(tema.id);
+  const desdeSelector = useRef(false);
+  // Al cambiar de tema se sube a su título y el foco va con él, salvo si se eligió en la lista
+  // desplegable: ahí foco y vista se quedan para poder seguir recorriéndola con las flechas.
+  useEffect(() => {
+    if (temaPrevio.current === tema.id) return;
+    temaPrevio.current = tema.id;
+    if (!desdeSelector.current) {
+      titulo.current?.closest('section')?.scrollIntoView({ block: 'start' });
+      titulo.current?.focus({ preventScroll: true });
+    }
+    desdeSelector.current = false;
+  }, [tema.id]);
+
   return (
     <PaginaGestion titulo="Manual de uso" nota={esAdmin ? 'Lo que hace el Operador y, después, lo que solo hace el Administrador.' : 'Lo que puedes hacer desde el panel en una noche.'}>
-      <nav className="caja mt-4" aria-labelledby="t-indice">
-        <h2 id="t-indice" className="titulo-seccion mb-2">
-          En este manual
-        </h2>
-        <ul className="grid gap-x-6 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-          {secciones.map((s) => (
-            <li key={s.id}>
-              <a href={`#${s.id}`} className="inline-flex min-h-11 items-center text-[15px] font-semibold text-crema underline underline-offset-4">
+      <div className="manual">
+        <div className="lg:hidden">
+          <Selector
+            etiqueta="Tema del manual"
+            value={tema.id}
+            onChange={(e) => {
+              desdeSelector.current = true;
+              // Sin entrada nueva en el historial: recorrer la lista no llena el botón Atrás.
+              router.replace(rutaDe(e.target.value), { scroll: false });
+            }}
+          >
+            {secciones.map((s) => (
+              <option key={s.id} value={s.id}>
                 {s.titulo}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <div className="mt-4 flex flex-col gap-4">
-        {secciones.map((s) => (
-          <section key={s.id} id={s.id} className="caja manual-seccion" aria-labelledby={`t-${s.id}`}>
-            <div className="caja__cabeza mb-0!">
-              <h2 id={`t-${s.id}`}>{s.titulo}</h2>
-              {s.para === 'administrador' ? <span>Solo el Administrador</span> : null}
-            </div>
-            <ol className="manual-pasos">
-              {s.pasos.map((p) => (
-                <li key={p}>{p}</li>
-              ))}
-            </ol>
-            {s.imagen ? (
-              <figure className="manual-figura">
-                {/* eslint-disable-next-line @next/next/no-img-element -- captura estática generada por el script del manual */}
-                <img src={`/manual/${s.imagen.archivo}`} alt={s.imagen.texto} width={1280} height={800} loading="lazy" />
-                <figcaption>{s.imagen.texto}</figcaption>
-              </figure>
-            ) : null}
-          </section>
-        ))}
+              </option>
+            ))}
+          </Selector>
+        </div>
+        <nav className="caja manual-indice hidden lg:block" aria-label="Temas del manual">
+          <IndiceGrupo titulo="En la noche" temas={delOperador} actual={tema.id} />
+          <IndiceGrupo titulo="Solo el Administrador" temas={delAdmin} actual={tema.id} />
+        </nav>
+        <section key={tema.id} className="caja manual-seccion" aria-labelledby={`t-${tema.id}`}>
+          <div className="caja__cabeza mb-0!">
+            <h2 id={`t-${tema.id}`} ref={titulo} tabIndex={-1} className="focus:outline-none">
+              {tema.titulo}
+            </h2>
+            {tema.para === 'administrador' ? <span>Solo el Administrador</span> : null}
+          </div>
+          <ol className="manual-pasos">
+            {tema.pasos.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ol>
+          {tema.imagen ? (
+            <figure className="manual-figura">
+              {/* eslint-disable-next-line @next/next/no-img-element -- captura estática generada por el script del manual */}
+              <img src={`/manual/${tema.imagen.archivo}`} alt={tema.imagen.texto} width={1280} height={800} />
+              <figcaption>{tema.imagen.texto}</figcaption>
+            </figure>
+          ) : null}
+          <nav className="manual-paginas" aria-label="Páginas del manual">
+            {anterior ? (
+              <Link href={rutaDe(anterior.id)} prefetch={false} scroll={false} className={claseTecla('normal', 'chica')} aria-label={`Anterior: ${anterior.titulo}`}>
+                Anterior
+              </Link>
+            ) : (
+              <span />
+            )}
+            <p className="manual-paginas__posicion">
+              {posicion + 1} de {secciones.length}
+            </p>
+            {siguiente ? (
+              <Link href={rutaDe(siguiente.id)} prefetch={false} scroll={false} className={claseTecla('normal', 'chica')} aria-label={`Siguiente: ${siguiente.titulo}`}>
+                Siguiente
+              </Link>
+            ) : (
+              <span />
+            )}
+          </nav>
+        </section>
       </div>
     </PaginaGestion>
   );
