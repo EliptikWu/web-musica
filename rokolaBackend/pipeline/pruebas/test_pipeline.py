@@ -54,6 +54,27 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(franjas, ["Antes de las 9", "9 a 11 p. m.", "9 a 11 p. m.", "11 p. m. a 1 a. m.", "11 p. m. a 1 a. m.",
                                    "Después de la 1", "Después de la 1", "Antes de las 9"])
 
+    def test_corregir_genero_se_refleja_en_el_cubo_al_reprocesar(self):
+        """Una nueva carga recompone las agrupaciones, no conserva el género anterior."""
+        s = self.spark
+        noches = s.createDataFrame([(1, 10, 5, "normal")], ["id_sesion", "id_establecimiento", "dia_semana", "tipo_evento"])
+        solicitudes = s.createDataFrame(
+            [(1, 10, 1, 100, "a" * 32, 21, 15, None)],
+            "id_solicitud long, id_establecimiento long, id_sesion long, id_cancion long, dispositivo_seud string, hora_local int, espera_seg int, causa_no_sono string")
+        votos = s.createDataFrame([], "id_voto long, id_establecimiento long, id_sesion long, id_solicitud long, dispositivo_seud string, hora_local int")
+        reproducciones = s.createDataFrame([], "id_reproduccion long, id_establecimiento long, id_sesion long, id_cancion long, id_solicitud long, origen string, inicio timestamp, segundos int, hora_local int")
+
+        def cubo(genero):
+            canciones = s.createDataFrame([(100, genero)], ["id_cancion", "genero"])
+            return modelo.construir_cubo(s, noches, canciones, solicitudes, votos, reproducciones)
+
+        anterior = cubo("Pop").filter("eje = 'dia' AND genero = 'Pop' AND franja = '*' AND tercero = '*'").first()
+        actualizado = cubo("Salsa").filter("eje = 'dia' AND genero = 'Salsa' AND franja = '*' AND tercero = '*'").first()
+        desaparecio = cubo("Salsa").filter("eje = 'dia' AND genero = 'Pop' AND franja = '*' AND tercero = '*'").count()
+        self.assertEqual(anterior.solicitudes, 1)
+        self.assertEqual(actualizado.solicitudes, 1)
+        self.assertEqual(desaparecio, 0)
+
     def test_cubo_no_suma_usuarios_unicos_y_espera_es_de_la_celda(self):
         s = self.spark
         inicio = datetime(2026, 10, 2, 2, 0)  # jueves 1 de octubre, 9 p. m. en Bogotá

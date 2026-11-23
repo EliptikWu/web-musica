@@ -137,7 +137,7 @@ class ContratoBitacora(private val jdbc: JdbcTemplate) {
       "pausar_solicitudes", "reanudar_solicitudes", "forzar_apertura",
       "pausar_reproduccion", "reanudar_reproduccion", "cambiar_volumen",
       "mantenimiento", "abrir_sesion", "cerrar_sesion",
-      "editar_horario", "editar_lista", "activar_lista",
+      "editar_horario", "editar_lista", "activar_lista", "editar_categoria",
       "crear_usuario", "editar_usuario", "desactivar_usuario", "reactivar_usuario", "restablecer_clave",
       "editar_establecimiento", "regenerar_qr", "editar_evento", "editar_umbrales",
       "vincular_pantalla", "desvincular_pantalla",

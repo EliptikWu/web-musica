@@ -56,3 +56,37 @@ MSYS_NO_PATHCONV=1 docker run --rm --user 0 -e PYTHONPATH=/pipeline -e HOME=/tmp
   -v "$(pwd -W 2>/dev/null || pwd)/rokolaBackend/pipeline:/pipeline:ro" apache/spark:4.0.1-python3 \
   /opt/spark/bin/spark-submit --master 'local[2]' /pipeline/pruebas/test_pipeline.py
 ```
+
+## Clasificación de canciones y sincronización del tablero
+
+La categoría musical está en `public.cancion.categoria`. **No** es `categoria_youtube`,
+que suele ser únicamente `10` (Music). El panel de géneros consulta la base operativa y
+muestra cambios inmediatamente, pero el tablero de participación lee `analitica.dim_cancion`
+y `analitica.cubo_participacion`: el pipeline **no se ejecuta automáticamente al editar**.
+
+**Regla operativa:** ejecutar el pipeline completo `bash rokolaBackend/pipeline/ejecutar.sh`
+después de cerrar una o varias noches y después de una sesión de correcciones manuales o de
+reclasificación por lotes. Si la instalación tiene un programador de tareas (por ejemplo,
+cron a las 03:00 hora local del establecimiento), configurar *allí* una ejecución diaria.
+No se ejecuta Spark desde una petición HTTP: puede tardar y necesita Docker.
+
+No usar `--sesion` si lo que se busca es actualizar géneros: el proceso completo actualiza
+las canciones desde PostgreSQL y recompone los hechos y el cubo a partir del bronce. Usar
+siempre los mismos `--excluir` que en las cargas habituales (p. ej. `--excluir 1`).
+
+Para las canciones antiguas sin categoría, un administrador puede consultar
+`GET /api/panel/canciones?soloSinCategoria=true` y ejecutar de forma controlada
+`POST /api/panel/canciones/reclasificar?limite=10&despuesDe=0` con su cookie `rockola_panel`.
+Usar `siguiente_desde_id` en la siguiente petición y parar cuando `hay_mas=false`.
+No hay reclasificación automática masiva, porque cada video consulta la API de YouTube y
+puede consumir cuota. Un video sin etiquetas concluyentes permanece sin género.
+
+Consultar `GET /api/panel/generos/estado-analitica` para detectar **correcciones registradas (en cualquier bar, pues la categoría es global)**
+posteriores a la última carga. Este indicador NO detecta por sí mismo todas las inserciones
+nuevas ni cambios directos a la BD: la tarea de ejecución sigue siendo necesaria.
+
+Después del pipeline, ejecutar `pipeline/verificar_generos.sql` en pgAdmin: la consulta
+muestra categorías distintas entre la tabla operativa y la dimensión analítica, y la fecha
+de la última carga. También se incluye una prueba en `pipeline/pruebas/test_pipeline.py`
+que cambia el género de una canción en una entrada simulada y verifica que el cubo se regenera
+con el nuevo género.

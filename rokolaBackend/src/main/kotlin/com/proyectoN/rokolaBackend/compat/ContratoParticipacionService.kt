@@ -1,6 +1,7 @@
 package com.proyectoN.rokolaBackend.compat
 
 import com.proyectoN.rokolaBackend.acceso.HorarioActivoService
+import com.proyectoN.rokolaBackend.cancion.ClasificadorGeneroService
 import com.proyectoN.rokolaBackend.cola.ColaService
 import com.proyectoN.rokolaBackend.sesion.EstadoSesion
 import com.proyectoN.rokolaBackend.sesion.Sesion
@@ -38,6 +39,7 @@ class ContratoParticipacionService(
   private val cola: ColaService,
   private val cambios: CambioColaPublisher,
   private val json: JsonMapper,
+  private val clasificador: ClasificadorGeneroService,
 ) {
   data class RespuestaGuardada(val estado: Int, val json: String)
   private data class Config(val maximo: Int, val duracion: Int, val repeticion: Int, val estado: String)
@@ -422,7 +424,7 @@ class ContratoParticipacionService(
     ).firstOrNull() ?: error(HttpStatus.LOCKED, "servicio_no_disponible", "Servicio sin configuración")
     if (config.estado != "disponible")
       error(HttpStatus.LOCKED, "servicio_no_disponible", "El servicio está pausado o en mantenimiento")
-    if (!horarios.atiende(idBar, bar.zonaHoraria))
+    if (!horarios.estaEnHorario(idBar, bar.zonaHoraria))
       error(HttpStatus.LOCKED, "servicio_no_disponible", "Fuera del horario de operación")
     return config
   }
@@ -434,18 +436,30 @@ class ContratoParticipacionService(
     error(HttpStatus.SERVICE_UNAVAILABLE, if (cuota) "cuota_agotada" else "youtube_no_disponible",
       "No fue posible validar el video con YouTube")
   }
-  private fun guardarCancion(v: YoutubeVideoResponse): Long = jdbc.queryForObject(
-    """INSERT INTO public.cancion
-           (youtube_video_id,titulo,artista,canal,duracion_seg,miniatura_url,embebible,disponibilidad,ultima_validacion)
-           VALUES (?,?,?,?,?,?,TRUE,'disponible',CURRENT_TIMESTAMP)
-           ON CONFLICT(youtube_video_id) DO UPDATE SET
-              titulo=EXCLUDED.titulo, artista=EXCLUDED.artista, canal=EXCLUDED.canal,
-              duracion_seg=EXCLUDED.duracion_seg, miniatura_url=EXCLUDED.miniatura_url,
-              embebible=TRUE, disponibilidad='disponible', ultima_validacion=CURRENT_TIMESTAMP
-           RETURNING id_cancion""",
-    Long::class.javaObjectType, v.youtubeVideoId, v.titulo.take(300), v.artista?.take(200),
-    v.canal.take(200), v.duracionSeg, v.miniaturaUrl,
-  ) ?: throw IllegalStateException("No se guardó la canción")
+  private fun guardarCancion(v: YoutubeVideoResponse): Long {
+    val genero = clasificador.detectar(v.etiquetas)
+    return jdbc.queryForObject(
+      """INSERT INTO public.cancion
+             (youtube_video_id,titulo,artista,canal,duracion_seg,miniatura_url,
+              categoria,categoria_youtube,origen_categoria,embebible,disponibilidad,ultima_validacion)
+             VALUES (?,?,?,?,?,?,?,?,?,TRUE,'disponible',CURRENT_TIMESTAMP)
+             ON CONFLICT(youtube_video_id) DO UPDATE SET
+                titulo=EXCLUDED.titulo, artista=EXCLUDED.artista, canal=EXCLUDED.canal,
+                duracion_seg=EXCLUDED.duracion_seg, miniatura_url=EXCLUDED.miniatura_url,
+                categoria_youtube=COALESCE(EXCLUDED.categoria_youtube, public.cancion.categoria_youtube),
+                categoria=CASE WHEN public.cancion.origen_categoria = 'MANUAL'
+                    THEN public.cancion.categoria ELSE COALESCE(public.cancion.categoria, EXCLUDED.categoria) END,
+                origen_categoria=CASE WHEN public.cancion.origen_categoria = 'MANUAL'
+                    THEN 'MANUAL' WHEN public.cancion.categoria IS NULL
+                    AND EXCLUDED.categoria IS NOT NULL THEN 'ETIQUETAS'
+                    ELSE public.cancion.origen_categoria END,
+                embebible=TRUE, disponibilidad='disponible', ultima_validacion=CURRENT_TIMESTAMP
+             RETURNING id_cancion""",
+      Long::class.javaObjectType, v.youtubeVideoId, v.titulo.take(300), v.artista?.take(200),
+      v.canal.take(200), v.duracionSeg, v.miniaturaUrl,
+      genero, v.categoriaYoutube?.take(100), if (genero != null) "ETIQUETAS" else null,
+    ) ?: throw IllegalStateException("No se guardó la canción")
+  }
   private fun buscarSolicitud(idSesion: Long, idCancion: Long): Existente? = jdbc.query(
     """SELECT id_solicitud,estado FROM public.solicitud WHERE id_sesion=? AND id_cancion=?
            AND estado IN ('pendiente','reproduciendo') ORDER BY id_solicitud ASC LIMIT 1""",

@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.cancion.ClasificadorGeneroService
 import com.proyectoN.rokolaBackend.youtube.YoutubeService
 import com.proyectoN.rokolaBackend.youtube.YoutubeVideoResponse
 import org.springframework.http.HttpStatus
@@ -26,9 +27,10 @@ class ContratoBusquedaService(
   private val json: JsonMapper,
   private val estados: ContratoEstadoService,
   private val dispositivos: ContratoDispositivoService,
+  private val clasificador: ClasificadorGeneroService,
 ) {
   private data class Bar(val id: Long, val maxSeg: Int, val noRepeticionMin: Int)
-  private data class CancionDb(val id: Long, val disponibilidad: String, val embebible: Boolean)
+  private data class CancionDb(val id: Long, val disponibilidad: String, val embebible: Boolean, val categoria: String?)
 
   fun buscar(slug: String, uuid: String?, consultaOriginal: String): Map<String, Any?> {
     // Solo se comprueba sintaxis del UUID; el frontend puede buscar antes de registrar.
@@ -124,7 +126,8 @@ class ContratoBusquedaService(
         "pedible" to (motivo == null),
         "motivo" to motivo,
         "disponible_desde" to (if (motivo == "reproducida_hace_poco") repeticionHasta else null),
-        "genero" to null, // Fuente del género aún es TBD en doc 04.
+        // Para canciones aún no solicitadas, es una sugerencia no persistida.
+        "genero" to (almacenada?.categoria ?: clasificador.detectar(video.etiquetas)),
         "pedidas_en_el_bar" to (almacenada?.let { pedidas[it.id] } ?: 0L),
       )
     }
@@ -149,8 +152,8 @@ class ContratoBusquedaService(
   private fun consultarCanciones(videoIds: List<String>): Map<String, CancionDb> {
     if (videoIds.isEmpty()) return emptyMap()
     return jdbc.query(
-      "SELECT youtube_video_id, id_cancion, disponibilidad, embebible FROM public.cancion WHERE youtube_video_id IN (${marcadores(videoIds.size)})",
-      { rs, _ -> rs.getString(1) to CancionDb(rs.getLong(2), rs.getString(3), rs.getBoolean(4)) },
+      "SELECT youtube_video_id, id_cancion, disponibilidad, embebible, categoria FROM public.cancion WHERE youtube_video_id IN (${marcadores(videoIds.size)})",
+      { rs, _ -> rs.getString(1) to CancionDb(rs.getLong(2), rs.getString(3), rs.getBoolean(4), rs.getString(5)) },
       *videoIds.toTypedArray(),
     ).toMap()
   }
@@ -213,6 +216,10 @@ class ContratoBusquedaService(
           miniaturaUrl = nodo.path("miniaturaUrl").takeUnless { it.isNull }?.asText(),
           embebible = nodo.path("embebible").asBoolean(false),
           url = nodo.path("url").asText(),
+          etiquetas = nodo.path("etiquetas").toList().mapNotNull {
+            it.asText().trim().takeIf(String::isNotBlank)
+          },
+          categoriaYoutube = nodo.path("categoriaYoutube").takeUnless { it.isNull }?.asText()?.trim()?.takeIf(String::isNotBlank),
         )
       }.filter { it.youtubeVideoId.isNotBlank() && it.titulo.isNotBlank() }
     }.getOrNull()?.takeIf { it.isNotEmpty() }

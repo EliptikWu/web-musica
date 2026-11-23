@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.compat
 
+import com.proyectoN.rokolaBackend.cancion.ClasificadorGeneroService
 import com.proyectoN.rokolaBackend.youtube.YoutubeApiCliente
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
@@ -15,6 +16,7 @@ import java.sql.ResultSet
 class ContratoCanciones(
   private val jdbc: JdbcTemplate,
   private val youtube: YoutubeApiCliente,
+  private val clasificador: ClasificadorGeneroService,
 ) {
   data class Fila(val id: Long, val disponible: Boolean, val contrato: Map<String, Any?>)
 
@@ -40,16 +42,25 @@ class ContratoCanciones(
     if (video == null || !video.embebible || video.duracionSeg <= 0) {
       throw ContratoApiException(HttpStatus.UNPROCESSABLE_ENTITY, "no_disponible", "Ese video no está disponible")
     }
+    val generoDetectado = clasificador.detectar(video.etiquetas)
     jdbc.update(
-      """INSERT INTO public.cancion
-             (youtube_video_id, titulo, artista, canal, duracion_seg, miniatura_url, embebible, disponibilidad, ultima_validacion)
-         VALUES (?, ?, ?, ?, ?, ?, TRUE, 'disponible', CURRENT_TIMESTAMP)
+      """INSERT INTO public.cancion AS c
+             (youtube_video_id, titulo, artista, canal, categoria, origen_categoria, categoria_youtube,
+              duracion_seg, miniatura_url, embebible, disponibilidad, ultima_validacion)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE, 'disponible', CURRENT_TIMESTAMP)
          ON CONFLICT (youtube_video_id) DO UPDATE SET
             titulo = EXCLUDED.titulo, artista = EXCLUDED.artista, canal = EXCLUDED.canal,
             duracion_seg = EXCLUDED.duracion_seg, miniatura_url = EXCLUDED.miniatura_url,
-            embebible = TRUE, disponibilidad = 'disponible', ultima_validacion = CURRENT_TIMESTAMP""",
+            embebible = TRUE, disponibilidad = 'disponible', ultima_validacion = CURRENT_TIMESTAMP,
+            categoria_youtube = COALESCE(EXCLUDED.categoria_youtube, c.categoria_youtube),
+            categoria = CASE WHEN c.origen_categoria = 'MANUAL' THEN c.categoria
+                             ELSE COALESCE(c.categoria, EXCLUDED.categoria) END,
+            origen_categoria = CASE WHEN c.origen_categoria = 'MANUAL' THEN 'MANUAL'
+                                    WHEN c.categoria IS NULL AND EXCLUDED.categoria IS NOT NULL
+                                    THEN 'ETIQUETAS' ELSE c.origen_categoria END""",
       video.youtubeVideoId, video.titulo.take(300), video.artista?.take(200), video.canal.take(200),
-      video.duracionSeg, video.miniaturaUrl,
+      generoDetectado, if (generoDetectado != null) "ETIQUETAS" else null,
+      video.categoriaYoutube?.take(100), video.duracionSeg, video.miniaturaUrl,
     )
     return enBase(video.youtubeVideoId) ?: throw IllegalStateException("No se guardó la canción")
   }
