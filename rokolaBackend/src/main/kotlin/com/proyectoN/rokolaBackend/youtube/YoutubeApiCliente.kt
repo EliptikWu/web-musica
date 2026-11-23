@@ -123,6 +123,10 @@ class   YoutubeApiCliente(
             miniaturaUrl = miniatura,
             embebible = true,
             url = "https://www.youtube.com/watch?v=$id",
+            etiquetas = snippet.path("tags").toList()
+                .mapNotNull { etiqueta -> etiqueta.asText().trim().takeIf(String::isNotBlank) }
+                .take(60),
+            categoriaYoutube = snippet.path("categoryId").asText().trim().takeIf(String::isNotBlank),
         )
     }
 

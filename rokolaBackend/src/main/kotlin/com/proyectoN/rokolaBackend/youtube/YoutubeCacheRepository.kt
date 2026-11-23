@@ -44,6 +44,10 @@ class YoutubeCacheRepository(
                 miniaturaUrl = nodo.path("miniaturaUrl").takeUnless { it.isNull }?.asText(),
                 embebible = nodo.path("embebible").asBoolean(false),
                 url = nodo.path("url").asText(),
+                etiquetas = nodo.path("etiquetas").toList().mapNotNull {
+                    it.asText().trim().takeIf(String::isNotBlank)
+                },
+                categoriaYoutube = nodo.path("categoriaYoutube").takeUnless { it.isNull }?.asText()?.trim()?.takeIf(String::isNotBlank),
             )
         }
         jdbc.update(

@@ -11,6 +11,10 @@ data class YoutubeVideoResponse(
     val miniaturaUrl: String?,
     val embebible: Boolean,
     val url: String,
+    // Tags opcionales de videos.list (snippet.tags); no siempre existen.
+    val etiquetas: List<String> = emptyList(),
+    // ID de videoCategories de YouTube: 10 = Music. NO es un género musical.
+    val categoriaYoutube: String? = null,
 )
 
 data class YoutubeBusquedaResponse(
