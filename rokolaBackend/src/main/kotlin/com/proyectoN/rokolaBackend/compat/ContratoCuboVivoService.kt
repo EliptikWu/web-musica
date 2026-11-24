@@ -75,9 +75,9 @@ class ContratoCuboVivoService(private val jdbc: JdbcTemplate) {
             "cancion" to mapOf(
                 "video_id" to rs.getString("video_id"),
                 "titulo" to rs.getString("titulo"),
-                "artista" to rs.getString("artista"),
+                "artista" to rs.getString("artista").orEmpty(),
                 "duracion_seg" to rs.getInt("duracion_seg"),
-                "miniatura_url" to rs.getString("miniatura_url"),
+                "miniatura_url" to rs.getString("miniatura_url")?.takeIf(String::isNotBlank),
             ),
             "votos" to rs.getInt("votos_popular"),
             "solicitudes" to rs.getInt("solicitudes_popular"),

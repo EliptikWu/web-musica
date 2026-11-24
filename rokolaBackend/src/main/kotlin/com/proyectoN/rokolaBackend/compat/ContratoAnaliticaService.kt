@@ -475,8 +475,8 @@ class ContratoAnaliticaService(
   // ── Comunes ────────────────────────────────────────────────────────────────
 
   private fun cancion(rs: ResultSet): Map<String, Any?> = mapOf(
-    "video_id" to rs.getString("video_id"), "titulo" to rs.getString("titulo"), "artista" to rs.getString("artista"),
-    "duracion_seg" to rs.getInt("duracion_seg"), "miniatura_url" to rs.getString("miniatura_url"),
+    "video_id" to rs.getString("video_id"), "titulo" to rs.getString("titulo"), "artista" to rs.getString("artista").orEmpty(),
+    "duracion_seg" to rs.getInt("duracion_seg"), "miniatura_url" to rs.getString("miniatura_url")?.takeIf(String::isNotBlank),
   )
 
   private fun etiquetaNoche(n: Noche) = "${DIAS[n.dia].take(3).lowercase()} ${n.fecha.dayOfMonth} ${MESES[n.fecha.monthValue - 1]}"
