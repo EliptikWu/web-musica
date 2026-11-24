@@ -1,5 +1,6 @@
 package com.proyectoN.rokolaBackend.config
 
+import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -42,6 +43,8 @@ class SecurityConfig {
         )
       }
       .authorizeHttpRequests {
+        // Los errores del servidor no deben pasar por HTTP Basic.
+        it.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
         it.requestMatchers(HttpMethod.GET, "/q/*", "/api/acceso/qr/*").permitAll()
         it.requestMatchers(HttpMethod.POST, "/api/acceso/qr/*/dispositivos").permitAll()
         it.requestMatchers(HttpMethod.GET, "/api/qr/**", "/api/bares/**").permitAll()
