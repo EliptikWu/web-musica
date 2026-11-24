@@ -437,7 +437,8 @@ class ContratoParticipacionService(
       "No fue posible validar el video con YouTube")
   }
   private fun guardarCancion(v: YoutubeVideoResponse): Long {
-    val genero = clasificador.detectar(v.etiquetas)
+    val clasificacion = clasificador.clasificar(v.etiquetas, v.titulo, v.descripcion)
+    val genero = clasificacion?.genero
     return jdbc.queryForObject(
       """INSERT INTO public.cancion
              (youtube_video_id,titulo,artista,canal,duracion_seg,miniatura_url,
@@ -451,13 +452,13 @@ class ContratoParticipacionService(
                     THEN public.cancion.categoria ELSE COALESCE(public.cancion.categoria, EXCLUDED.categoria) END,
                 origen_categoria=CASE WHEN public.cancion.origen_categoria = 'MANUAL'
                     THEN 'MANUAL' WHEN public.cancion.categoria IS NULL
-                    AND EXCLUDED.categoria IS NOT NULL THEN 'ETIQUETAS'
+                    AND EXCLUDED.categoria IS NOT NULL THEN EXCLUDED.origen_categoria
                     ELSE public.cancion.origen_categoria END,
                 embebible=TRUE, disponibilidad='disponible', ultima_validacion=CURRENT_TIMESTAMP
              RETURNING id_cancion""",
       Long::class.javaObjectType, v.youtubeVideoId, v.titulo.take(300), v.artista?.take(200),
       v.canal.take(200), v.duracionSeg, v.miniaturaUrl,
-      genero, v.categoriaYoutube?.take(100), if (genero != null) "ETIQUETAS" else null,
+      genero, v.categoriaYoutube?.take(100), clasificacion?.origen,
     ) ?: throw IllegalStateException("No se guardó la canción")
   }
   private fun buscarSolicitud(idSesion: Long, idCancion: Long): Existente? = jdbc.query(

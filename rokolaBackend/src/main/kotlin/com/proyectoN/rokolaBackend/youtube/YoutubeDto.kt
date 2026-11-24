@@ -15,6 +15,8 @@ data class YoutubeVideoResponse(
     val etiquetas: List<String> = emptyList(),
     // ID de videoCategories de YouTube: 10 = Music. NO es un género musical.
     val categoriaYoutube: String? = null,
+    // Metadato público utilizado solamente para inferir género con evidencia explícita.
+    val descripcion: String? = null,
 )
 
 data class YoutubeBusquedaResponse(

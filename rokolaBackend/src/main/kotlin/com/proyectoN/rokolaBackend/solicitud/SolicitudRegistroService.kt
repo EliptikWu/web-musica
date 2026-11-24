@@ -82,7 +82,8 @@ class SolicitudRegistroService(
     }
 
     val ahora = OffsetDateTime.now(ZoneOffset.UTC)
-    val generoDetectado = clasificador.detectar(video.etiquetas)
+    val clasificacion = clasificador.clasificar(video.etiquetas, video.titulo, video.descripcion)
+    val generoDetectado = clasificacion?.genero
     val cancion = canciones.findByYoutubeVideoId(video.youtubeVideoId)?.apply {
       titulo = video.titulo.take(300)
       artista = video.artista?.take(200)
@@ -95,7 +96,7 @@ class SolicitudRegistroService(
       if (video.categoriaYoutube != null) categoriaYoutube = video.categoriaYoutube.take(100)
       if (categoria.isNullOrBlank() && origenCategoria != "MANUAL" && generoDetectado != null) {
         categoria = generoDetectado
-        origenCategoria = "ETIQUETAS"
+        origenCategoria = clasificacion?.origen
       }
     } ?: canciones.saveAndFlush(
       Cancion(
@@ -104,7 +105,7 @@ class SolicitudRegistroService(
         artista = video.artista?.take(200),
         canal = video.canal.take(200),
         categoria = generoDetectado,
-        origenCategoria = if (generoDetectado != null) "ETIQUETAS" else null,
+        origenCategoria = clasificacion?.origen,
         categoriaYoutube = video.categoriaYoutube?.take(100),
         duracionSeg = video.duracionSeg,
         miniaturaUrl = video.miniaturaUrl,

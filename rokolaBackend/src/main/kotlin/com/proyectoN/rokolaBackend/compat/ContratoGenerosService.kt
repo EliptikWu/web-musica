@@ -81,7 +81,7 @@ class ContratoGenerosService(
 
     /** Reclasificación a petición del administrador, en lotes de hasta diez videos.
      * No se ejecuta al arrancar, no modifica las revisiones manuales ni repite videos por paginación.
-     * La API de YouTube puede devolver videos sin tags y esos quedan sin clasificar.
+     * Si los metadatos no son concluyentes, la canción permanece sin categoría.
      */
     fun reclasificar(p: ContratoPanelAcceso.Personal, limite: Int, despuesDe: Long): Map<String, Any?> {
         if (despuesDe < 0) throw ContratoApiException(HttpStatus.BAD_REQUEST, "datos_invalidos", "despuesDe debe ser >= 0")
@@ -97,6 +97,7 @@ class ContratoGenerosService(
         )
         var ultimo = despuesDe
         var clasificadas = 0
+        val porOrigen = mutableMapOf("ETIQUETAS" to 0, "TITULO" to 0, "DESCRIPCION" to 0)
         var sinCoincidencia = 0
         var noDisponibles = 0
         var interrumpida: String? = null
@@ -113,7 +114,8 @@ class ContratoGenerosService(
                 ultimo = id
                 continue
             }
-            val genero = clasificador.detectar(video.etiquetas)
+            val clasificacion = clasificador.clasificar(video.etiquetas, video.titulo, video.descripcion)
+            val genero = clasificacion?.genero
             if (genero == null) {
                 // El video sí existe: guardamos solo el metadato general, nunca inventamos un género.
                 jdbc.update(
@@ -123,17 +125,19 @@ class ContratoGenerosService(
                 )
                 sinCoincidencia++
             } else {
+                val origen = requireNotNull(clasificacion).origen
                 val actualizadas = jdbc.update(
-                    """UPDATE public.cancion SET categoria = ?, origen_categoria = 'ETIQUETAS',
+                    """UPDATE public.cancion SET categoria = ?, origen_categoria = ?,
                               categoria_youtube = COALESCE(?, categoria_youtube)
                        WHERE id_cancion = ? AND categoria IS NULL AND origen_categoria IS DISTINCT FROM 'MANUAL'
                          AND id_cancion IN ($CANCIONES_DEL_BAR)""",
-                    genero, video.categoriaYoutube?.take(100), id,
+                    genero, origen, video.categoriaYoutube?.take(100), id,
                     p.barId, p.barId, p.barId, p.barId,
                 )
                 if (actualizadas > 0) {
                     clasificadas++
-                    bitacora.anotar(p, "editar_categoria", "cancion", id, texto = "Clasificación por etiquetas: $genero")
+                    porOrigen[origen] = porOrigen.getValue(origen) + 1
+                    bitacora.anotar(p, "editar_categoria", "cancion", id, texto = "Clasificación $origen: $genero")
                 }
             }
             ultimo = id
@@ -141,6 +145,7 @@ class ContratoGenerosService(
         return mapOf(
             "consultadas" to (clasificadas + sinCoincidencia + noDisponibles),
             "clasificadas" to clasificadas,
+            "clasificadas_por_origen" to porOrigen,
             "sin_coincidencia" to sinCoincidencia,
             "no_disponibles" to noDisponibles,
             "siguiente_desde_id" to ultimo,
