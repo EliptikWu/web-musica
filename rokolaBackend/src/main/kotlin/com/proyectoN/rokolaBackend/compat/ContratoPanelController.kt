@@ -27,6 +27,7 @@ class ContratoPanelController(
   private val sesiones: ContratoPanelSesiones,
   private val noches: ContratoNocheService,
   private val saltos: ContratoSaltoService,
+  private val retiros: ContratoRetiroService,
   private val establecimientos: ContratoEstablecimientoService,
   private val pausas: ContratoPausaService,
   private val volumenes: ContratoVolumenService,
@@ -63,6 +64,18 @@ class ContratoPanelController(
     @RequestHeader("Idempotency-Key", required = false) clave: String?,
   ): ResponseEntity<Void> {
     saltos.saltar(acceso.exigir(token), id, clave)
+    return ResponseEntity.noContent().build()
+  }
+
+  /** RF-041: retirar una solicitud pendiente, con motivo visible para el cliente y bitácora. */
+  @PostMapping("/solicitudes/{id}/retiro")
+  fun retirar(
+    @PathVariable id: String,
+    @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
+    @RequestHeader("Idempotency-Key", required = false) clave: String?,
+    @RequestBody(required = false) cuerpo: Map<String, Any?>?,
+  ): ResponseEntity<Void> {
+    retiros.retirar(acceso.exigir(token), id, cuerpo, clave)
     return ResponseEntity.noContent().build()
   }
 
