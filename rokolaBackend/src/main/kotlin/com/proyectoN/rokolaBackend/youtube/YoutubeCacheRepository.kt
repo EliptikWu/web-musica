@@ -48,6 +48,7 @@ class YoutubeCacheRepository(
                     it.asText().trim().takeIf(String::isNotBlank)
                 },
                 categoriaYoutube = nodo.path("categoriaYoutube").takeUnless { it.isNull }?.asText()?.trim()?.takeIf(String::isNotBlank),
+                descripcion = nodo.path("descripcion").takeUnless { it.isMissingNode || it.isNull }?.asText()?.take(1800)?.takeIf(String::isNotBlank),
             )
         }
         jdbc.update(

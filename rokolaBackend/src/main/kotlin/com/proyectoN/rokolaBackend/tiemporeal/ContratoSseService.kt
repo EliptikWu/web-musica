@@ -73,12 +73,19 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
     @Order(100) // ContratoVersionService (Order(-100)) aumenta la versión primero.
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun cambioCola(evento: CambioColaEvent) {
+        val slug = try { instantaneas.slugDeSesion(evento.sesionId) } catch (e: Exception) {
+            log.warn("No se pudo identificar el establecimiento para SSE, tipo={}", e.javaClass.simpleName)
+            null
+        } ?: return
         try {
-            val slug = instantaneas.slugDeSesion(evento.sesionId) ?: return
             enviarFoto(slug)
         } catch (e: Exception) {
-            // Fallos de la red SSE no deben fallar un INSERT ya confirmado en PostgreSQL.
             log.warn("No se pudo publicar actualización SSE de cola, tipo={}", e.javaClass.simpleName)
+        }
+        try {
+            emitirPanel(slug, setOf("analitica"))
+        } catch (e: Exception) {
+            log.warn("No se pudo avisar actualización de analítica, tipo={}", e.javaClass.simpleName)
         }
     }
 
@@ -103,16 +110,20 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
 
     private val recursosPermitidos = setOf(
         "noche", "yo", "bitacora", "bloqueos", "listas", "horario",
-        "usuarios", "establecimiento", "eventos", "pantallas",
+        "usuarios", "establecimiento", "eventos", "pantallas", "analitica",
     )
 
     /** Preparado para las operaciones del panel; ninguna acción pública lo emite. */
     @Order(100)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     fun cambioPanel(evento: CambioPanelEvent) {
-        val recursos = evento.recursos.intersect(recursosPermitidos).sorted()
+        emitirPanel(evento.slug, evento.recursos)
+    }
+
+    private fun emitirPanel(slug: String, recursosOriginales: Set<String>) {
+        val recursos = recursosOriginales.intersect(recursosPermitidos).sorted()
         if (recursos.isEmpty()) return
-        val canal = canales[evento.slug] ?: return
+        val canal = canales[slug] ?: return
         synchronized(canal) {
             canal.clientes.toList().forEach { cliente ->
                 emitir(canal, cliente,

@@ -127,7 +127,7 @@ class ContratoBusquedaService(
         "motivo" to motivo,
         "disponible_desde" to (if (motivo == "reproducida_hace_poco") repeticionHasta else null),
         // Para canciones aún no solicitadas, es una sugerencia no persistida.
-        "genero" to (almacenada?.categoria ?: clasificador.detectar(video.etiquetas)),
+        "genero" to (almacenada?.categoria ?: clasificador.clasificar(video.etiquetas, video.titulo, video.descripcion)?.genero),
         "pedidas_en_el_bar" to (almacenada?.let { pedidas[it.id] } ?: 0L),
       )
     }
@@ -220,6 +220,7 @@ class ContratoBusquedaService(
             it.asText().trim().takeIf(String::isNotBlank)
           },
           categoriaYoutube = nodo.path("categoriaYoutube").takeUnless { it.isNull }?.asText()?.trim()?.takeIf(String::isNotBlank),
+                descripcion = nodo.path("descripcion").takeUnless { it.isMissingNode || it.isNull }?.asText()?.take(1800)?.takeIf(String::isNotBlank),
         )
       }.filter { it.youtubeVideoId.isNotBlank() && it.titulo.isNotBlank() }
     }.getOrNull()?.takeIf { it.isNotEmpty() }

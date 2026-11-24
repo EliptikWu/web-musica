@@ -42,7 +42,8 @@ class ContratoCanciones(
     if (video == null || !video.embebible || video.duracionSeg <= 0) {
       throw ContratoApiException(HttpStatus.UNPROCESSABLE_ENTITY, "no_disponible", "Ese video no está disponible")
     }
-    val generoDetectado = clasificador.detectar(video.etiquetas)
+    val clasificacion = clasificador.clasificar(video.etiquetas, video.titulo, video.descripcion)
+    val generoDetectado = clasificacion?.genero
     jdbc.update(
       """INSERT INTO public.cancion AS c
              (youtube_video_id, titulo, artista, canal, categoria, origen_categoria, categoria_youtube,
@@ -57,9 +58,9 @@ class ContratoCanciones(
                              ELSE COALESCE(c.categoria, EXCLUDED.categoria) END,
             origen_categoria = CASE WHEN c.origen_categoria = 'MANUAL' THEN 'MANUAL'
                                     WHEN c.categoria IS NULL AND EXCLUDED.categoria IS NOT NULL
-                                    THEN 'ETIQUETAS' ELSE c.origen_categoria END""",
+                                    THEN EXCLUDED.origen_categoria ELSE c.origen_categoria END""",
       video.youtubeVideoId, video.titulo.take(300), video.artista?.take(200), video.canal.take(200),
-      generoDetectado, if (generoDetectado != null) "ETIQUETAS" else null,
+      generoDetectado, clasificacion?.origen,
       video.categoriaYoutube?.take(100), video.duracionSeg, video.miniaturaUrl,
     )
     return enBase(video.youtubeVideoId) ?: throw IllegalStateException("No se guardó la canción")

@@ -1,7 +1,7 @@
 """Oro (RF-048, RF-063): modelo en estrella y cubo de participación."""
 from __future__ import annotations
 
-from pyspark.sql import Column, DataFrame, SparkSession, Window
+from pyspark.sql import Column, DataFrame, SparkSession
 from pyspark.sql import functions as F
 
 TODOS = "*"
@@ -27,7 +27,10 @@ def dia_iso(fecha: Column) -> Column:
 
 
 def dia_cubo(dia: Column) -> Column:
-    return (F.when(dia == 4, "Jueves").when(dia == 5, "Viernes").when(dia == 6, "Sábado").otherwise("Otros días"))
+    return (F.when(dia == 1, "Lunes").when(dia == 2, "Martes")
+            .when(dia == 3, "Miércoles").when(dia == 4, "Jueves")
+            .when(dia == 5, "Viernes").when(dia == 6, "Sábado")
+            .otherwise("Domingo"))
 
 
 def construir(spark: SparkSession, plata: dict[str, DataFrame]) -> dict[str, DataFrame]:
@@ -94,24 +97,18 @@ def construir(spark: SparkSession, plata: dict[str, DataFrame]) -> dict[str, Dat
 
 
 def _generos_del_cubo(solicitudes: DataFrame, canciones: DataFrame) -> DataFrame:
-    """Los tres géneros más pedidos de cada bar; el resto va a «Otros» para que el cubo se pueda leer."""
+    """Conserva TODOS los géneros reales, sin reducirlos al top 3 ni agruparlos en «Otros»."""
     base = solicitudes.join(canciones.select("id_cancion", "genero"), "id_cancion").withColumn(
         "genero_real", F.coalesce("genero", F.lit(SIN_CLASIFICAR)))
-    conteo = base.groupBy("id_establecimiento", "genero_real").count()
-    orden = Window.partitionBy("id_establecimiento").orderBy(F.desc("count"), "genero_real")
-    return conteo.withColumn("puesto", F.row_number().over(orden)).select(
-        "id_establecimiento", "genero_real",
-        F.when(F.col("puesto") <= 3, F.col("genero_real")).otherwise(OTROS).alias("genero_cubo"))
+    return base.select("id_establecimiento", "genero_real").distinct().withColumn(
+        "genero_cubo", F.col("genero_real"))
 
 
 def _eventos_del_cubo(noches: DataFrame) -> DataFrame:
-    """Los tres tipos de evento con más noches de cada bar; el resto va a «Otros»."""
-    conteo = noches.groupBy("id_establecimiento", "tipo_evento").count()
-    orden = Window.partitionBy("id_establecimiento").orderBy(F.desc("count"), "tipo_evento")
+    """Incluye todos los tipos de evento, sin recortar al top 3."""
     etiqueta = F.create_map(*[F.lit(x) for par in ETIQUETA_EVENTO.items() for x in par])
-    return conteo.withColumn("puesto", F.row_number().over(orden)).select(
-        "id_establecimiento", "tipo_evento",
-        F.when(F.col("puesto") <= 3, etiqueta[F.col("tipo_evento")]).otherwise(OTROS).alias("evento_cubo"))
+    return noches.select("id_establecimiento", "tipo_evento").distinct().withColumn(
+        "evento_cubo", F.coalesce(etiqueta[F.col("tipo_evento")], F.lit("Otro")))
 
 
 def construir_cubo(spark: SparkSession, noches: DataFrame, canciones: DataFrame, solicitudes: DataFrame,
@@ -119,12 +116,12 @@ def construir_cubo(spark: SparkSession, noches: DataFrame, canciones: DataFrame,
     """Una fila por hecho (pedido, voto o reproducción) y un CUBE con los KPI del Entregable 6."""
     generos = _generos_del_cubo(solicitudes, canciones)
     eventos = _eventos_del_cubo(noches)
-    # Una canción de la lista de la casa puede tener un género que nadie pidió: va a «Otros».
+    # Una canción exclusiva de la lista de la casa conserva su género aunque nadie la haya solicitado.
     genero_de_cancion = (canciones.select("id_cancion", "genero")
         .withColumn("genero_real", F.coalesce("genero", F.lit(SIN_CLASIFICAR)))
         .crossJoin(noches.select("id_establecimiento").distinct())
         .join(generos, ["id_establecimiento", "genero_real"], "left")
-        .select("id_establecimiento", "id_cancion", F.coalesce("genero_cubo", F.lit(OTROS)).alias("genero_cubo")))
+        .select("id_establecimiento", "id_cancion", F.coalesce("genero_cubo", "genero_real").alias("genero_cubo")))
 
     vacio = {"es_solicitud": 0, "es_voto": 0, "no_sono": 0, "pedidos_seg": 0, "lista_casa_seg": 0}
     def hecho(df: DataFrame, **valores) -> DataFrame:

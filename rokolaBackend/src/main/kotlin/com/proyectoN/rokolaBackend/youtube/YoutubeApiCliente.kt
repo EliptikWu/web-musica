@@ -127,6 +127,7 @@ class   YoutubeApiCliente(
                 .mapNotNull { etiqueta -> etiqueta.asText().trim().takeIf(String::isNotBlank) }
                 .take(60),
             categoriaYoutube = snippet.path("categoryId").asText().trim().takeIf(String::isNotBlank),
+            descripcion = HtmlUtils.htmlUnescape(snippet.path("description").asText("")).take(1800).takeIf(String::isNotBlank),
         )
     }
 
