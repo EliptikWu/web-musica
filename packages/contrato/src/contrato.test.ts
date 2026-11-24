@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Bar } from './bar.ts';
 import { endpoints, rutaDe } from './endpoints.ts';
-import { CambioEstablecimiento } from './panel.ts';
+import { readFileSync } from 'node:fs';
+import { CambioEstablecimiento, PaginaBitacora, TipoAccion } from './panel.ts';
 
 describe('el contrato', () => {
   it('arma rutas con sus parámetros y escapa los valores', () => {
@@ -57,5 +58,29 @@ describe('el tema del bar (RF-059)', () => {
   it('un cambio sin tema no lo toca', () => {
     expect(CambioEstablecimiento.parse({ nombre: 'Otro' })).not.toHaveProperty('tema');
     expect(CambioEstablecimiento.parse({ tema: 'vidrio' })).toEqual({ tema: 'vidrio' });
+  });
+});
+
+describe('la bitácora (RF-044, RF-068)', () => {
+  const accion = (tipo: string, usuario: { id: string; nombre: string } | null, detalle: string) => ({
+    id: '1', fecha: '2026-11-24T23:10:00-05:00', usuario, tipo,
+    objetivo: { tipo: 'cancion', nombre: 'Rebelión', detalle: 'Joe Arroyo' }, detalle,
+  });
+
+  it('acepta el cambio de género, a mano o de la clasificación automática', () => {
+    const pagina = {
+      acciones: [accion('editar_categoria', { id: '7', nombre: 'Ana' }, 'Asignó género: Salsa'), accion('editar_categoria', null, 'Clasificación ETIQUETAS: Salsa'), accion('retirar', { id: '7', nombre: 'Ana' }, 'otro')],
+      siguiente: null,
+    };
+    expect(PaginaBitacora.safeParse(pagina).success).toBe(true);
+  });
+
+  it('conoce los mismos tipos de acción que el backend devuelve', () => {
+    // Si el backend anota un tipo que el contrato no conoce, la página entera falla la validación.
+    const kotlin = readFileSync(new URL('../../../rokolaBackend/src/main/kotlin/com/proyectoN/rokolaBackend/compat/ContratoBitacora.kt', import.meta.url), 'utf8');
+    const bloque = /TIPOS_ACCION = setOf\(([\s\S]*?)\)/.exec(kotlin)?.[1] ?? '';
+    const delBackend = [...bloque.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]).sort();
+    expect(delBackend.length).toBeGreaterThan(0);
+    expect(delBackend).toEqual([...TipoAccion.options].sort());
   });
 });
