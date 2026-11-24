@@ -17,6 +17,9 @@ export const OrigenDatos = z
     noches: z.int().nonnegative().describe('Noches que entran en el cálculo'),
     desde: Fecha.nullable().describe('Inicio de la primera noche'),
     hasta: Fecha.nullable().describe('Inicio de la última noche (su fecha es la de la noche)'),
+    fuente: z.enum(['operativa', 'pipeline']).optional().describe('Solo el cubo en vivo (RF-067): `operativa` = calculado ahora desde las tablas de la operación'),
+    en_vivo: z.boolean().optional().describe('`true` en el cubo en vivo: incluye la noche abierta y `actualizado_en` es la hora de la consulta'),
+    sesiones_abiertas: z.int().nonnegative().optional().describe('Solo en vivo: noches abiertas ahora mismo'),
   })
   .meta({ id: 'OrigenDatos' });
 export type OrigenDatos = z.infer<typeof OrigenDatos>;
@@ -174,3 +177,37 @@ export const CuboAnalitica = z
   })
   .meta({ id: 'CuboAnalitica' });
 export type CuboAnalitica = z.infer<typeof CuboAnalitica>;
+
+/** Fuente del cubo (RF-067): `vivo` lo calcula el backend al consultar; `historico`, el pipeline. */
+export const FuenteCubo = z.enum(['vivo', 'historico']).meta({ id: 'FuenteCubo' });
+export type FuenteCubo = z.infer<typeof FuenteCubo>;
+
+// ── Catálogo de canciones y género (RF-068) ───────────────────────────────────
+
+/**
+ * Quién le puso el género a la canción. Los tres primeros son la clasificación automática con
+ * los metadatos de YouTube; `MANUAL` es la corrección del panel, que la automática no pisa.
+ * `null`: sin género.
+ */
+export const OrigenCategoria = z.enum(['ETIQUETAS', 'TITULO', 'DESCRIPCION', 'MANUAL']).nullable().meta({ id: 'OrigenCategoria' });
+export type OrigenCategoria = z.infer<typeof OrigenCategoria>;
+
+export const CancionCatalogo = z
+  .object({
+    id: Id,
+    youtube_video_id: z.string(),
+    titulo: z.string(),
+    artista: z.string().nullable(),
+    categoria: z.string().nullable().describe('El género; `null` = sin clasificar'),
+    origen_categoria: OrigenCategoria,
+    pedidos: z.int().nonnegative().describe('Solicitudes de la canción en este bar'),
+  })
+  .meta({ id: 'CancionCatalogo' });
+export type CancionCatalogo = z.infer<typeof CancionCatalogo>;
+
+export const CuerpoCategoria = z.object({ categoria: z.string().min(1).describe('Un género de `GET /panel/generos`') }).meta({ id: 'CuerpoCategoria' });
+
+export const CategoriaCorregida = z
+  .object({ id: Id, categoria: z.string(), origen_categoria: OrigenCategoria })
+  .meta({ id: 'CategoriaCorregida' });
+export type CategoriaCorregida = z.infer<typeof CategoriaCorregida>;

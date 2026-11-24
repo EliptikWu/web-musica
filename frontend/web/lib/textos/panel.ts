@@ -212,6 +212,7 @@ const VERBO: Partial<Record<TipoAccion, [tu: string, otro: string]>> = {
   editar_evento: ['Editaste el evento', 'editó el evento'],
   editar_umbrales: ['Cambiaste los umbrales del tablero', 'cambió los umbrales del tablero'],
   extender_bloqueo: ['Cambiaste el bloqueo de', 'cambió el bloqueo de'],
+  editar_categoria: ['Cambiaste el género de', 'cambió el género de'],
 };
 
 function objetivoTexto(a: AccionAdmin): string {
@@ -226,6 +227,8 @@ export function fraseAccion(a: AccionAdmin, yoId: string | undefined): string {
   if (a.tipo === 'abrir_sesion' && !a.usuario) return 'Se abrieron las solicitudes con el horario del QR';
   if (a.tipo === 'cerrar_sesion' && !a.usuario) return 'Se cerraron las solicitudes con el horario del QR';
   if (a.tipo === 'error_youtube') return `YouTube no pudo reproducir${objetivoTexto(a)}${a.detalle ? `: ${a.detalle}` : ''}`;
+  // RF-068: la reclasificación automática del backend también anota `editar_categoria`.
+  if (a.tipo === 'editar_categoria' && a.detalle?.startsWith('Clasificación')) return `Clasificación automática de${objetivoTexto(a)}: ${a.detalle.split(': ').at(-1)}`;
   if (a.tipo === 'intento_no_permitido') return `${a.usuario?.nombre ?? 'Alguien'} intentó algo que su rol no permite${a.detalle ? `: ${a.detalle.toLowerCase()}` : ''}`;
   const [tu, otro] = VERBO[a.tipo] ?? ['Hiciste un cambio', 'hizo un cambio'];
   const sujeto = !a.usuario ? `El sistema ${otro}` : a.usuario.id !== yoId ? `${a.usuario.nombre} ${otro}` : tu;
@@ -234,7 +237,10 @@ export function fraseAccion(a: AccionAdmin, yoId: string | undefined): string {
       ? ` de la cola: ${a.detalle}`
       : (a.tipo === 'extender_bloqueo' || a.tipo === 'editar_umbrales') && a.detalle
         ? `: ${a.detalle.toLowerCase()}`
-        : '';
+        : // RF-068: el backend anota «Asignó género: Salsa»; aquí basta el género.
+          a.tipo === 'editar_categoria' && a.detalle
+          ? ` a ${a.detalle.split(': ').at(-1)}`
+          : '';
   return `${sujeto}${objetivoTexto(a)}${cola}`;
 }
 

@@ -102,7 +102,7 @@
   & .campo__entrada[aria-invalid="true"] { border: 2px solid var(--vidrio-rosa); box-shadow: none; }
   & .campo__entrada--codigo { font-stretch: normal; font-weight: 600; }
   & .campo__error svg { color: var(--vidrio-rosa); }
-  & :is(.interruptor, .cubo-separar, .seleccion-noches) input { accent-color: var(--vidrio-durazno-claro); }
+  & :is(.interruptor, .cubo-casilla, .seleccion-noches) input { accent-color: var(--vidrio-durazno-claro); }
   & :is(.horario-dia, .qr-destino) { border-radius: var(--radio-dia); }
   & .grupo-teclas__figura { border-radius: var(--radio-dia); }
   & .grupo-teclas--figuras input:checked ~ .grupo-teclas__figura { box-shadow: 0 0 0 3px var(--vidrio-votado-borde); }
@@ -137,6 +137,7 @@
   & .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--vidrio-texto); }
   & .cubito[data-encendido][data-activo] > i { box-shadow: inset 0 0 0 2px var(--vidrio-tinta); }
   & .cubito[data-total][data-activo] > i { box-shadow: inset 0 0 0 2px var(--cubo-total-activo-texto); }
+  & .cubito[data-vacio] > i { box-shadow: none; }
   & .cubo-rotulo { font-stretch: normal; font-weight: 500; }
   & :is(.cubo-vistas button, .cubo-miembro) { border-radius: var(--radio-tecla); font-stretch: normal; font-weight: 500; box-shadow: inset 0 0 0 1px var(--vidrio-tecla-borde); }
   & .cubo-miembro { background: var(--vidrio-superficie); }

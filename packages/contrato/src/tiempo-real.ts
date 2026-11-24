@@ -3,7 +3,8 @@ import { Ahora } from './cola.ts';
 import { Fecha } from './comunes.ts';
 
 export const RecursoPanel = z
-  .enum(['noche', 'yo', 'bitacora', 'bloqueos', 'listas', 'horario', 'usuarios', 'establecimiento', 'eventos', 'pantallas'])
+  .enum(['noche', 'yo', 'bitacora', 'bloqueos', 'listas', 'horario', 'usuarios', 'establecimiento', 'eventos', 'pantallas', 'analitica'])
+  .describe('`analitica`: cambió algo que mueve el cubo en vivo (RF-067); llega con cada pedido o voto')
   .meta({ id: 'RecursoPanel' });
 export type RecursoPanel = z.infer<typeof RecursoPanel>;
 

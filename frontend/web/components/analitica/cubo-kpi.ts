@@ -1,4 +1,4 @@
-import { type CeldaCubo, TODOS_CUBO } from '@rockola/contrato';
+import { type CeldaCubo, type CuboAnalitica, type FuenteCubo, TODOS_CUBO } from '@rockola/contrato';
 
 /** Lógica del cubo de KPI (RF-063), sin React: qué se puede leer y qué no. */
 
@@ -7,10 +7,10 @@ export const DIMS: Dim[] = ['genero', 'franja', 'tercero'];
 export type Seleccion = Record<Dim, string[]>;
 export const SIN_SELECCION: Seleccion = { genero: [], franja: [], tercero: [] };
 
-export type ClaveKpi = 'solicitudes' | 'votos' | 'telefonos' | 'popular' | 'espera_promedio' | 'espera_maxima' | 'lista_casa' | 'no_sonaron';
+export type ClaveKpi = 'solicitudes' | 'votos' | 'telefonos' | 'popular' | 'espera_promedio' | 'espera_maxima' | 'reproduccion' | 'lista_casa' | 'no_sonaron';
 
-const minutos = (seg: number) => `${Math.round(seg / 60)} min`;
 const entero = new Intl.NumberFormat('es-CO');
+const minutos = (seg: number) => `${entero.format(Math.round(seg / 60))} min`;
 
 export type Kpi = {
   clave: ClaveKpi;
@@ -38,6 +38,8 @@ export const KPIS: Kpi[] = [
       return v.length > 0 ? Math.max(...v) : null;
     },
   },
+  // RF-067: lo que sonó en la celda, pedido o de la lista de la casa.
+  { clave: 'reproduccion', nombre: 'Tiempo de reproducción', valor: (c) => c.pedidos_seg + c.lista_casa_seg, formato: minutos, combinar: suma((c) => c.pedidos_seg + c.lista_casa_seg) },
   {
     clave: 'lista_casa', nombre: 'Lista de la casa', valor: (c) => partePct(c.lista_casa_seg, c.pedidos_seg), formato: (n) => `${n} %`,
     combinar: (celdas) => partePct(suma((c) => c.lista_casa_seg)(celdas), suma((c) => c.pedidos_seg)(celdas)),
@@ -69,24 +71,54 @@ export function celdasDe(indice: Map<string, CeldaCubo>, s: Seleccion): CeldaCub
   return salida;
 }
 
+/** Ninguna celda con hechos: no es lo mismo que un 0, que es una celda con hechos que suma cero. */
+export const SIN_DATOS = 'sin-datos';
+export type Lectura = number | null | typeof SIN_DATOS;
+
 /**
- * El valor de un KPI en una coordenada. Con un solo miembro por eje es la celda del pipeline.
+ * El valor de un KPI en una coordenada. Con un solo miembro por eje es la celda calculada.
  * Con varios (dice), solo los KPI que se pueden combinar: sumar usuarios únicos o promedios
- * daría una cifra falsa, y entonces devuelve `null`.
+ * daría una cifra falsa, y entonces devuelve `null` (no aplica). Si ninguna celda tiene
+ * hechos, `SIN_DATOS`: el backend no manda las combinaciones vacías.
  */
-export function leerKpi(indice: Map<string, CeldaCubo>, kpi: Kpi, s: Seleccion): number | null {
+export function leerKpi(indice: Map<string, CeldaCubo>, kpi: Kpi, s: Seleccion): Lectura {
   const unica = DIMS.every((d) => s[d].length <= 1);
   const celdas = celdasDe(indice, s);
-  if (unica) return celdas[0] ? kpi.valor(celdas[0]) : kpi.clave === 'solicitudes' || kpi.clave === 'votos' || kpi.clave === 'telefonos' || kpi.clave === 'no_sonaron' ? 0 : null;
+  if (celdas.length === 0) return SIN_DATOS;
+  if (unica) return kpi.valor(celdas[0]!);
   return kpi.combinar ? kpi.combinar(celdas) : null;
+}
+
+/** Cuántos géneros se ven de entrada: con más, el cubo deja de leerse (RF-067). */
+export const GENEROS_A_LA_VISTA = 5;
+
+/**
+ * Qué miembros dibuja el cubo en cada eje. Con filtro, solo los elegidos. Sin filtro, todos,
+ * salvo en género: los `GENEROS_A_LA_VISTA` con más pedidos y votos, en el orden de la API,
+ * a menos que se pidan todos. La tabla de cruce sigue mostrando todos.
+ */
+export function miembrosVisibles(datos: Pick<CuboAnalitica, 'miembros' | 'celdas'>, s: Seleccion, todosLosGeneros: boolean): Record<Dim, string[]> {
+  const ejes = {} as Record<Dim, string[]>;
+  for (const d of DIMS) ejes[d] = s[d].length > 0 ? datos.miembros[d].filter((m) => s[d].includes(m)) : datos.miembros[d];
+  if (s.genero.length === 0 && !todosLosGeneros && datos.miembros.genero.length > GENEROS_A_LA_VISTA) {
+    const actividad = new Map(
+      datos.celdas.filter((c) => c.franja === TODOS_CUBO && c.tercero === TODOS_CUBO && c.genero !== TODOS_CUBO).map((c) => [c.genero, c.solicitudes + c.votos]),
+    );
+    const mas = new Set([...datos.miembros.genero].sort((a, b) => (actividad.get(b) ?? 0) - (actividad.get(a) ?? 0)).slice(0, GENEROS_A_LA_VISTA));
+    ejes.genero = datos.miembros.genero.filter((g) => mas.has(g));
+  }
+  return ejes;
 }
 
 export type Operacion = { nombre: string; detalle: string };
 
-export function operacion(s: Seleccion): Operacion {
+export function operacion(s: Seleccion, fuente: FuenteCubo = 'historico'): Operacion {
   if (DIMS.some((d) => s[d].length > 1)) return { nombre: 'Dice', detalle: 'Un bloque del cubo: varios valores en uno o más ejes.' };
   const fijos = DIMS.filter((d) => s[d].length === 1).length;
-  if (fijos === 0) return { nombre: 'Cubo completo', detalle: 'Todas las noches cargadas, sin recortar ningún eje.' };
+  if (fijos === 0) {
+    const noches = fuente === 'vivo' ? 'Todas las noches, también la que está abierta,' : 'Todas las noches que cargó el pipeline,';
+    return { nombre: 'Cubo completo', detalle: `${noches} sin recortar ningún eje.` };
+  }
   if (fijos === 1) return { nombre: 'Slice', detalle: 'Una capa del cubo: un eje queda fijo.' };
   if (fijos === 2) return { nombre: 'Fila', detalle: 'El cruce de dos capas: queda una línea de celdas.' };
   return { nombre: 'Celda', detalle: 'Los tres ejes fijos: un solo punto del cubo.' };

@@ -97,7 +97,7 @@
   & .campo__entrada--codigo { font-stretch: normal; font-weight: 800; }
   & .campo__error { color: var(--afiche-sello); }
   & .campo__error svg { color: var(--afiche-sello); }
-  & :is(.interruptor, .cubo-separar, .seleccion-noches) input { accent-color: var(--afiche-tinta); }
+  & :is(.interruptor, .cubo-casilla, .seleccion-noches) input { accent-color: var(--afiche-tinta); }
   & :is(.horario-dia, .qr-destino) { border: 1.5px dashed var(--afiche-punteado); border-radius: 0; background: none; }
   & .grupo-teclas__figura { border-radius: 0; box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
   & .grupo-teclas--figuras input:checked ~ .grupo-teclas__figura { box-shadow: 0 0 0 4px var(--afiche-tinta); }
@@ -133,6 +133,7 @@
   & .cubo-escena:focus-visible { outline-color: var(--afiche-tinta); }
   & .cubito > i { font-stretch: normal; font-weight: 700; box-shadow: inset 0 0 0 1px var(--afiche-tinta-22); }
   & .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--afiche-tinta); }
+  & .cubito[data-vacio] > i { box-shadow: none; }
   & .cubo-rotulo { font-stretch: normal; font-weight: 700; color: var(--afiche-tinta); }
   & .cubo-pie { border-top: 2px solid var(--afiche-tinta); }
   & .cubo-operaciones { border-top: 2px solid var(--afiche-tinta); }

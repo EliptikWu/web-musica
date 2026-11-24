@@ -1,6 +1,7 @@
-import { ComparacionAnalitica, DiagnosticoAnalitica, ParticipacionAnalitica, Recomendacion, ResumenAnalitica } from '@rockola/contrato';
+import { ComparacionAnalitica, CuboAnalitica, DiagnosticoAnalitica, ParticipacionAnalitica, Recomendacion, ResumenAnalitica } from '@rockola/contrato';
 import { describe, expect, it } from 'vitest';
-import { comparar, diagnostico, nochesDeEjemplo, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from './analitica';
+import { comparar, cubo, cuboVivo, diagnostico, nochesDeEjemplo, pedidasEnEjemplo, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from './analitica';
+import { categoriaDe, corregirCategoria, listarCatalogo } from './categorias';
 import { crearEstado } from './datos/semilla';
 import { ahoraSim } from './motor';
 
@@ -124,5 +125,54 @@ describe('recomendaciones (RF-054)', () => {
     expect(JSON.stringify(estado)).toBe(antes);
     expect(rs.map((r) => r.tipo)).toEqual(expect.arrayContaining(['agregar_a_lista', 'revisar_bloqueo']));
     for (const r of rs) expect(r.base.length).toBeGreaterThan(20);
+  });
+});
+
+describe('RF-067: el cubo en vivo de la simulación', () => {
+  const ahora = ahoraSim(estado, 1_000_000);
+  const genero = (video: string) => categoriaDe(estado, video).categoria ?? 'Sin clasificar';
+  const total = (c: CuboAnalitica) => c.celdas.find((x) => x.genero === '*' && x.franja === '*' && x.tercero === '*')!;
+
+  it('suma la noche abierta a las de ejemplo y lo dice', () => {
+    const vivo = cuboVivo(estado, ahora, 'dia', genero);
+    const historico = cubo(todas, 'dia');
+    const deHoy = estado.solicitudes.length;
+    expect(deHoy).toBeGreaterThan(0);
+    expect(total(vivo).solicitudes).toBe(total(historico).solicitudes + deHoy);
+    expect(vivo.datos).toMatchObject({ en_vivo: true, fuente: 'operativa', origen: 'ejemplo', sesiones_abiertas: 1 });
+    expect(CuboAnalitica.safeParse(vivo).success).toBe(true);
+  });
+
+  it('sin tope de géneros ni «Otros», y los días en orden de la semana', () => {
+    const vivo = cuboVivo(estado, ahora, 'dia', genero);
+    expect(vivo.miembros.genero).not.toContain('Otros');
+    expect(vivo.miembros.genero.length).toBeGreaterThan(4);
+    const semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    expect(vivo.miembros.tercero).toEqual(semana.filter((d) => vivo.miembros.tercero.includes(d)));
+  });
+
+  it('un género corregido a mano cuenta de inmediato', () => {
+    const copia = structuredClone(estado);
+    const video = copia.solicitudes[0]!.video_id;
+    const r = corregirCategoria(copia, pedidasEnEjemplo(copia), ahora, { id: 'u-admin', nombre: 'Admin' }, video, 'rock');
+    expect(r).toMatchObject({ ok: true, cuerpo: { categoria: 'Rock', origen_categoria: 'MANUAL' } });
+    expect(copia.acciones.at(-1)?.tipo).toBe('editar_categoria');
+    const vivo = cuboVivo(copia, ahora, 'dia', (v) => categoriaDe(copia, v).categoria ?? 'Sin clasificar');
+    expect(vivo.miembros.genero).toContain('Rock');
+  });
+
+  it('el catálogo rechaza un género que no existe y una canción ajena al bar', () => {
+    const quien = { id: 'u-admin', nombre: 'Admin' };
+    expect(corregirCategoria(estado, new Map(), ahora, quien, estado.solicitudes[0]!.video_id, 'Polka')).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(corregirCategoria(estado, new Map(), ahora, quien, 'sim-no-existe', 'Salsa')).toMatchObject({ ok: false, codigo: 'no_encontrado' });
+  });
+
+  it('el catálogo pone primero lo que no tiene género y filtra', () => {
+    const todasLasDelBar = listarCatalogo(estado, pedidasEnEjemplo(estado), { soloSinCategoria: false, q: '', limite: 100 });
+    const primeraConGenero = todasLasDelBar.findIndex((c) => c.categoria !== null);
+    expect(todasLasDelBar.slice(primeraConGenero).every((c) => c.categoria !== null)).toBe(true);
+    const sin = listarCatalogo(estado, pedidasEnEjemplo(estado), { soloSinCategoria: true, q: '', limite: 100 });
+    expect(sin.length).toBeGreaterThan(0);
+    expect(sin.every((c) => c.categoria === null && c.origen_categoria === null)).toBe(true);
   });
 });

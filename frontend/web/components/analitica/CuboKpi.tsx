@@ -1,16 +1,19 @@
 'use client';
 
-import { TODOS_CUBO, type CuboAnalitica } from '@rockola/contrato';
+import { type CuboAnalitica, type FuenteCubo, type OrigenDatos, TODOS_CUBO } from '@rockola/contrato';
 import { GrupoTeclas, Tecla } from '@rockola/ui';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { type KeyboardEvent, type PointerEvent, useMemo, useRef, useState } from 'react';
 import { Cargando } from '@/components/gestion/PaginaGestion';
+import { useYoDelPanel } from '@/components/panel/MarcoPanel';
 import { claves } from '@/lib/api/claves';
 import { pedir } from '@/lib/api/cliente';
+import { conPunto, formatoHora } from '@/lib/formato';
+import { useConexionCaida } from '@/lib/tiempo-real/estado';
 import { OrigenDeLosDatos } from './Comun';
 import {
-  alternar, celdasDe, type ClaveKpi, claveCelda, type Dim, DIMS, dentro, drillDown, ejesDeTabla, indiceCeldas, KPIS, type Kpi, leerKpi, luzDe, operacion, ordenEjes,
-  rollUp, type Seleccion, SIN_SELECCION,
+  alternar, celdasDe, type ClaveKpi, claveCelda, type Dim, DIMS, dentro, drillDown, ejesDeTabla, GENEROS_A_LA_VISTA, indiceCeldas, KPIS, type Kpi, type Lectura,
+  leerKpi, luzDe, miembrosVisibles, operacion, ordenEjes, rollUp, SIN_DATOS, type Seleccion, SIN_SELECCION,
 } from './cubo-kpi';
 
 type Eje = CuboAnalitica['eje'];
@@ -21,19 +24,33 @@ const conVariables = (variables: Record<string, string>) => (el: HTMLElement | n
   if (el) for (const [nombre, valor] of Object.entries(variables)) el.style.setProperty(nombre, valor);
 };
 
-/** Cubo de KPI (RF-063): el mecanismo de la rockola, con la luz en la celda que más pesa. */
+/**
+ * Cubo de KPI (RF-063, RF-067): el mecanismo de la rockola, con la luz en la celda que más pesa.
+ * En vivo se vuelve a pedir solo con el aviso `analitica` del tiempo real (ADR-33).
+ */
 export function CuboKpi() {
+  const [fuente, setFuente] = useState<FuenteCubo>('vivo');
   const [eje, setEje] = useState<Eje>('dia');
   const consulta = useQuery({
-    queryKey: claves.panel.analitica('cuboAnalitica', { eje }),
-    queryFn: ({ signal }) => pedir('cuboAnalitica', { consulta: { eje }, signal }),
+    queryKey: claves.panel.analitica('cuboAnalitica', { eje, fuente }),
+    queryFn: ({ signal }) => pedir('cuboAnalitica', { consulta: { eje, fuente }, signal }),
     placeholderData: keepPreviousData,
     retry: false,
   });
   return (
     <>
-      {/* Fuera de `Cargando`: si un eje falla, se puede volver al otro. */}
+      {/* Fuera de `Cargando`: si una consulta falla, se puede cambiar a la otra. */}
       <div className="cubo-mando">
+        <GrupoTeclas
+          leyenda="Datos"
+          nombre="cubo-fuente"
+          valor={fuente}
+          onCambio={setFuente}
+          opciones={[
+            { valor: 'vivo', texto: 'En vivo' },
+            { valor: 'historico', texto: 'Histórico' },
+          ]}
+        />
         <GrupoTeclas
           leyenda="Tercer eje"
           nombre="cubo-eje"
@@ -48,13 +65,18 @@ export function CuboKpi() {
       <Cargando consulta={consulta}>
         {() => {
           const d = consulta.data!;
+          const vivo = d.datos.en_vivo === true;
           return (
             <div className="analitica-cuerpo mt-4" aria-busy={consulta.isFetching || undefined}>
-              <OrigenDeLosDatos datos={d.datos} />
+              {vivo ? <EnVivo datos={d.datos} sinActualizar={consulta.isError} /> : <OrigenDeLosDatos datos={d.datos} />}
               {d.celdas.length === 0 ? (
-                <p className="secundario mt-6">Todavía no hay noches cargadas. El cubo se llena cuando corre el pipeline.</p>
+                <p className="secundario mt-6">
+                  {vivo ? 'Todavía no hay pedidos ni votos en este bar. El cubo se llena con el primero.' : 'Todavía no hay noches cargadas. El cubo se llena cuando corre el pipeline.'}
+                </p>
               ) : (
-                <Laboratorio key={d.eje} datos={d} />
+                // La clave no lleva los datos: una actualización en vivo no borra lo elegido.
+                // El modo sale de los datos, no de la tecla: mientras llega el otro, no se mezclan.
+                <Laboratorio key={`${d.eje}-${vivo}`} datos={d} fuente={vivo ? 'vivo' : 'historico'} />
               )}
             </div>
           );
@@ -64,23 +86,56 @@ export function CuboKpi() {
   );
 }
 
-function Laboratorio({ datos }: { datos: CuboAnalitica }) {
+/** RF-067: la luz encendida dice que el cubo se mueve solo; apagada, que el tiempo real se cayó. */
+function EnVivo({ datos, sinActualizar }: { datos: OrigenDatos; sinActualizar: boolean }) {
+  const zona = useYoDelPanel().establecimiento.zona_horaria;
+  const { caida: sinConexion } = useConexionCaida();
+  const caida = sinConexion || sinActualizar;
+  const abiertas = datos.sesiones_abiertas ?? 0;
+  const noches = `${datos.noches} ${datos.noches === 1 ? 'noche' : 'noches'}`;
+  return (
+    <p className="analitica-origen">
+      {datos.origen === 'ejemplo' ? <span className="etiqueta">Datos de ejemplo</span> : null}
+      <span className={caida ? 'luz-estado luz-estado--apagada' : 'luz-estado'}>{sinConexion ? 'En pausa: reconectando' : sinActualizar ? 'En pausa: no se pudo actualizar' : 'Datos en vivo'}</span>
+      <span>
+        {datos.actualizado_en ? `${conPunto(`Actualizado a las ${formatoHora(datos.actualizado_en, zona, true)}`)} ` : null}
+        {noches}, {abiertas === 0 ? 'ninguna abierta ahora' : abiertas === 1 ? 'una abierta ahora' : `${abiertas} abiertas ahora`}. Cambia con cada pedido y cada voto.
+      </span>
+    </p>
+  );
+}
+
+const textoLectura = (k: Kpi, v: Lectura) => (v === SIN_DATOS ? 'Sin datos' : v === null ? 'No aplica' : k.formato(v));
+
+function Laboratorio({ datos, fuente }: { datos: CuboAnalitica; fuente: FuenteCubo }) {
   const [claveKpi, setClaveKpi] = useState<ClaveKpi>('solicitudes');
   const [sel, setSelBase] = useState<Seleccion>(SIN_SELECCION);
   const [orden, setOrden] = useState<Dim[]>([]);
-  const setSel = (nueva: Seleccion) => {
+  // Lo elegido tocando el cubo se resalta en él; lo elegido con los filtros recorta la escena.
+  const [desdeElCubo, setDesdeElCubo] = useState(false);
+  const setSel = (nueva: Seleccion, enElCubo = false) => {
     setOrden((o) => ordenEjes(o, nueva));
     setSelBase(nueva);
+    setDesdeElCubo(enElCubo);
   };
   const [pivot, setPivot] = useState(false);
-  const [separar, setSeparar] = useState(false);
+  const [todosLosGeneros, setTodosLosGeneros] = useState(false);
   const kpi = KPIS.find((k) => k.clave === claveKpi)!;
   const indice = useMemo(() => indiceCeldas(datos.celdas), [datos.celdas]);
   const nombres: Record<Dim, string> = { genero: 'Género', franja: 'Franja', tercero: datos.eje === 'dia' ? 'Día' : 'Evento' };
-  const op = operacion(sel);
+  const op = operacion(sel, fuente);
   const ficha = celdasDe(indice, sel);
   const unica = DIMS.every((d) => sel[d].length <= 1);
   const popular = unica ? (ficha[0]?.popular ?? null) : null;
+  const filtro = desdeElCubo ? SIN_SELECCION : sel;
+  const visibles = miembrosVisibles(datos, filtro, todosLosGeneros);
+  const escondidos = datos.miembros.genero.length - visibles.genero.length;
+  const hayFiltro = DIMS.some((d) => sel[d].length > 0);
+  const elegido = hayFiltro
+    ? DIMS.filter((d) => sel[d].length > 0)
+        .map((d) => `${nombres[d]}: ${sel[d].join(', ')}`)
+        .join('. ')
+    : 'Todo el cubo';
 
   return (
     <>
@@ -88,7 +143,9 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
         <div className="caja__cabeza">
           <h2 id="t-kpis">KPI de lo elegido</h2>
         </div>
-        <p className="secundario text-[14px]">Toca un KPI para iluminar el cubo con él.</p>
+        <p className="secundario text-[14px]">
+          {elegido}. Toca un KPI para iluminar el cubo con él.
+        </p>
         <div className="cubo-kpis" role="group" aria-labelledby="t-kpis">
           {KPIS.map((k) => {
             const v = leerKpi(indice, k, sel);
@@ -104,7 +161,7 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
                     </small>
                   </b>
                 ) : (
-                  <b>{v === null ? 'No aplica' : k.formato(v)}</b>
+                  <b data-vacio={v === SIN_DATOS || undefined}>{textoLectura(k, v)}</b>
                 )}
               </button>
             );
@@ -118,7 +175,7 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
           <h2 id="t-cubo" className="sr-only">
             Cubo de {kpi.nombre.toLowerCase()}
           </h2>
-          <Escena datos={datos} indice={indice} kpi={kpi} sel={sel} separar={separar} nombres={nombres} onCelda={setSel} />
+          <Escena visibles={visibles} filtro={filtro} indice={indice} kpi={kpi} sel={sel} nombres={nombres} onCelda={(c) => setSel(c, true)} />
         </section>
 
         <section className="caja cubo-controles" aria-labelledby="t-recorte">
@@ -136,10 +193,20 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
                   </button>
                 ))}
               </div>
+              {d === 'genero' && datos.miembros.genero.length > GENEROS_A_LA_VISTA && sel.genero.length === 0 ? (
+                <label className="cubo-casilla">
+                  <input type="checkbox" checked={todosLosGeneros} onChange={(e) => setTodosLosGeneros(e.target.checked)} /> Ver los {datos.miembros.genero.length} géneros en el cubo
+                </label>
+              ) : null}
+              {d === 'genero' && escondidos > 0 ? (
+                <p className="secundario text-[14px]">
+                  El cubo dibuja los {visibles.genero.length} con más pedidos y votos; «Todos» suma también {escondidos === 1 ? 'el que no se ve' : `los ${escondidos} que no se ven`}.
+                </p>
+              ) : null}
             </fieldset>
           ))}
           <div className="cubo-operaciones">
-            <Tecla onClick={() => setSel(rollUp(sel, orden))} disabled={DIMS.every((d) => sel[d].length === 0)}>
+            <Tecla onClick={() => setSel(rollUp(sel, orden))} disabled={!hayFiltro}>
               Roll-up
             </Tecla>
             <Tecla onClick={() => setSel(drillDown(sel, datos.miembros))} disabled={DIMS.every((d) => sel[d].length > 0)}>
@@ -148,13 +215,10 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
             <Tecla onClick={() => setPivot((p) => !p)} aria-pressed={pivot}>
               Pivot
             </Tecla>
-            <Tecla onClick={() => setSel(SIN_SELECCION)} disabled={DIMS.every((d) => sel[d].length === 0)}>
-              Limpiar
+            <Tecla onClick={() => setSel(SIN_SELECCION)} disabled={!hayFiltro}>
+              Restablecer filtros
             </Tecla>
           </div>
-          <label className="cubo-separar">
-            <input type="checkbox" checked={separar} onChange={(e) => setSeparar(e.target.checked)} /> Separar la capa elegida
-          </label>
         </section>
       </div>
 
@@ -164,13 +228,14 @@ function Laboratorio({ datos }: { datos: CuboAnalitica }) {
 }
 
 function Escena({
-  datos, indice, kpi, sel, separar, nombres, onCelda,
+  visibles, filtro, indice, kpi, sel, nombres, onCelda,
 }: {
-  datos: CuboAnalitica;
+  visibles: Record<Dim, string[]>;
+  /** Lo que recorta la escena (los filtros); `sel` solo resalta. */
+  filtro: Seleccion;
   indice: ReturnType<typeof indiceCeldas>;
   kpi: Kpi;
   sel: Seleccion;
-  separar: boolean;
   nombres: Record<Dim, string>;
   onCelda: (s: Seleccion) => void;
 }) {
@@ -184,17 +249,18 @@ function Escena({
     if (el) aplicar();
   };
 
-  const ejes = { g: [...datos.miembros.genero, TODOS_CUBO], f: [...datos.miembros.franja, TODOS_CUBO], t: [...datos.miembros.tercero, TODOS_CUBO] };
-  const maximo = Math.max(1, ...datos.celdas.filter((c) => c.genero !== TODOS_CUBO && c.franja !== TODOS_CUBO && c.tercero !== TODOS_CUBO).map((c) => kpi.valor(c) ?? 0));
-  const hay = DIMS.some((d) => sel[d].length > 0);
-  const desplazamiento = (lista: string[], elegidos: string[], m: string) => {
-    if (!separar || elegidos.length !== 1) return 0;
-    const i = lista.indexOf(m);
-    const e = lista.indexOf(elegidos[0]!);
-    return i === e ? 0 : Math.sign(i - e) * 0.9;
+  // Un eje filtrado muestra solo lo elegido: su «Todos» ya no sería el total de lo que se ve.
+  const conTodos = (d: Dim) => (filtro[d].length > 0 ? visibles[d] : [...visibles[d], TODOS_CUBO]);
+  const ejes = { g: conTodos('genero'), f: conTodos('franja'), t: conTodos('tercero') };
+  // La escala va con lo que se ve: un género escondido no apaga a los demás.
+  const valorDe = (g: string, f: string, t: string) => {
+    const c = indice.get(claveCelda(g, f, t));
+    return c ? (kpi.valor(c) ?? 0) : 0;
   };
-
+  const maximo = Math.max(1, ...visibles.genero.flatMap((g) => visibles.franja.flatMap((f) => visibles.tercero.map((t) => valorDe(g, f, t)))));
+  const hay = DIMS.some((d) => sel[d].length > 0);
   const nombreDe = (m: string, d: Dim) => (m === TODOS_CUBO ? `Todo ${nombres[d].toLowerCase()}` : m);
+  const celdasPorLado = Math.max(ejes.g.length, ejes.f.length, ejes.t.length);
 
   const alSoltar = (e: PointerEvent<HTMLDivElement>) => {
     const a = arrastre.current;
@@ -218,6 +284,7 @@ function Escena({
     <>
       <div
         className="cubo-escena"
+        ref={conVariables({ '--celdas': String(celdasPorLado) })}
         role="img"
         tabIndex={0}
         aria-label={`Cubo de ${kpi.nombre.toLowerCase()} por ${nombres.genero.toLowerCase()}, ${nombres.franja.toLowerCase()} y ${nombres.tercero.toLowerCase()}. Gíralo con las flechas. Los mismos datos están en la tabla de abajo.`}
@@ -268,13 +335,14 @@ function Escena({
                 const v = c ? kpi.valor(c) : null;
                 const total = g === TODOS_CUBO || f === TODOS_CUBO || t === TODOS_CUBO;
                 const activo = hay && dentro(sel, g, f, t);
-                const x = ifr - (ejes.f.length - 1) / 2 + desplazamiento(ejes.f, sel.franja, f);
-                const y = ig - (ejes.g.length - 1) / 2 + desplazamiento(ejes.g, sel.genero, g);
-                const z = (ejes.t.length - 1) / 2 - it - desplazamiento(ejes.t, sel.tercero, t);
+                const x = ifr - (ejes.f.length - 1) / 2;
+                const y = ig - (ejes.g.length - 1) / 2;
+                const z = (ejes.t.length - 1) / 2 - it;
                 const luz = luzDe(total || v === null ? 0 : v / maximo);
                 const variables = { '--x': String(x), '--y': String(y), '--z': String(z), '--brillo': luz.brillo.toFixed(3) };
-                const texto = v === null ? '–' : kpi.formato(v).replace(' min', 'm').replace(' %', '%');
-                const lectura = `${v === null ? 'Sin dato' : kpi.formato(v)}: ${nombreDe(g, 'genero')}, ${nombreDe(f, 'franja')}, ${nombreDe(t, 'tercero')}`;
+                // Sin celda no hay hechos: un cubo hueco, distinto de un 0 (que sí es una celda).
+                const texto = !c ? '' : v === null ? '–' : kpi.formato(v).replace(' min', 'm').replace(' %', '%');
+                const lectura = `${!c ? 'Sin datos' : v === null ? 'No aplica' : kpi.formato(v)}: ${nombreDe(g, 'genero')}, ${nombreDe(f, 'franja')}, ${nombreDe(t, 'tercero')}`;
                 return (
                   <div
                     key={`${g}|${f}|${t}`}
@@ -284,6 +352,7 @@ function Escena({
                     data-f={f}
                     data-t={t}
                     data-lectura={lectura}
+                    data-vacio={!c || undefined}
                     data-total={total || undefined}
                     data-encendido={luz.encendido || undefined}
                     data-activo={activo || undefined}
@@ -301,7 +370,8 @@ function Escena({
       </div>
       <div className="cubo-pie">
         <p className="cubo-lectura" aria-live="off">
-          {lectura ?? `Arrastra para girar. Toca un cubito para ver su celda. Vertical: ${nombres.genero}. Horizontal: ${nombres.franja}. Fondo: ${nombres.tercero}.`}
+          {lectura ??
+            `Arrastra para girar. Toca un cubito para ver su celda; los huecos no tienen datos. Vertical: ${nombres.genero}. Horizontal: ${nombres.franja}. Fondo: ${nombres.tercero}.`}
         </p>
         <div className="cubo-vistas" role="group" aria-label="Vistas del cubo">
           {Object.entries(VISTAS).map(([nombre, [x, y]]) => (
@@ -339,10 +409,9 @@ function TablaCruce({
   const listaC = de(columnas);
   const conTotalF = listaF.length > 1;
   const conTotalC = listaC.length > 1;
-  const cuerpo = listaF.flatMap((f) => listaC.map((c) => leer([f], [c]) ?? 0));
-  const maximo = Math.max(1, ...cuerpo);
+  const comoNumero = (l: Lectura) => (typeof l === 'number' ? l : 0);
+  const maximo = Math.max(1, ...listaF.flatMap((f) => listaC.map((c) => comoNumero(leer([f], [c])))));
   const textoResto = sel[resto].length > 0 ? sel[resto].join(', ') : 'todos';
-  const valor = (n: number | null) => (n === null ? 'No aplica' : kpi.formato(n));
 
   return (
     <section className="caja mt-4 cubo-tabla-caja" aria-labelledby="t-cruce">
@@ -350,7 +419,7 @@ function TablaCruce({
         <h2 id="t-cruce">{kpi.nombre} por {nombres[filas].toLowerCase()} y {nombres[columnas].toLowerCase()}</h2>
       </div>
       <p className="secundario text-[14px]">
-        {nombres[resto]}: {textoResto}.
+        {nombres[resto]}: {textoResto}. «Sin datos»: nadie pidió, votó ni escuchó nada ahí; un 0 sí tiene actividad.
       </p>
       <div className="cubo-tabla-marco" tabIndex={0} role="group" aria-label="Tabla de cruce, se desplaza de lado">
         <table className="tabla-datos cubo-tabla">
@@ -371,14 +440,20 @@ function TablaCruce({
                 <th scope="row">{f}</th>
                 {listaC.map((c) => {
                   const n = leer([f], [c]);
-                  const luz = luzDe((n ?? 0) / maximo);
+                  const luz = luzDe(comoNumero(n) / maximo);
                   return (
-                    <td key={c} className="num cubo-calor" ref={conVariables({ '--brillo': luz.brillo.toFixed(3) })} data-encendido={luz.encendido || undefined}>
-                      {valor(n)}
+                    <td
+                      key={c}
+                      className="num cubo-calor"
+                      ref={conVariables({ '--brillo': luz.brillo.toFixed(3) })}
+                      data-encendido={luz.encendido || undefined}
+                      data-vacio={n === SIN_DATOS || undefined}
+                    >
+                      {textoLectura(kpi, n)}
                     </td>
                   );
                 })}
-                {conTotalC ? <td className="num cubo-total">{valor(leer([f], sel[columnas]))}</td> : null}
+                {conTotalC ? <td className="num cubo-total">{textoLectura(kpi, leer([f], sel[columnas]))}</td> : null}
               </tr>
             ))}
             {conTotalF ? (
@@ -386,10 +461,10 @@ function TablaCruce({
                 <th scope="row">Total</th>
                 {listaC.map((c) => (
                   <td key={c} className="num cubo-total">
-                    {valor(leer(sel[filas], [c]))}
+                    {textoLectura(kpi, leer(sel[filas], [c]))}
                   </td>
                 ))}
-                {conTotalC ? <td className="num cubo-total">{valor(leer(sel[filas], sel[columnas]))}</td> : null}
+                {conTotalC ? <td className="num cubo-total">{textoLectura(kpi, leer(sel[filas], sel[columnas]))}</td> : null}
               </tr>
             ) : null}
           </tbody>

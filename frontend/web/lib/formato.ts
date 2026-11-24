@@ -7,12 +7,16 @@ export const ZONA_POR_DEFECTO = 'America/Bogota';
 
 const formatosHora = new Map<string, Intl.DateTimeFormat>();
 
-/** «8:00 p. m.». El espacio antes de «p. m.» no se parte al final de una línea. */
-export function formatoHora(fecha: Date | string | number, zona = ZONA_POR_DEFECTO): string {
-  let formato = formatosHora.get(zona);
+/**
+ * «8:00 p. m.», o «8:00:14 p. m.» con segundos (lo que se actualiza en vivo). El espacio antes
+ * de «p. m.» no se parte al final de una línea.
+ */
+export function formatoHora(fecha: Date | string | number, zona = ZONA_POR_DEFECTO, conSegundos = false): string {
+  const clave = `${zona}|${conSegundos}`;
+  let formato = formatosHora.get(clave);
   if (!formato) {
-    formato = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: zona });
-    formatosHora.set(zona, formato);
+    formato = new Intl.DateTimeFormat('es-CO', { hour: 'numeric', minute: '2-digit', ...(conSegundos ? { second: '2-digit' } : {}), hour12: true, timeZone: zona });
+    formatosHora.set(clave, formato);
   }
   return formato
     .format(new Date(fecha))

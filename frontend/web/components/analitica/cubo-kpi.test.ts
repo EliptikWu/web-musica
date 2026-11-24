@@ -1,6 +1,6 @@
 import { type CeldaCubo, TODOS_CUBO as T } from '@rockola/contrato';
 import { describe, expect, it } from 'vitest';
-import { alternar, drillDown, ejesDeTabla, indiceCeldas, KPIS, leerKpi, luzDe, operacion, ordenEjes, rollUp, SIN_SELECCION } from './cubo-kpi';
+import { alternar, drillDown, ejesDeTabla, indiceCeldas, KPIS, leerKpi, luzDe, miembrosVisibles, operacion, ordenEjes, rollUp, SIN_DATOS, SIN_SELECCION } from './cubo-kpi';
 
 const celda = (genero: string, franja: string, tercero: string, x: Partial<CeldaCubo>): CeldaCubo => ({
   genero, franja, tercero, solicitudes: 0, votos: 0, telefonos: 0, no_sonaron: 0, espera_promedio_seg: null, espera_maxima_seg: null,
@@ -75,5 +75,50 @@ describe('operaciones', () => {
     const s = { ...SIN_SELECCION, genero: ['Salsa'] };
     expect(ejesDeTabla(s, false)).toEqual({ filas: 'franja', columnas: 'tercero', resto: 'genero' });
     expect(ejesDeTabla(s, true)).toEqual({ filas: 'tercero', columnas: 'franja', resto: 'genero' });
+  });
+});
+
+describe('RF-067: sin datos no es cero', () => {
+  it('una combinación sin celda da «sin datos»; una celda con 0 da 0', () => {
+    const conCero = indiceCeldas([celda('Salsa', T, T, { solicitudes: 0, lista_casa_seg: 120 })]);
+    expect(leerKpi(conCero, kpi('solicitudes'), { ...SIN_SELECCION, genero: ['Salsa'] })).toBe(0);
+    expect(leerKpi(conCero, kpi('solicitudes'), { ...SIN_SELECCION, genero: ['Rock'] })).toBe(SIN_DATOS);
+    expect(leerKpi(conCero, kpi('votos'), { ...SIN_SELECCION, genero: ['Rock', 'Pop'] })).toBe(SIN_DATOS);
+  });
+
+  it('el tiempo de reproducción suma lo pedido y la lista de la casa, también en un dice', () => {
+    expect(leerKpi(indice, kpi('reproduccion'), SIN_SELECCION)).toBe(100);
+    expect(leerKpi(indice, kpi('reproduccion'), { ...SIN_SELECCION, genero: ['Salsa', 'Pop'] })).toBe(100);
+    expect(kpi('reproduccion').formato(3600)).toBe('60 min');
+  });
+
+  it('el cubo completo dice de dónde salen las noches', () => {
+    expect(operacion(SIN_SELECCION, 'vivo').detalle).toMatch(/también la que está abierta/);
+    expect(operacion(SIN_SELECCION, 'historico').detalle).toMatch(/pipeline/);
+  });
+});
+
+describe('RF-067: qué géneros dibuja el cubo', () => {
+  const generos = ['Urbano', 'Salsa', 'Pop', 'Rock', 'Tropical', 'Vallenato', 'Sin clasificar'];
+  // Vallenato es el de menos actividad: sale de la vista; los demás conservan el orden de la API.
+  const actividad: Record<string, number> = { Urbano: 9, Salsa: 8, Pop: 7, Rock: 6, Tropical: 5, Vallenato: 1, 'Sin clasificar': 4 };
+  const datos = {
+    miembros: { genero: generos, franja: ['Antes de las 9', '9 a 11 p. m.'], tercero: ['Jueves'] },
+    celdas: generos.map((g) => celda(g, T, T, { solicitudes: actividad[g]! })),
+  };
+
+  it('sin filtro, los cinco con más actividad', () => {
+    expect(miembrosVisibles(datos, SIN_SELECCION, false).genero).toEqual(['Urbano', 'Salsa', 'Pop', 'Rock', 'Tropical']);
+  });
+
+  it('se pueden ver todos', () => {
+    expect(miembrosVisibles(datos, SIN_SELECCION, true).genero).toEqual(generos);
+  });
+
+  it('con filtro, solo lo elegido, aunque esté fuera de los cinco', () => {
+    const v = miembrosVisibles(datos, { ...SIN_SELECCION, genero: ['Vallenato', 'Urbano'], franja: ['9 a 11 p. m.'] }, false);
+    expect(v.genero).toEqual(['Urbano', 'Vallenato']);
+    expect(v.franja).toEqual(['9 a 11 p. m.']);
+    expect(v.tercero).toEqual(['Jueves']);
   });
 });

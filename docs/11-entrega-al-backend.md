@@ -8,7 +8,7 @@ es la puerta de entrada.
 
 | Pieza | Dónde | Para qué |
 |---|---|---|
-| Contrato propuesto (fuente) | `packages/contrato/src/*.ts` | Esquemas zod de cada cuerpo y respuesta, y el registro de las 67 operaciones (`endpoints.ts`) |
+| Contrato propuesto (fuente) | `packages/contrato/src/*.ts` | Esquemas zod de cada cuerpo y respuesta, y el registro de las 88 operaciones (`endpoints.ts`) |
 | OpenAPI generado | `packages/contrato/generado/openapi.json` | Lo mismo en formato estándar, para generar servidor, clientes o pruebas |
 | Resumen legible | `packages/contrato/generado/endpoints.md` | Una tabla por superficie: método, ruta, rol y errores |
 | Reglas y decisiones | Doc 04 (entidades, estados, permisos, eventos, errores) y doc 03 (ADR) | Por qué el contrato es así |
@@ -123,6 +123,7 @@ base local (las variables de entorno ganan al `.env`).
 | 2026-11-21 | Plataforma de superadmin (RF-064, ADR-29) | `db/migration/V10__superadmin.sql`, `compat/ContratoPlataformaService.kt`, `compat/ContratoPlataformaController.kt`, `config/SecurityConfig.kt` | Definir en Railway `ROCKOLA_SUPERADMIN_CORREO` y `ROCKOLA_SUPERADMIN_CLAVE` antes del primer ingreso; crear un bar exige `ROKOLA_QR_BASE_URL`. Las sesiones viven en memoria: reiniciar las cierra |
 | 2026-11-21 | QR del panel y destino web o app (RF-035, RF-065, ADR-30) | `db/migration/V11__destino_qr.sql`, `compat/ContratoQrPanel.kt`, `compat/ContratoQrBarController.kt`, `compat/ContratoPantallaService.kt` | Publicar el APK y definir `ROKOLA_APK_URL` (https) y `ROKOLA_WEB_URL` (la web, sin ruta). `ROKOLA_QR_BASE_URL` debería ser también la web |
 | 2026-11-21 | Dirección y horario de cada bar en la lista de la plataforma (RF-064) | `compat/ContratoPlataformaService.kt` | Sin migración y solo lectura. Compilado, sin probar contra una base. Lee las columnas que ya usan `ContratoEstablecimientoService` y `ContratoHorarioService` |
+| 2026-11-24 | Errores con forma de contrato otra vez en la analítica, la plataforma y el QR del panel (D21) | `compat/ContratoError.kt` | Los PR #11 a #14 cambiaron la lista de `ContratoErrorAdvice` y sacaron `ContratoAnaliticaController`, `ContratoPlataformaController` y `ContratoQrPanelController`: sus 400, 401 y 403 salían sin `{ codigo, mensaje }` y el panel no sabía que la sesión había vencido. Se devolvieron a la lista junto a `ContratoGenerosController`. Compilado, sin probar contra una base. Doc 04, pendiente 26 |
 
 ## Lo que el frontend no hace
 

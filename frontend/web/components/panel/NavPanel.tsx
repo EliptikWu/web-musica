@@ -12,6 +12,7 @@ const SECCIONES: { href: string; texto: string; icono: NombreIcono; permiso: Acc
   { href: '/panel', texto: P.operacion, icono: 'reproducir', permiso: 'verOperacion' },
   { href: '/panel/horario', texto: 'Horario', icono: 'reloj', permiso: 'gestion' },
   { href: '/panel/listas', texto: 'Listas de la casa', icono: 'lista', permiso: 'gestion' },
+  { href: '/panel/canciones', texto: 'Canciones', icono: 'pedidos', permiso: 'gestion' },
   { href: '/panel/bloqueos', texto: 'Bloqueos', icono: 'bloquear', permiso: 'desbloquear' },
   { href: '/panel/bitacora', texto: 'Bitácora', icono: 'libro', permiso: 'bitacora' },
   { href: '/panel/usuarios', texto: 'Personal', icono: 'usuario', permiso: 'gestion' },

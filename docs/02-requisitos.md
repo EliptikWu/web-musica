@@ -160,6 +160,8 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-064 | Plataforma: crear bares y sus cuentas (nuevo, 2026-11-21) | Must | — | 24 | F+B |
 | RF-065 | Destino del QR: web o descargar la app (nuevo, 2026-11-21) | Should | — | 26 | F+B |
 | RF-066 | Escanear el QR del bar desde la app Android (nuevo, 2026-11-21) | Should | — | 29 | F |
+| RF-067 | Cubo en vivo, con la noche abierta (nuevo, 2026-11-24) | Should | PB-45 | 31 | F+B |
+| RF-068 | Catálogo de canciones: corregir el género a mano (nuevo, 2026-11-24) | Should | PB-47 | 31 | F+B |
 
 **RF-066 — Escanear el QR desde la app.** Añadido el 2026-11-21 (D20). La app Android abre la cámara
 con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Criterios:
@@ -196,6 +198,29 @@ el cubo.
 - Los agregados los calcula Spark con `cube`. Los KPI no aditivos (usuarios únicos, espera,
   cumplimiento y canción más popular) **no se suman**: cada subtotal se calcula desde los hechos.
 - Muestra el origen y la fecha de los datos (RNF-015) y solo lo ve el Administrador.
+- *Nota (2026-11-24, D21):* el cubo **histórico** sigue saliendo de Spark. El cubo **en vivo**
+  (RF-067) lo calcula el backend con `CUBE` en PostgreSQL al consultarlo, con las mismas reglas.
+
+**RF-067 — Cubo en vivo.** Añadido el 2026-11-24 (D21), a pedido del equipo de backend, para que
+en la presentación se vea el cubo cambiar cuando alguien pide o vota. Criterios:
+- El cubo se ve **en vivo** (por defecto: todas las noches, también la abierta) o **histórico**
+  (lo que cargó el pipeline). La pantalla dice cuál es: «Datos en vivo» con la luz encendida y
+  la hora de la última actualización, o el origen y la fecha de la carga (RNF-015).
+- En vivo se actualiza solo, sin recargar, en ≤ 3 s después de un pedido o voto (RNF-009), con
+  el aviso `panel: ["analitica"]` del tiempo real. Varios avisos seguidos no repiten peticiones.
+- El cubo dibuja de entrada los 5 géneros con más pedidos y votos; se pueden ver todos o elegir
+  cualquiera con los filtros, y con filtro solo se dibuja lo elegido. El tamaño se ajusta solo.
+- Una combinación sin datos (ninguna celda) se distingue de un 0: cubo hueco y «Sin datos».
+- Suma el KPI «Tiempo de reproducción» (lo pedido más la lista de la casa).
+
+**RF-068 — Catálogo de canciones.** Añadido el 2026-11-24 (D21). El Administrador ve las canciones
+que usó su bar (pedidas, en listas, bloqueadas o que sonaron) con su género y quién se lo puso
+(clasificación automática o a mano). Criterios:
+- Filtro «Sin género» (por defecto) o «Todas», y búsqueda por título o artista.
+- Elige un género del catálogo del backend y lo guarda; la fila cambia sin recargar y un aviso
+  confirma. El backend la marca `MANUAL` y la clasificación automática ya no la cambia.
+- El cubo en vivo la cuenta de inmediato; el histórico, cuando vuelva a correr el pipeline.
+- Queda en la bitácora. Solo el Administrador; el Operador no la ve.
 
 ### Módulo 9. Funcionalidades opcionales
 

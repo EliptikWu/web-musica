@@ -1,5 +1,6 @@
 import type { UmbralesAnalitica } from '@rockola/contrato';
-import { comparar, cubo, diagnostico, type Filtro, nochesDeEjemplo, origenDatos, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from '../analitica';
+import { comparar, cubo, cuboVivo, diagnostico, pedidasEnEjemplo, type Filtro, nochesDeEjemplo, origenDatos, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from '../analitica';
+import { categoriaDe, corregirCategoria, GENEROS_CATALOGO, listarCatalogo } from '../categorias';
 import { anotar } from '../gestion';
 import { error, manejar, ok, type Peticion } from './comun';
 
@@ -58,6 +59,22 @@ export const manejadoresAnalitica = [
   manejar('cuboAnalitica', (p) => {
     const eje = p.consulta.get('eje') ?? 'dia';
     if (eje !== 'dia' && eje !== 'evento') return error(400, 'datos_invalidos', 'El tercer eje es día o evento');
-    return ok(cubo(nochesDeEjemplo(p.estado), eje));
+    const fuente = p.consulta.get('fuente') ?? 'vivo';
+    if (fuente === 'historico') return ok(cubo(nochesDeEjemplo(p.estado), eje));
+    if (fuente !== 'vivo') return error(400, 'datos_invalidos', 'La fuente debe ser vivo o historico');
+    return ok(cuboVivo(p.estado, p.ahora, eje, (video) => categoriaDe(p.estado, video).categoria ?? 'Sin clasificar'));
   }),
+  // RF-068: el catálogo de canciones del bar y su género.
+  manejar('generos', () => ok(GENEROS_CATALOGO)),
+  manejar('cancionesPanel', (p) => {
+    const limite = Number(p.consulta.get('limite') ?? '50');
+    return ok(listarCatalogo(p.estado, pedidasEnEjemplo(p.estado), {
+      soloSinCategoria: p.consulta.get('soloSinCategoria') !== 'false',
+      q: p.consulta.get('q') ?? '',
+      limite: Number.isFinite(limite) ? limite : 50,
+    }));
+  }),
+  manejar('corregirCategoria', (p) =>
+    corregirCategoria(p.estado, pedidasEnEjemplo(p.estado), p.ahora, { id: p.personal!.id, nombre: p.personal!.nombre }, p.parametros.id ?? '', (p.cuerpo as { categoria?: unknown } | null)?.categoria),
+  ),
 ];

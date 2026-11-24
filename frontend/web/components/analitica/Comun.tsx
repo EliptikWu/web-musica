@@ -113,7 +113,7 @@ export function MarcoAnalitica({ children }: { children: ReactNode }) {
     return q ? `${href}?${q}` : href;
   };
   return (
-    <PaginaGestion titulo="Tablero analítico" nota="Cómo funcionaron las noches cerradas: lo que se pidió, lo que sonó y qué conviene ajustar.">
+    <PaginaGestion titulo="Tablero analítico" nota="Cómo funcionan las noches del bar: lo que se pidió, lo que sonó y qué conviene ajustar. El cubo también se puede ver en vivo.">
       <nav className="analitica-nav" aria-label="Partes del tablero">
         {PARTES.map((p) => (
           <Link key={p.href} href={enlace(p.href)} aria-current={ruta === p.href ? 'page' : undefined}>

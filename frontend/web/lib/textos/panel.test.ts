@@ -62,3 +62,10 @@ describe('franja de estado', () => {
     expect(franjaEstado('en_pausa', null, null, null, false, 'America/Bogota').titulo).toBe('En pausa, no se reciben canciones nuevas');
   });
 });
+
+describe('RF-068: el género corregido en la bitácora', () => {
+  it('dice la canción y el género, sin la frase del backend', () => {
+    const a = { ...accion('z', '23:10', 'editar_categoria', 'Rebelión', 'Joe Arroyo'), detalle: 'Asignó género: Salsa' };
+    expect(fraseAccion(a, 'u-admin')).toBe('Cambiaste el género de «Rebelión», de Joe Arroyo a Salsa');
+  });
+});

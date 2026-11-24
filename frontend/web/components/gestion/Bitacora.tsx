@@ -24,6 +24,7 @@ const TIPOS: { valor: '' | TipoAccion; texto: string }[] = [
   { valor: 'editar_lista', texto: 'Cambios en listas' },
   { valor: 'crear_usuario', texto: 'Usuarios creados' },
   { valor: 'editar_umbrales', texto: 'Umbrales del tablero' },
+  { valor: 'editar_categoria', texto: 'Géneros de canciones' },
   { valor: 'error_youtube', texto: 'Errores de YouTube' },
   { valor: 'intento_no_permitido', texto: 'Intentos sin permiso' },
 ];

@@ -30,6 +30,9 @@ function huellas(estado: EstadoSim, ahora: number): Record<RecursoPanel, string>
     establecimiento: JSON.stringify([estado.bar, estado.qr.token]),
     eventos: JSON.stringify(estado.eventos),
     pantallas: JSON.stringify(estado.pantallas),
+    // RF-067: el cubo en vivo se mueve con la cola (pedidos, votos, lo que suena) y con cada
+    // género corregido; como el backend, avisa sin mandar datos.
+    analitica: JSON.stringify([estado.solicitudes.map((s) => [s.id, s.estado, s.votos.length]), estado.historial.length, estado.reproduccion?.id ?? null, estado.categorias ?? {}]),
   };
 }
 

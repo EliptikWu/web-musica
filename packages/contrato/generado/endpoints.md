@@ -93,7 +93,10 @@
 | `guardarUmbrales` | `PUT /panel/analitica/umbrales` | `UmbralesAnalitica` → `UmbralesAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-052 |
 | `compararAnalitica` | `GET /panel/analitica/comparacion?agrupar&noches&desde&hasta` | `ComparacionAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-053 |
 | `recomendacionesAnalitica` | `GET /panel/analitica/recomendaciones?noche&desde&hasta&dia_semana` | `ListaRecomendaciones` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-054 |
-| `cuboAnalitica` | `GET /panel/analitica/cubo?eje` | `CuboAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-063 |
+| `cuboAnalitica` | `GET /panel/analitica/cubo?eje&fuente` | `CuboAnalitica` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos` | RF-063, RF-067 |
+| `generos` | `GET /panel/generos` | `RespuestaGeneros` | administrador | `no_autenticado`, `sin_permiso` | RF-068 |
+| `cancionesPanel` | `GET /panel/canciones?soloSinCategoria&q&limite` | `RespuestaCancionesPanel` | administrador | `no_autenticado`, `sin_permiso` | RF-068 |
+| `corregirCategoria` | `PATCH /panel/canciones/{id}/categoria` | `CuerpoCategoria` → `CategoriaCorregida` | administrador | `no_autenticado`, `sin_permiso`, `datos_invalidos`, `no_encontrado` | RF-068 |
 
 ## Plataforma
 

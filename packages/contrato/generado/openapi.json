@@ -518,6 +518,65 @@
           "miniatura_url"
         ]
       },
+      "CancionCatalogo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "youtube_video_id": {
+            "type": "string"
+          },
+          "titulo": {
+            "type": "string"
+          },
+          "artista": {
+            "nullable": true,
+            "type": "string"
+          },
+          "categoria": {
+            "nullable": true,
+            "description": "El género; `null` = sin clasificar",
+            "type": "string"
+          },
+          "origen_categoria": {
+            "$ref": "#/components/schemas/OrigenCategoria"
+          },
+          "pedidos": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Solicitudes de la canción en este bar"
+          }
+        },
+        "required": [
+          "id",
+          "youtube_video_id",
+          "titulo",
+          "artista",
+          "categoria",
+          "origen_categoria",
+          "pedidos"
+        ]
+      },
+      "CategoriaCorregida": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id"
+          },
+          "categoria": {
+            "type": "string"
+          },
+          "origen_categoria": {
+            "$ref": "#/components/schemas/OrigenCategoria"
+          }
+        },
+        "required": [
+          "id",
+          "categoria",
+          "origen_categoria"
+        ]
+      },
       "CausaNoSono": {
         "type": "string",
         "enum": [
@@ -998,6 +1057,19 @@
         },
         "required": [
           "video_id"
+        ]
+      },
+      "CuerpoCategoria": {
+        "type": "object",
+        "properties": {
+          "categoria": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Un género de `GET /panel/generos`"
+          }
+        },
+        "required": [
+          "categoria"
         ]
       },
       "CuerpoClavePlataforma": {
@@ -1730,6 +1802,13 @@
           "activo"
         ]
       },
+      "FuenteCubo": {
+        "type": "string",
+        "enum": [
+          "vivo",
+          "historico"
+        ]
+      },
       "HoraDelDia": {
         "type": "string",
         "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
@@ -2429,6 +2508,16 @@
           "evento"
         ]
       },
+      "OrigenCategoria": {
+        "nullable": true,
+        "type": "string",
+        "enum": [
+          "ETIQUETAS",
+          "TITULO",
+          "DESCRIPCION",
+          "MANUAL"
+        ]
+      },
       "OrigenDatos": {
         "type": "object",
         "properties": {
@@ -2471,6 +2560,23 @@
                 "$ref": "#/components/schemas/Fecha"
               }
             ]
+          },
+          "fuente": {
+            "description": "Solo el cubo en vivo (RF-067): `operativa` = calculado ahora desde las tablas de la operación",
+            "type": "string",
+            "enum": [
+              "operativa",
+              "pipeline"
+            ]
+          },
+          "en_vivo": {
+            "description": "`true` en el cubo en vivo: incluye la noche abierta y `actualizado_en` es la hora de la consulta",
+            "type": "boolean"
+          },
+          "sesiones_abiertas": {
+            "description": "Solo en vivo: noches abiertas ahora mismo",
+            "type": "integer",
+            "minimum": 0
           }
         },
         "required": [
@@ -2746,8 +2852,10 @@
           "usuarios",
           "establecimiento",
           "eventos",
-          "pantallas"
-        ]
+          "pantallas",
+          "analitica"
+        ],
+        "description": "`analitica`: cambió algo que mueve el cubo en vivo (RF-067); llega con cada pedido o voto"
       },
       "ReportePantalla": {
         "type": "object",
@@ -2851,6 +2959,12 @@
           "apk_url"
         ]
       },
+      "RespuestaCancionesPanel": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/CancionCatalogo"
+        }
+      },
       "RespuestaDestacadas": {
         "type": "object",
         "properties": {
@@ -2865,6 +2979,12 @@
         "required": [
           "destacadas"
         ]
+      },
+      "RespuestaGeneros": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "RespuestaRetiroPedido": {
         "type": "object",
@@ -3206,6 +3326,7 @@
           "editar_umbrales",
           "vincular_pantalla",
           "desvincular_pantalla",
+          "editar_categoria",
           "error_youtube",
           "intento_no_permitido"
         ]
@@ -8590,7 +8711,7 @@
         "tags": [
           "panel"
         ],
-        "description": "Requisitos: RF-063. Rol mínimo: administrador.",
+        "description": "Requisitos: RF-063, RF-067. Rol mínimo: administrador.",
         "security": [
           {
             "sesionPanel": []
@@ -8599,6 +8720,14 @@
         "parameters": [
           {
             "name": "eje",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fuente",
             "in": "query",
             "required": false,
             "schema": {
@@ -8639,6 +8768,214 @@
           },
           "403": {
             "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/generos": {
+      "get": {
+        "operationId": "generos",
+        "summary": "Géneros que se pueden asignar a una canción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-068. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaGeneros"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/canciones": {
+      "get": {
+        "operationId": "cancionesPanel",
+        "summary": "Canciones del bar con su género (sin paginar)",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-068. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "soloSinCategoria",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaCancionesPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/canciones/{id}/categoria": {
+      "patch": {
+        "operationId": "corregirCategoria",
+        "summary": "Corregir a mano el género de una canción",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-068. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CuerpoCategoria"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoriaCorregida"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_encontrado",
             "content": {
               "application/json": {
                 "schema": {

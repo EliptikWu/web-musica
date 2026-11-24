@@ -5,7 +5,7 @@ import {
 import { localAIso, nombreGenero } from '../lib/formato';
 import { CATALOGO, LISTA_SALSA_Y_TROPICAL } from './datos/catalogo';
 import { aContrato, bloqueoVigente } from './motor';
-import type { CancionSim, EstadoSim } from './tipos';
+import type { CancionSim, EstadoSim, SolicitudSim } from './tipos';
 
 /**
  * El tablero analítico de la simulación (RF-049 a RF-054). Todo es **dato de ejemplo**
@@ -29,7 +29,8 @@ type SolicitudA = {
   dispositivo: string;
   pedida: number;
   votos: { en: number; dispositivo: string }[];
-  estado: 'sono' | Causa;
+  /** `pendiente`: sigue en la cola de una noche abierta (solo en el cubo en vivo). */
+  estado: 'sono' | 'pendiente' | Causa;
   inicio: number | null;
 };
 type ReproduccionA = { inicio: number; video_id: string; origen: 'solicitud' | 'lista_casa'; votos: number; segundos: number };
@@ -487,18 +488,110 @@ type Acumulado = {
   pedidos_seg: number; lista_casa_seg: number; canciones: Map<string, { votos: number; solicitudes: number }>;
 };
 
+const NOMBRE_TIPO: Record<string, string> = { normal: 'Normal', karaoke: 'Karaoke', partido: 'Partido', tematica: 'Temática', otro: 'Otro' };
+const EVENTOS_CUBO = ['Normal', 'Karaoke', 'Partido', 'Temática', 'Otro'];
+const tipoDe = (n: NocheA) => n.noche.evento?.tipo_evento ?? 'normal';
+const generoDelCatalogo = (video: string) => nombreGenero(CATALOGO[video]!.genero === 'sin_clasificar' ? null : CATALOGO[video]!.genero);
+
+/**
+ * El cubo histórico: lo que carga el pipeline de Spark. Para que se pueda leer, deja los tres
+ * géneros y los tres tipos de evento con más peso y agrupa el resto en «Otros».
+ */
 export function cubo(todas: NocheA[], eje: 'dia' | 'evento'): CuboAnalitica {
-  const generoDe = (video: string) => nombreGenero(CATALOGO[video]!.genero === 'sin_clasificar' ? null : CATALOGO[video]!.genero);
-  const tipoDe = (n: NocheA) => n.noche.evento?.tipo_evento ?? 'normal';
   const pesosGenero = new Map<string, number>();
-  for (const n of todas) for (const s of n.solicitudes) pesosGenero.set(generoDe(s.video_id), (pesosGenero.get(generoDe(s.video_id)) ?? 0) + 1);
+  for (const n of todas) for (const s of n.solicitudes) pesosGenero.set(generoDelCatalogo(s.video_id), (pesosGenero.get(generoDelCatalogo(s.video_id)) ?? 0) + 1);
   const generos = principales(pesosGenero, 3);
   const pesosEvento = new Map<string, number>();
   for (const n of todas) pesosEvento.set(tipoDe(n), (pesosEvento.get(tipoDe(n)) ?? 0) + 1);
   const eventos = principales(pesosEvento, 3);
-  const NOMBRE_TIPO: Record<string, string> = { normal: 'Normal', karaoke: 'Karaoke', partido: 'Partido', tematica: 'Temática', otro: 'Otro' };
-  const generoCubo = (video: string) => (generos.has(generoDe(video)) ? generoDe(video) : 'Otros');
-  const terceroDe = (n: NocheA) => (eje === 'dia' ? diaCubo(n.noche.dia_semana) : eventos.has(tipoDe(n)) ? NOMBRE_TIPO[tipoDe(n)]! : 'Otros');
+  return armarCubo(todas, eje, {
+    datos: origenDatos(todas, todas),
+    generoDe: (video) => (generos.has(generoDelCatalogo(video)) ? generoDelCatalogo(video) : 'Otros'),
+    terceroDe: (n) => (eje === 'dia' ? diaCubo(n.noche.dia_semana) : eventos.has(tipoDe(n)) ? NOMBRE_TIPO[tipoDe(n)]! : 'Otros'),
+    ordenTercero: eje === 'dia' ? DIAS_CUBO : null,
+  });
+}
+
+/**
+ * RF-067: el cubo en vivo, como `ContratoCuboVivoService` del backend. Se calcula al pedirlo
+ * con todas las noches, incluida la abierta, y con el género de hoy (las correcciones del panel
+ * cuentan de inmediato). Sin «Otros»: todos los géneros, los siete días y los cinco tipos de evento.
+ */
+export function cuboVivo(estado: EstadoSim, ahora: number, eje: 'dia' | 'evento', generoDe: (video: string) => string): CuboAnalitica {
+  const todas = [...nochesDeEjemplo(estado), ...nochesDeLaSimulacion(estado, ahora)];
+  return armarCubo(todas, eje, {
+    datos: {
+      origen: 'ejemplo', fuente: 'operativa', en_vivo: true, actualizado_en: new Date(ahora).toISOString(), noches: todas.length,
+      sesiones_abiertas: estado.sesion ? 1 : 0, desde: null, hasta: new Date(ahora).toISOString(),
+    },
+    generoDe,
+    terceroDe: (n) => (eje === 'dia' ? DIAS[n.noche.dia_semana]! : (NOMBRE_TIPO[tipoDe(n)] ?? 'Otro')),
+    ordenTercero: eje === 'dia' ? DIAS.slice(1) : EVENTOS_CUBO,
+  });
+}
+
+/** Cuántas veces se pidió cada canción en las noches de ejemplo (para el catálogo, RF-068). */
+export function pedidasEnEjemplo(estado: EstadoSim): Map<string, number> {
+  const pedidas = new Map<string, number>();
+  for (const n of nochesDeEjemplo(estado)) for (const s of n.solicitudes) pedidas.set(s.video_id, (pedidas.get(s.video_id) ?? 0) + 1);
+  return pedidas;
+}
+
+const CAUSA_SIM: Partial<Record<SolicitudSim['estado'], Causa>> = { saltada: 'omitida', bloqueada: 'bloqueada', retirada: 'retirada', no_disponible: 'no_disponible', expirada: 'fuera_de_tiempo' };
+
+/**
+ * Las noches que se jugaron en la simulación, abierta incluida, con la forma de las de ejemplo.
+ * La simulación no guarda la hora de cada voto: cuenta en la franja de su solicitud.
+ */
+function nochesDeLaSimulacion(estado: EstadoSim, ahora: number): NocheA[] {
+  const zona = estado.bar.zona_horaria;
+  const porSesion = new Map<string, SolicitudSim[]>();
+  for (const s of estado.solicitudes) porSesion.set(s.sesion_id, [...(porSesion.get(s.sesion_id) ?? []), s]);
+  if (estado.sesion && !porSesion.has(estado.sesion.id)) porSesion.set(estado.sesion.id, []);
+  return [...porSesion.entries()].map(([id, solicitudes]): NocheA => {
+    const abierta = estado.sesion?.id === id;
+    const inicio = abierta ? estado.sesion!.apertura : Math.min(...solicitudes.map((s) => s.fecha));
+    const tipo = abierta ? estado.sesion!.tipo_evento : 'normal';
+    const reproducciones: ReproduccionA[] = estado.historial
+      .filter((h) => h.sesion_id === id)
+      .map((h) => ({ inicio: h.inicio, video_id: h.video_id, origen: h.origen, votos: 0, segundos: Math.round((h.fin - h.inicio) / 1000) }));
+    const r = estado.reproduccion;
+    if (abierta && r) {
+      const segundos = Math.round(r.acumulado_seg + (r.reanudada_en === null ? 0 : (ahora - r.reanudada_en) / 1000));
+      reproducciones.push({ inicio: r.inicio, video_id: r.video_id, origen: r.origen, votos: 0, segundos });
+    }
+    const estadoDe = (s: SolicitudSim): SolicitudA['estado'] => {
+      if (s.estado === 'reproducida' || s.estado === 'reproduciendo') return 'sono';
+      if (s.estado === 'pendiente') return abierta ? 'pendiente' : 'fuera_de_tiempo';
+      return CAUSA_SIM[s.estado] ?? 'omitida';
+    };
+    return {
+      noche: { id, inicio: new Date(inicio).toISOString(), fin: new Date(ahora).toISOString(), dia_semana: diaSemana(fechaLocal(inicio, zona)), evento: tipo === 'normal' ? null : { id, nombre: tipo, tipo_evento: tipo as NonNullable<NocheAnalitica['evento']>['tipo_evento'] } },
+      zona,
+      inicio,
+      fin: ahora,
+      solicitudes: solicitudes.map((s) => ({
+        id: s.id, video_id: s.video_id, dispositivo: s.dispositivo, pedida: s.fecha, inicio: s.inicio,
+        votos: s.votos.map((d) => ({ en: s.fecha, dispositivo: d })),
+        estado: estadoDe(s),
+      })),
+      reproducciones,
+      pedidos_seg: 0,
+      casa_seg: 0,
+    };
+  });
+}
+
+type ReglasCubo = {
+  datos: OrigenDatos;
+  generoDe: (video: string) => string;
+  terceroDe: (n: NocheA) => string;
+  /** Orden fijo del tercer eje; `null`: por peso, con «Otros» al final. */
+  ordenTercero: string[] | null;
+};
+
+function armarCubo(todas: NocheA[], eje: 'dia' | 'evento', reglas: ReglasCubo): CuboAnalitica {
+  const { generoDe: generoCubo, terceroDe } = reglas;
 
   // Cada hecho entra en sus 8 celdas (cada eje, con su valor o con «Todos»): nada se suma después.
   const celdas = new Map<string, { g: string; f: string; t: string; a: Acumulado }>();
@@ -526,7 +619,7 @@ export function cubo(todas: NocheA[], eje: 'dia' | 'evento'): CuboAnalitica {
         a.solicitudes += 1;
         a.telefonos.add(s.dispositivo);
         deCancion(a, s.video_id).solicitudes += 1;
-        if (s.estado !== 'sono') a.no_sonaron += 1;
+        if (s.estado !== 'sono' && s.estado !== 'pendiente') a.no_sonaron += 1;
         if (s.inicio !== null) {
           const espera = Math.max(0, Math.round((s.inicio - s.pedida) / 1000));
           a.espera += espera;
@@ -560,15 +653,16 @@ export function cubo(todas: NocheA[], eje: 'dia' | 'evento'): CuboAnalitica {
     };
   });
   const presentes = (clave: 'genero' | 'franja' | 'tercero') => new Set(salida.map((c) => c[clave]).filter((m) => m !== TODOS_CUBO));
-  const otrosAlFinal = (a: string, b: string) => Number(a.startsWith('Otros')) - Number(b.startsWith('Otros'));
+  const alFinal = (m: string) => m.startsWith('Otros') || m === 'Sin clasificar';
+  const otrosAlFinal = (a: string, b: string) => Number(alFinal(a)) - Number(alFinal(b));
   const peso = (clave: 'genero' | 'tercero', m: string) => salida.find((c) => c[clave] === m && [c.genero, c.franja, c.tercero].filter((x) => x === TODOS_CUBO).length === 2)?.solicitudes ?? 0;
   return {
-    datos: origenDatos(todas, todas),
+    datos: reglas.datos,
     eje,
     miembros: {
       genero: [...presentes('genero')].sort((a, b) => otrosAlFinal(a, b) || peso('genero', b) - peso('genero', a)),
       franja: FRANJAS_CUBO.filter((f) => presentes('franja').has(f)),
-      tercero: eje === 'dia' ? DIAS_CUBO.filter((d) => presentes('tercero').has(d)) : [...presentes('tercero')].sort((a, b) => otrosAlFinal(a, b) || peso('tercero', b) - peso('tercero', a)),
+      tercero: reglas.ordenTercero ? reglas.ordenTercero.filter((d) => presentes('tercero').has(d)) : [...presentes('tercero')].sort((a, b) => otrosAlFinal(a, b) || peso('tercero', b) - peso('tercero', a)),
     },
     celdas: salida,
   };

@@ -116,8 +116,11 @@
   @media (max-width: 1000px) { .cubo-lab { grid-template-columns: minmax(0, 1fr); } }
   .cubo-escena-caja { display: flex; flex-direction: column; min-width: 0; padding: 0; overflow: hidden; }
 
+  /* RF-067: el lado se achica con las celdas por arista (--celdas, desde el componente) para que
+     el cubo quepa siempre en la escena, tenga 4 géneros o 15. */
   .cubo-escena {
-    --lado: clamp(30px, 7cqi, 46px); --paso: calc(var(--lado) * 1.1);
+    --lado: min(clamp(30px, 7cqi, 46px), calc(clamp(370px, 54cqi, 540px) * .52 / var(--celdas, 5)));
+    --paso: calc(var(--lado) * 1.1);
     position: relative; display: grid; place-items: center; height: clamp(370px, 54cqi, 540px); overflow: hidden;
     container-type: inline-size; perspective: 1500px; touch-action: none; cursor: grab; user-select: none;
     background: var(--nogal-hondo);
@@ -143,6 +146,9 @@
   .cubito[data-activo] > i { box-shadow: inset 0 0 0 2px var(--ambar-claro); }
   .cubito[data-total][data-activo] > i { color: var(--cubo-total-activo-texto); background: var(--cubo-total-activo); box-shadow: inset 0 0 0 2px var(--cubo-total-activo-texto); }
   .cubito[data-apagado] > i { opacity: .1; }
+  /* Sin datos (RF-067): un cubo hueco de líneas punteadas, sin número ni luz. Un 0 sí es madera. */
+  .cubito[data-vacio] > i { background: transparent; box-shadow: none; outline: 1px dashed var(--crema-2); outline-offset: -1px; }
+  .cubito[data-vacio][data-apagado] > i { opacity: .06; }
   .cubito > i:nth-child(1) { transform: translateZ(calc(var(--lado) / 2)); }
   .cubito > i:nth-child(2) { transform: rotateY(180deg) translateZ(calc(var(--lado) / 2)); }
   .cubito > i:nth-child(3) { transform: rotateY(90deg) translateZ(calc(var(--lado) / 2)); }
@@ -175,8 +181,8 @@
   .cubo-miembro[aria-pressed='true'] { color: var(--tinta); background: var(--tecla-cara-hundida); box-shadow: inset 0 2px 3px var(--tecla-canto); }
   .cubo-operaciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; border-top: 1px solid var(--borde); }
   .cubo-operaciones .tecla { width: 100%; white-space: nowrap; }
-  .cubo-separar { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; }
-  .cubo-separar input { width: 20px; height: 20px; accent-color: var(--ambar); }
+  .cubo-casilla { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 4px; font-size: 15px; }
+  .cubo-casilla input { width: 20px; height: 20px; accent-color: var(--ambar); }
   .cubo-tabla-caja { container-type: inline-size; }
   .cubo-tabla-marco { overflow-x: auto; margin-top: 8px; }
   .cubo-tabla-marco:focus-visible { outline: 2px solid var(--ambar-claro); outline-offset: 2px; }
@@ -184,6 +190,9 @@
   .cubo-tabla th[scope='row'] { position: sticky; left: 0; z-index: 1; color: var(--crema); background: var(--cubo-tabla-base); }
   .cubo-tabla .cubo-calor { color: var(--crema); background: color-mix(in srgb, var(--cubo-dato) calc(var(--brillo) * 100%), var(--cubo-tabla-base)); }
   .cubo-tabla .cubo-calor[data-encendido] { color: var(--cubo-texto-encendido); }
+  /* Sin datos: el texto lo dice y la celda queda sin luz, apenas rayada; no se confunde con un 0. */
+  .cubo-tabla .cubo-calor[data-vacio] { font-size: 13px; font-weight: 500; color: var(--crema-2); background: var(--cubo-tabla-base); box-shadow: inset 0 0 0 1px var(--borde); }
+  .cubo-kpi > b[data-vacio] { font-size: 20px; font-weight: 600; color: var(--crema-2); }
   .cubo-tabla .cubo-total { font-weight: 700; color: var(--cubo-total-texto); background: var(--cubo-total); }
 
   @media (prefers-reduced-motion: reduce) {

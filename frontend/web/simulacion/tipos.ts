@@ -163,6 +163,8 @@ export type EstadoSim = {
   eventos: EventoBar[];
   /** Umbrales del diagnóstico del tablero (RF-052); sin ellos, los de `analitica.ts`. */
   umbrales_analitica?: UmbralesAnalitica;
+  /** RF-068: géneros corregidos a mano en el panel, por `video_id`. Opcional en estados viejos. */
+  categorias?: Record<string, string>;
   /** `destino` (RF-065) es opcional: un estado guardado antes no lo tiene y vale `web`. */
   qr: { token: string; generado_en: number; anteriores: string[]; destino?: 'web' | 'app' };
   /** Contadores de la noche (datos de ejemplo al sembrar; suben con cada acción). */

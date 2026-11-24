@@ -32,6 +32,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 | Entidad | Campos | Notas |
 |---|---|---|
 | `Cancion` | `video_id`, `titulo`, `artista`, `duracion_seg`, `miniatura_url` | `artista` se deriva del canal o del título: `TBD` cómo |
+| `CancionCatalogo` (RF-068) | `id`, `youtube_video_id`, `titulo`, `artista`, `categoria` (`null` = sin género), `origen_categoria` (`ETIQUETAS`, `TITULO`, `DESCRIPCION`, `MANUAL` o `null`), `pedidos` | La canción en la vista «Canciones». `MANUAL`: corregida en el panel; la clasificación automática no la pisa |
 | `Bar` (público) | `slug`, `nombre`, `zona_horaria`, `pedidos_maximos` (3), `duracion_max_seg` (600), `ventana_no_repeticion_min` (60), `tema` (`rockola`), `horario[]` | De `Establecimiento` y `Horario`. `tema`: el diseño con que se ven el teléfono, la TV y el panel con sesión (RF-059, D19, ADR-31) |
 | `Franja` (horario) | `dia_semana` (1 = lunes … 7 = domingo), `hora_inicio`, `hora_fin` (`"20:00"`, `"02:00"`), `activo` | Una franja que cruza medianoche pertenece al día en que empieza |
 | `Servicio` | `estado`, `modo_qr`, `desde`, `hasta`, `proxima_apertura` | Ver «Estado del servicio» |
@@ -179,7 +180,10 @@ códigos pide una misma IP por minuto*)*.
 | `GET/PUT /panel/analitica/umbrales` | Umbrales del diagnóstico (`votos_minimos`, `concentracion_pct`, `participacion_minima`); el cambio queda en la bitácora (`editar_umbrales`) | 052 |
 | `GET /panel/analitica/comparacion?agrupar=noche\|dia\|evento&noches=…\|desde&hasta` | Indicadores en promedio por noche, por noche, día de la semana o tipo de evento; lo planeado (lista de la casa) frente a lo pedido | 053 |
 | `GET /panel/analitica/recomendaciones?…` | Sugerencias con el dato en que se basan y la sección donde se decide; **nunca se aplican solas** | 054 |
-| `GET /panel/analitica/cubo?eje=dia\|evento` | Cubo de KPI por género, franja y día o tipo de evento. Cada celda trae solicitudes, votos, usuarios únicos, no sonaron, espera promedio y máxima, segundos de pedidos y de lista de la casa, y la canción más popular. `*` es el miembro «Todos» | 063 |
+| `GET /panel/analitica/cubo?eje=dia\|evento&fuente=vivo\|historico` | Cubo de KPI por género, franja y día o tipo de evento. Cada celda trae solicitudes, votos, usuarios únicos, no sonaron, espera promedio y máxima, segundos de pedidos y de lista de la casa, y la canción más popular. `*` es el miembro «Todos». Una combinación sin hechos **no trae celda** (no es un 0). Sin `fuente`, `vivo`: lo calcula el backend al consultar, con la noche abierta, todos los géneros y los siete días; `datos` trae además `fuente: operativa`, `en_vivo: true` y `sesiones_abiertas`, y `actualizado_en` es la hora de la consulta. `historico`: lo del pipeline (tres géneros y «Otros») | 063, 067 |
+| `GET /panel/generos` | Los géneros que se pueden asignar (`string[]`, del clasificador del backend) | 068 |
+| `GET /panel/canciones?soloSinCategoria&q&limite` | Canciones del bar (pedidas, en listas, bloqueadas o que sonaron) con su género: primero las sin género, luego las más pedidas. `soloSinCategoria` va en camelCase porque así lo nombra el backend; sin él vale `true`. `limite` de 1 a 100 (50); **no pagina** | 068 |
+| `PATCH /panel/canciones/{id}/categoria` | `{ categoria }` → `{ id, categoria, origen_categoria: MANUAL }`. 400 `datos_invalidos` si el género no está en el catálogo; 404 si la canción no es del bar. Queda en la bitácora (`editar_categoria`) | 068 |
 
 **Tablero analítico** *(propuesto)*. Todas sus respuestas traen `datos: OrigenDatos`
 (`origen` `registrado` o `ejemplo`, `actualizado_en`, `noches`, `desde`, `hasta`), que la
@@ -194,8 +198,11 @@ sumar noches juntaría a los habituales y daría una alerta falsa. Umbrales por 
 | `tipo` | Contenido | Cuándo |
 |---|---|---|
 | `ahora` | La foto `Ahora` completa (con `version`) | Cualquier cambio en la cola, los votos, lo que suena o el servicio |
-| `panel` | `{ recursos: [...] }` (`noche`, `yo`, `bitacora`, `bloqueos`, `listas`, `horario`, `usuarios`, `establecimiento`, `eventos`, `pantallas`) | Cambió algo del panel; el panel vuelve a pedir **solo** esos recursos. Nombra únicamente los que cambiaron: un voto no hace recargar el personal, y un 403 (que deja rastro en la bitácora) no hace volver a pedir lo rechazado. `yo` cambia con el nombre o la zona del bar y con los datos o el rol de quien mira. Sin datos privados |
+| `panel` | `{ recursos: [...] }` (`noche`, `yo`, `bitacora`, `bloqueos`, `listas`, `horario`, `usuarios`, `establecimiento`, `eventos`, `pantallas`, `analitica`) | Cambió algo del panel; el panel vuelve a pedir **solo** esos recursos. Nombra únicamente los que cambiaron: un voto no hace recargar el personal, y un 403 (que deja rastro en la bitácora) no hace volver a pedir lo rechazado. `yo` cambia con el nombre o la zona del bar y con los datos o el rol de quien mira. Sin datos privados |
 | `ping` | `{ servidor_ahora }` | Cada 15 s, para detectar la desconexión |
+
+`analitica` (RF-067) llega con cada cambio de la cola y con cada género corregido: el panel
+vuelve a pedir **solo el cubo en vivo**, y junta los avisos seguidos (ADR-33).
 
 Al abrir la conexión, el servidor manda **primero una foto `ahora`**: el cliente solo se
 considera conectado cuando llegan datos (un canal que acepta y corta no cuenta) y así se
@@ -229,8 +236,9 @@ resincroniza al reconectar.
    autocompletado necesita caché en el servidor y espera entre teclas (el cliente espera
    300 ms). RF-008 y PB-54. El 2026-11-12 la caché pasó de 30 min a 6 h, configurable con
    `youtube.cache.horas` *(propuesto, por confirmar)*; ver doc 07, «Mediciones».
-3. Cómo se deriva `artista` y de dónde sale el género (la categoría de YouTube casi
-   siempre es «Música»), para RF-051 y los filtros de RF-055; y si la popularidad de los
+3. Cómo se deriva `artista` y ~~de dónde sale el género~~ (resuelto el 2026-11-24: el backend
+   lo clasifica con las etiquetas, el título y la descripción del video y se corrige a mano en
+   «Canciones», RF-068), para RF-051 y los filtros de RF-055; y si la popularidad de los
    filtros son las veces pedida en el bar (lo propuesto) u otra medida.
 4. ~~Autenticación de la pantalla del bar~~ Resuelto el 2026-11-10: vinculación con código (RF-058, ADR-23).
 5. Matriz del Operador (D9) y estado `retirada`.
@@ -371,8 +379,9 @@ resincroniza al reconectar.
     2026-11-20** (D15) y probada solo con el esquema reconstruido y noches de ejemplo:
     - Migración `V6__modelo_analitico.sql` (esquemas `analitica` y `analitica_stg`), pipeline
       en `rokolaBackend/pipeline/` y las 9 rutas de `/panel/analitica/*`.
-    - **`TBD`:** el género sale de `cancion.categoria`; hay que confirmar que el backend la
-      llena con un género y no con «Música». Si no, todo queda «Sin clasificar» (punto 3).
+    - ~~**`TBD`:** el género sale de `cancion.categoria`~~ Resuelto el 2026-11-24: el backend la
+      llena con un género del clasificador (V12, V13, `origen_categoria`) y la deja `null` si no
+      lo encuentra.
     - **`TBD`:** quién programa el pipeline al cerrar cada noche. Hoy se ejecuta a mano.
     - La fecha de `evento_analitico` es `timestamp_utc` (comprobado en Railway el 2026-11-21).
       **`TBD`:** las demás columnas marcadas como supuesto en el esquema reconstruido.
@@ -427,3 +436,16 @@ resincroniza al reconectar.
     - La web ya sirve `/.well-known/assetlinks.json` con las huellas de `ROCKOLA_ANDROID_SHA256`
       (servicio web). Sin esa variable publica una lista vacía y Android pregunta con qué abrir.
     - **`TBD`:** la huella de la firma y compilar el APK con el dominio definitivo de la web.
+26. Cubo en vivo y géneros (RF-067, RF-068, D21), **hechos por el equipo de backend el 2026-11-24**
+    (PR #11 a #14) e integrados por el frontend:
+    - `panel: ["analitica"]` sale por el canal **público** con cada pedido o voto (y con cada
+      género corregido, a todos los bares que usan esa canción). No lleva datos, pero sí tráfico
+      a los teléfonos, que lo ignoran. **`TBD`:** mandarlo solo a quien tiene sesión del panel.
+    - El cubo en vivo recorre todas las noches del bar con `CUBE` en cada consulta. **`TBD`:**
+      medir cuánto tarda con meses de datos (doc 07).
+    - Hay además `POST /panel/canciones/reclasificar`, `GET /panel/generos/estado-analitica` y
+      `GET /panel/generos/resumen`, que el frontend no usa (no hay requisito que los pida).
+    - El frontend arregló en `ContratoError.kt` la lista del manejador de errores: el cambio
+      había sacado la analítica, la plataforma y el QR del panel, y sus errores perdían
+      `{ codigo, mensaje }` (D14, doc 11).
+    - **`TBD`:** probado solo contra la simulación; falta contra una base real.

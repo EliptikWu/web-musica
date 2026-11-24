@@ -16,6 +16,8 @@ export const claves = {
     yo: ['panel', 'yo'] as const,
     noche: ['panel', 'noche'] as const,
     bloqueos: (vigencia: string) => ['panel', 'bloqueos', vigencia] as const,
+    canciones: (filtro: object = {}) => ['panel', 'canciones', filtro] as const,
+    generos: ['panel', 'generos'] as const,
     horario: ['panel', 'horario'] as const,
     listas: ['panel', 'listas'] as const,
     lista: (id: string) => ['panel', 'listas', id] as const,

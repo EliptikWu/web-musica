@@ -9,6 +9,7 @@ import { renumerar } from '../reglas/cola';
 import { anotarHoraServidor } from '../reloj-servidor';
 import { conectarSse } from '../tiempo-real/fuente';
 import { anotarConexion, useConexion } from '../tiempo-real/estado';
+import { limitar } from '../tiempo-real/limitador';
 import { claves } from './claves';
 import { pedir } from './cliente';
 import { ErrorRed } from './errores';
@@ -204,6 +205,9 @@ export function usePedir(slug: string) {
 
 export { nuevaClave };
 
+/** Ventana para juntar avisos del cubo en vivo: deja margen dentro de los 3 s de RNF-009 (*propuesto*). */
+const AVISOS_CUBO_MS = 1500;
+
 /**
  * Conexión en vivo del bar: cada foto nueva reemplaza la guardada y, si cambió qué suena o
  * quién está en la cola, se vuelve a pedir lo de este teléfono (sus pedidos pudieron cambiar
@@ -215,7 +219,11 @@ export function useTiempoRealBar(slug: string) {
     let firma = '';
     let estadoPrevio = '';
     let estuvoConectado = false;
-    return conectarSse(
+    // RF-067, ADR-33: el aviso `analitica` llega con cada pedido o voto; el cubo en vivo se
+    // vuelve a pedir a lo sumo una vez por ventana, y solo si está en pantalla. El histórico y
+    // las demás secciones del tablero no cambian con la cola.
+    const cuboEnVivo = limitar(() => void qc.invalidateQueries({ queryKey: claves.panel.analitica('cuboAnalitica', { fuente: 'vivo' }) }), AVISOS_CUBO_MS);
+    const desconectar = conectarSse(
       slug,
       (evento) => {
         if (evento.tipo === 'ahora') {
@@ -233,7 +241,10 @@ export function useTiempoRealBar(slug: string) {
           anotarHoraServidor(evento.servidor_ahora);
         } else {
           // Solo lo que el servidor dice que cambió (nunca la sesión, que no viaja por aquí).
-          for (const recurso of evento.recursos) void qc.invalidateQueries({ queryKey: ['panel', recurso] });
+          for (const recurso of evento.recursos) {
+            if (recurso === 'analitica') cuboEnVivo.avisar();
+            else void qc.invalidateQueries({ queryKey: ['panel', recurso] });
+          }
         }
       },
       (estado) => {
@@ -246,5 +257,9 @@ export function useTiempoRealBar(slug: string) {
         estadoPrevio = estado;
       },
     );
+    return () => {
+      cuboEnVivo.cerrar();
+      desconectar();
+    };
   }, [qc, slug]);
 }
