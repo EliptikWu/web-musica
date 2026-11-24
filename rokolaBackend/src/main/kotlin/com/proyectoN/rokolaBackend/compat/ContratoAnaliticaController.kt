@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 class ContratoAnaliticaController(
   private val acceso: ContratoPanelAcceso,
   private val analitica: ContratoAnaliticaService,
+  private val cuboVivo: ContratoCuboVivoService,
 ) {
   private fun admin(token: String?) = acceso.exigir(token, rolMinimo = "administrador")
 
@@ -82,7 +83,13 @@ class ContratoAnaliticaController(
   fun cubo(
     @CookieValue(ContratoPanelSesiones.COOKIE, required = false) token: String?,
     @RequestParam(required = false) eje: String?,
-  ) = sinCache(analitica.cubo(admin(token), eje))
+    @RequestParam(required = false, defaultValue = "vivo") fuente: String,
+  ) = sinCache(when (fuente) {
+    "vivo" -> cuboVivo.cubo(admin(token).barId, eje)
+    "historico" -> analitica.cubo(admin(token), eje)
+    else -> throw ContratoApiException(org.springframework.http.HttpStatus.BAD_REQUEST,
+      "datos_invalidos", "La fuente debe ser vivo o historico")
+  })
 
   private fun <T : Any> sinCache(cuerpo: T): ResponseEntity<T> =
     ResponseEntity.ok().header(HttpHeaders.CACHE_CONTROL, "no-store").body(cuerpo)

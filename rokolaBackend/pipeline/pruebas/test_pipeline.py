@@ -54,6 +54,33 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(franjas, ["Antes de las 9", "9 a 11 p. m.", "9 a 11 p. m.", "11 p. m. a 1 a. m.", "11 p. m. a 1 a. m.",
                                    "Después de la 1", "Después de la 1", "Antes de las 9"])
 
+    def test_cubo_conserva_cuatro_generos_y_dias_reales(self):
+        """Ningún género cae en «Otros» por estar fuera del top 3."""
+        s = self.spark
+        noches = s.createDataFrame([(1, 10, 1, "normal"), (2, 10, 7, "normal")],
+                                  ["id_sesion", "id_establecimiento", "dia_semana", "tipo_evento"])
+        canciones = s.createDataFrame([(100, "Salsa"), (101, "Rock"),
+                                       (102, "Pop"), (103, "Bachata")], ["id_cancion", "genero"])
+        solicitudes = s.createDataFrame([
+            (1, 10, 1, 100, "a" * 32, 21, 15, None),
+            (2, 10, 1, 101, "b" * 32, 21, 15, None),
+            (3, 10, 2, 102, "c" * 32, 21, 15, None),
+            (4, 10, 2, 103, "d" * 32, 21, 15, None),
+        ], "id_solicitud long, id_establecimiento long, id_sesion long, id_cancion long, "
+           "dispositivo_seud string, hora_local int, espera_seg int, causa_no_sono string")
+        votos = s.createDataFrame([], "id_voto long, id_establecimiento long, id_sesion long, "
+                                    "id_solicitud long, dispositivo_seud string, hora_local int")
+        reproducciones = s.createDataFrame([], "id_reproduccion long, id_establecimiento long, "
+                    "id_sesion long, id_cancion long, id_solicitud long, origen string, inicio timestamp, "
+                    "segundos int, hora_local int")
+        cubo = modelo.construir_cubo(s, noches, canciones, solicitudes, votos, reproducciones)
+        completas = cubo.filter("eje = 'dia' AND franja = '*' AND tercero = '*'")
+        miembros = {fila.genero for fila in completas.collect() if fila.genero != '*'}
+        self.assertEqual(miembros, {"Salsa", "Rock", "Pop", "Bachata"})
+        dias = {fila.tercero for fila in cubo.filter("eje = 'dia' AND genero = '*' AND franja = '*'").collect()}
+        self.assertTrue({"Lunes", "Domingo"}.issubset(dias))
+        self.assertNotIn("Otros días", dias)
+
     def test_corregir_genero_se_refleja_en_el_cubo_al_reprocesar(self):
         """Una nueva carga recompone las agrupaciones, no conserva el género anterior."""
         s = self.spark

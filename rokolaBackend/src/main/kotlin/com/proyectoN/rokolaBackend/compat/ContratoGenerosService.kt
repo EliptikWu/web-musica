@@ -1,6 +1,7 @@
 package com.proyectoN.rokolaBackend.compat
 
 import com.proyectoN.rokolaBackend.cancion.ClasificadorGeneroService
+import com.proyectoN.rokolaBackend.tiemporeal.CambioPanelPublisher
 import com.proyectoN.rokolaBackend.youtube.YoutubeApiCliente
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
@@ -16,6 +17,7 @@ class ContratoGenerosService(
     private val clasificador: ClasificadorGeneroService,
     private val youtube: YoutubeApiCliente,
     private val bitacora: ContratoBitacora,
+    private val panel: CambioPanelPublisher,
 ) {
     fun catalogo(): List<String> = clasificador.generos()
 
@@ -76,6 +78,8 @@ class ContratoGenerosService(
         val corregida = resultados.firstOrNull()
             ?: throw ContratoApiException(HttpStatus.NOT_FOUND, "no_encontrado", "Canción no encontrada en el bar")
         bitacora.anotar(p, "editar_categoria", "cancion", id, texto = "Asignó género: $categoria")
+        avisarCuboDeCancion(id)
+        panel.publicar(p.barSlug, setOf("bitacora"))
         return corregida
     }
 
@@ -97,6 +101,7 @@ class ContratoGenerosService(
         )
         var ultimo = despuesDe
         var clasificadas = 0
+        val idsClasificados = mutableListOf<Long>()
         val porOrigen = mutableMapOf("ETIQUETAS" to 0, "TITULO" to 0, "DESCRIPCION" to 0)
         var sinCoincidencia = 0
         var noDisponibles = 0
@@ -136,11 +141,16 @@ class ContratoGenerosService(
                 )
                 if (actualizadas > 0) {
                     clasificadas++
+                    idsClasificados += id
                     porOrigen[origen] = porOrigen.getValue(origen) + 1
                     bitacora.anotar(p, "editar_categoria", "cancion", id, texto = "Clasificación $origen: $genero")
                 }
             }
             ultimo = id
+        }
+        if (clasificadas > 0) {
+            idsClasificados.forEach(::avisarCuboDeCancion)
+            panel.publicar(p.barSlug, setOf("bitacora"))
         }
         return mapOf(
             "consultadas" to (clasificadas + sinCoincidencia + noDisponibles),
@@ -171,6 +181,26 @@ class ContratoGenerosService(
             "pendiente_actualizacion" to (ultimaCorreccion != null && (ultimaCarga == null || ultimaCorreccion.isAfter(ultimaCarga))),
             "hay_carga" to (ultimaCarga != null),
         )
+    }
+
+    /** Una categoría es global: avisa a todos los bares que usan la canción. No envía datos privados. */
+    private fun avisarCuboDeCancion(idCancion: Long) {
+        val slugs = jdbc.query(
+            """SELECT e.slug FROM public.establecimiento e
+               WHERE e.activo = TRUE AND (
+                 EXISTS (SELECT 1 FROM public.solicitud so JOIN public.sesion se ON se.id_sesion = so.id_sesion
+                         WHERE so.id_cancion = ? AND se.id_establecimiento = e.id_establecimiento)
+                 OR EXISTS (SELECT 1 FROM public.reproduccion r JOIN public.sesion se ON se.id_sesion = r.id_sesion
+                            WHERE r.id_cancion = ? AND se.id_establecimiento = e.id_establecimiento)
+                 OR EXISTS (SELECT 1 FROM public.elemento_lista el JOIN public.lista_defecto l ON l.id_lista = el.id_lista
+                            WHERE el.id_cancion = ? AND l.id_establecimiento = e.id_establecimiento)
+                 OR EXISTS (SELECT 1 FROM public.bloqueo_contenido b
+                            WHERE b.id_cancion = ? AND b.id_establecimiento = e.id_establecimiento)
+               )""",
+            { rs, _ -> rs.getString("slug") },
+            idCancion, idCancion, idCancion, idCancion,
+        )
+        slugs.forEach { panel.publicar(it, setOf("analitica")) }
     }
 
     /** Agrupaciones separadas: no multiplica solicitudes al contar votos. */

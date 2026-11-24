@@ -499,7 +499,7 @@ class ContratoAnaliticaService(
     private val MESES = listOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
     private val TIPOS = linkedMapOf("normal" to "Noche normal", "karaoke" to "Karaoke", "partido" to "Partido", "tematica" to "Temática", "otro" to "Otro")
     private val FRANJAS = listOf("Antes de las 9", "9 a 11 p. m.", "11 p. m. a 1 a. m.", "Después de la 1")
-    private val DIAS_CUBO = listOf("Jueves", "Viernes", "Sábado", "Otros días")
+    private val DIAS_CUBO = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
     /** Los ID vienen de la base como `Long`: nunca hay texto del usuario en el `IN`. */
     private fun idsDe(noches: List<Noche>) = if (noches.isEmpty()) "NULL" else noches.joinToString(",") { it.id.toString() }
