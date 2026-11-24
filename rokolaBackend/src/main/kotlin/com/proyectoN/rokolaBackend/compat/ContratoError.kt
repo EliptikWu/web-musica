@@ -37,6 +37,9 @@ class ContratoApiException(
   ContratoEventosController::class,
   ContratoPanelController::class,
   ContratoGestionController::class,
+  ContratoAnaliticaController::class,
+  ContratoPlataformaController::class,
+  ContratoQrPanelController::class,
   ContratoGenerosController::class,
 ])
 class ContratoErrorAdvice {
