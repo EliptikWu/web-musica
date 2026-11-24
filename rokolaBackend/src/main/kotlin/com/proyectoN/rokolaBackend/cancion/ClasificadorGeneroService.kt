@@ -5,45 +5,266 @@ import java.text.Normalizer
 import java.util.Locale
 
 /**
- * PMV: catálogo fijo y coincidencia EXACTA de etiquetas normalizadas.
- * No deduce géneros a partir de artistas ni etiquetas generales como "latin music".
- * Cuando hay señales contradictorias devuelve null, no un género aleatorio.
+ * Clasificación conservadora de videos musicales mediante etiquetas de YouTube.
+ * - Acepta alias exactos, hashtags y expresiones dentro de etiquetas extensas.
+ * - Exige límites de palabra; no busca subcadenas dentro de otras palabras.
+ * - Prefiere un subgénero a su categoría paraguas cuando ambos aparecen.
+ * - Ante géneros contradictorios sin un predominio claro, devuelve null.
+ *
+ * No utiliza nombres de artistas ni inventa un género cuando YouTube no envía tags.
+ * Mantiene las firmas generos(), detectar() y canonico() usadas por el backend.
  */
 @Service
 class ClasificadorGeneroService {
-    private val diccionario = linkedMapOf(
-        "Salsa" to listOf("salsa", "salsa romantica", "salsa dura", "salsa music"),
-        "Urbano" to listOf("reggaeton", "regueton", "reggaeton latino", "latin trap", "trap latino", "musica urbana"),
-        "Pop" to listOf("pop", "pop latino", "latin pop", "pop music"),
-        "Tropical" to listOf("musica tropical", "tropical music"),
-        "Vallenato" to listOf("vallenato", "vallenato romantico", "vallenato music"),
-        "Bachata" to listOf("bachata", "bachata romantica", "bachata music"),
-        "Rock" to listOf("rock", "rock en espanol", "latin rock", "rock music"),
-        "Electrónica" to listOf("electronica", "electronic dance music", "edm"),
-        "Merengue" to listOf("merengue", "merengue music"),
-        "Cumbia" to listOf("cumbia", "cumbia colombiana", "cumbia music"),
-    )
 
-    private val indice: Map<String, String> = diccionario.flatMap { (genero, alias) ->
-        alias.map { normalizar(it) to genero }
-    }.toMap()
+  private val diccionario: Map<String, List<String>> = linkedMapOf(
+    // Géneros originales: mantener estos nombres evita dividir las estadísticas existentes.
+    "Salsa" to listOf(
+      "salsa", "salsa romantica", "salsa dura", "salsa music", "salsa colombiana",
+      "salsa caleña", "salsa calena", "salsa cubana", "salsa choke", "salsa brava",
+      "salsa clasica", "salsa vieja", "salsa baul", "salsa baúl", "salsa tropical"
+    ),
+    "Urbano" to listOf(
+      "reggaeton", "reguetón", "regueton", "reggaetón", "reggaeton latino",
+      "reggaeton colombiano", "reggaeton romantico", "reggaeton viejo",
+      "reggaeton old school", "perreo", "perreo intenso", "musica urbana",
+      "urbano latino", "urban latino", "latin urban", "trap latino", "latin trap",
+      "trap en espanol", "trap en español", "trap music", "neoperreo"
+    ),
+    "Pop" to listOf(
+      "pop", "pop latino", "latin pop", "pop music", "pop en espanol",
+      "pop en español", "spanish pop", "pop romantico", "pop rock", "electropop",
+      "dance pop", "synthpop", "synth pop", "indie pop"
+    ),
+    "Tropical" to listOf(
+      "musica tropical", "tropical music", "ritmos tropicales", "tropical latino"
+    ),
+    "Vallenato" to listOf(
+      "vallenato", "vallenato romantico", "vallenato music", "vallenato colombiano",
+      "vallenato clasico", "vallenato nuevo", "vallenato tradicional",
+      "vallenato de la nueva ola", "paseo vallenato", "merengue vallenato"
+    ),
+    "Bachata" to listOf(
+      "bachata", "bachata romantica", "bachata music", "bachata moderna",
+      "bachata dominicana", "bachata sensual", "bachata urbana", "bachata pop"
+    ),
+    "Rock" to listOf(
+      "rock", "rock en espanol", "rock en español", "latin rock", "rock music",
+      "rock latino", "rock clasico", "classic rock", "hard rock", "soft rock",
+      "rock alternativo", "rock colombiano", "rock and roll", "rock n roll"
+    ),
+    "Electrónica" to listOf(
+      "electronica", "electrónica", "musica electronica", "electronic music",
+      "electronic dance music", "edm", "electro dance", "dance electronico",
+      "electronica latina"
+    ),
+    "Merengue" to listOf(
+      "merengue", "merengue music", "merengue dominicano", "merengue clasico",
+      "merengue de calle", "merengue urbano", "merengue mambo"
+    ),
+    "Cumbia" to listOf(
+      "cumbia", "cumbia colombiana", "cumbia music", "cumbia argentina",
+      "cumbia villera", "cumbia mexicana", "cumbia sonidera", "cumbia peruana",
+      "cumbia tropical", "cumbia romantica", "cumbia rebajada", "tecnocumbia"
+    ),
 
-    fun generos(): List<String> = diccionario.keys.toList()
+    // Más estilos latinoamericanos.
+    "Champeta" to listOf("champeta", "champeta urbana", "champeta africana", "champeta cartagenera"),
+    "Porro" to listOf("porro", "porro colombiano", "porro sabanero", "porro pelayero"),
+    "Música Popular" to listOf(
+      "musica popular colombiana", "popular colombiana", "carrilera",
+      "musica de despecho", "canciones de despecho", "guascarrilera"
+    ),
+    "Música Llanera" to listOf(
+      "musica llanera", "llanera", "joropo", "joropo llanero", "pasaje llanero", "folclor llanero"
+    ),
+    "Música Andina" to listOf(
+      "musica andina", "folclor andino", "huayno", "huaino", "sanjuanito",
+      "bambuco", "pasillo colombiano", "musica andina colombiana"
+    ),
+    "Folclor Colombiano" to listOf(
+      "folclor colombiano", "folklore colombiano", "musica folclorica colombiana",
+      "mapale", "mapalé", "currulao", "bullerengue", "tambora colombiana"
+    ),
+    "Bolero" to listOf("bolero", "boleros", "bolero romantico", "bolero cubano", "bolero clasico"),
+    "Balada" to listOf(
+      "balada", "balada romantica", "baladas romanticas", "balada en espanol",
+      "balada pop", "balada latina", "power ballad"
+    ),
+    "Tango" to listOf("tango", "tango argentino", "tango music", "tango tradicional", "tango electronico"),
+    "Samba" to listOf("samba", "samba brasileira", "samba brasilena", "samba music", "pagode brasileiro"),
+    "Bossa Nova" to listOf("bossa nova", "bossanova", "bossa nova brasileira", "brazilian bossa"),
+    "Forró" to listOf("forro", "forró", "forro brasileiro", "forro pe de serra", "forró pé de serra"),
+    "Zouk" to listOf("zouk", "zouk music", "zouk caribeño", "brazilian zouk"),
+    "Kizomba" to listOf("kizomba", "kizomba music", "kizomba angolana"),
 
-    /** Devuelve null cuando no hay coincidencias o aparecen géneros diferentes. */
-    fun detectar(etiquetas: List<String>): String? {
-        val candidatos = etiquetas.mapNotNull { indice[normalizar(it)] }.distinct()
-        return candidatos.singleOrNull()
+    // Música regional mexicana.
+    "Regional Mexicano" to listOf(
+      "regional mexicano", "musica regional mexicana", "regional mexican music"
+    ),
+    "Banda" to listOf("banda sinaloense", "banda mexicana", "musica de banda", "banda sinaloense music"),
+    "Norteño" to listOf("norteno", "norteño", "musica nortena", "musica norteña", "norteno banda"),
+    "Corridos" to listOf(
+      "corridos", "corrido mexicano", "corridos tumbados", "corridos belicos",
+      "corridos bélicos", "corridos alterados", "corrido tumbado"
+    ),
+    "Ranchera" to listOf("ranchera", "rancheras", "musica ranchera", "mariachi", "mariachi mexicano"),
+    "Grupera" to listOf("grupera", "musica grupera", "grupero", "grupera romantica"),
+
+    // Estilos internacionales.
+    "Reggae" to listOf("reggae", "reggae music", "roots reggae", "reggae latino", "reggae en espanol"),
+    "Dancehall" to listOf("dancehall", "dancehall music", "dancehall jamaicano", "latin dancehall"),
+    "Hip Hop" to listOf(
+      "hip hop", "hiphop", "hip hop music", "rap", "rap music", "rap latino",
+      "rap colombiano", "rap en espanol", "rap en español", "boom bap",
+      "freestyle rap", "gangsta rap", "old school rap"
+    ),
+    "R&B" to listOf("r&b", "rnb", "r and b", "rhythm and blues", "contemporary rnb", "neo soul"),
+    "Soul" to listOf("soul", "soul music", "classic soul", "motown soul"),
+    "Funk" to listOf("funk", "funk music", "funk brasileiro", "funk carioca", "funk brasileno"),
+    "Disco" to listOf("disco music", "disco funk", "disco clasico", "italo disco", "nu disco"),
+    "Jazz" to listOf("jazz", "jazz music", "latin jazz", "smooth jazz", "jazz fusion", "bebop", "swing jazz"),
+    "Blues" to listOf("blues", "blues music", "delta blues", "electric blues", "chicago blues"),
+    "Country" to listOf("country", "country music", "country pop", "country rock", "bluegrass"),
+    "Folk" to listOf("folk", "folk music", "folk latino", "acoustic folk"),
+    "Afrobeats" to listOf("afrobeats", "afrobeat", "afro beats", "afro pop", "afropop", "afro fusion", "afrofusion"),
+    "Amapiano" to listOf("amapiano", "amapiano music", "south african amapiano"),
+    "K-Pop" to listOf("kpop", "k pop", "korean pop", "korean pop music"),
+    "J-Pop" to listOf("jpop", "j pop", "japanese pop", "japanese pop music"),
+    "Metal" to listOf(
+      "metal", "heavy metal", "metal music", "thrash metal", "death metal",
+      "black metal", "power metal", "metalcore", "nu metal"
+    ),
+    "Punk" to listOf("punk", "punk rock", "pop punk", "punk music", "hardcore punk", "post punk"),
+    "Indie" to listOf("indie", "indie music", "indie rock", "indie alternative", "indie folk"),
+    "Góspel" to listOf("gospel", "góspel", "gospel music", "gospel choir", "black gospel"),
+    "Música Cristiana" to listOf(
+      "musica cristiana", "christian music", "christian pop", "christian rock",
+      "alabanza", "musica de adoracion", "worship music", "praise and worship"
+    ),
+    "Música Clásica" to listOf(
+      "musica clasica", "classical music", "classical piano", "musica sinfonica",
+      "orquesta sinfonica", "baroque music", "opera clasica"
+    ),
+    "Instrumental" to listOf(
+      "musica instrumental", "instrumental music", "instrumental piano",
+      "instrumental guitar", "solo instrumental"
+    ),
+    "Lo-Fi" to listOf("lofi", "lo fi", "lo fi hip hop", "lofi beats", "lofi chill", "chillhop"),
+    "Phonk" to listOf("phonk", "drift phonk", "brazilian phonk", "phonk music"),
+    "House" to listOf("house music", "deep house", "tech house", "progressive house", "afro house"),
+    "Techno" to listOf("techno", "techno music", "hard techno", "melodic techno", "minimal techno"),
+    "Trance" to listOf("trance music", "psytrance", "progressive trance", "uplifting trance"),
+    "Dubstep" to listOf("dubstep", "dubstep music", "brostep", "melodic dubstep"),
+    "Drum and Bass" to listOf("drum and bass", "drum n bass", "dnb music", "liquid dnb", "jungle dnb"),
+    "Dembow" to listOf("dembow", "dembow dominicano", "dembow music", "dembow urbano"),
+    "Flamenco" to listOf("flamenco", "flamenco music", "flamenco pop", "rumba flamenca"),
+  )
+
+  // Estos son paraguas musicales; si se identifica un estilo más concreto,
+  // no se considera una contradicción que también aparezca el paraguas.
+  private val subgenerosPorCategoria: Map<String, Set<String>> = mapOf(
+    "Tropical" to setOf("Salsa", "Merengue", "Cumbia", "Vallenato", "Bachata", "Champeta", "Porro"),
+    "Electrónica" to setOf("House", "Techno", "Trance", "Dubstep", "Drum and Bass", "Amapiano"),
+    "Regional Mexicano" to setOf("Banda", "Norteño", "Corridos", "Ranchera", "Grupera"),
+    "Pop" to setOf("K-Pop", "J-Pop"),
+    "Rock" to setOf("Metal", "Punk"),
+  )
+
+  private val separacionCamel = Regex("(?<=[a-záéíóúüñ])(?=[A-ZÁÉÍÓÚÜÑ])")
+  private val separacionLetrasNumeros = Regex("(?<=[a-z])(?=[0-9])|(?<=[0-9])(?=[a-z])")
+  private val diacriticos = Regex("\\p{M}+")
+  private val simbolos = Regex("[^a-z0-9]+")
+  private val espacios = Regex("\\s+")
+
+  private val indice: Map<String, String> = buildMap {
+    for ((genero, alias) in diccionario) {
+      for (valor in alias) {
+        val normalizado = normalizar(valor)
+        val variantes = if (' ' in normalizado) {
+          listOf(normalizado, normalizado.replace(" ", ""))
+        } else {
+          listOf(normalizado)
+        }
+        for (variante in variantes) {
+          if (variante.isBlank()) continue
+          val anterior = putIfAbsent(variante, genero)
+          require(anterior == null || anterior == genero) {
+            "Alias duplicado '$variante' para $anterior y $genero"
+          }
+        }
+      }
+    }
+  }
+
+  /** Catálogo permitido para los endpoints administrativos actuales. */
+  fun generos(): List<String> = diccionario.keys.toList()
+
+  /**
+   * Clasifica si encuentra un género o un predominio claro de al menos dos etiquetas.
+   * Por seguridad, ante señales realmente contradictorias devuelve null.
+   */
+  fun detectar(etiquetas: List<String>): String? {
+    val puntuacion = mutableMapOf<String, Int>()
+    val etiquetasPorGenero = mutableMapOf<String, Int>()
+
+    for (etiqueta in etiquetas.map(::normalizar).filter { it.isNotBlank() }.distinct()) {
+      val coincidencias = indice.mapNotNull { (alias, genero) ->
+        val exacta = etiqueta == alias
+        if (exacta || (" $etiqueta ").contains(" $alias ")) {
+          Triple(alias, genero, if (exacta) 5 else 2)
+        } else null
+      }
+
+      // «pop punk» no debe sumar un voto para Pop solo por contener «pop»;
+      // la expresión más específica del mismo fragmento tiene prioridad.
+      val masEspecificas = coincidencias.filter { (alias, genero, _) ->
+        coincidencias.none { (otroAlias, otroGenero, _) ->
+          otroGenero != genero && otroAlias.length > alias.length &&
+            (" $otroAlias ").contains(" $alias ")
+        }
+      }
+      val puntajeEnEtiqueta = mutableMapOf<String, Int>()
+      for ((_, genero, puntos) in masEspecificas) {
+        puntajeEnEtiqueta[genero] = maxOf(puntajeEnEtiqueta[genero] ?: 0, puntos)
+      }
+      for ((genero, puntos) in puntajeEnEtiqueta) {
+        puntuacion[genero] = (puntuacion[genero] ?: 0) + puntos
+        etiquetasPorGenero[genero] = (etiquetasPorGenero[genero] ?: 0) + 1
+      }
     }
 
-    /** Para validar el JSON del panel, sin aceptar categorías inventadas. */
-    fun canonico(nombre: String): String? = diccionario.keys.firstOrNull {
-        normalizar(it) == normalizar(nombre)
-    }
+    if (puntuacion.isEmpty()) return null
 
-    private fun normalizar(texto: String): String = Normalizer.normalize(
-        texto.lowercase(Locale.ROOT), Normalizer.Form.NFD
-    ).replace(Regex("\\p{M}+"), "")
-        .replace(Regex("[^a-z0-9]+"), " ")
-        .trim().replace(Regex("\\s+"), " ")
+    val generosDetectados = puntuacion.keys
+    val candidatos = puntuacion.filterKeys { genero ->
+      subgenerosPorCategoria[genero]?.none { it in generosDetectados } != false
+    }
+    if (candidatos.size == 1) return candidatos.keys.first()
+
+    val ordenados = candidatos.entries.sortedByDescending { it.value }
+    val primero = ordenados[0]
+    val segundo = ordenados[1]
+    val respaldos = etiquetasPorGenero[primero.key] ?: 0
+
+    return if (
+      respaldos >= 2 &&
+      primero.value >= segundo.value * 2 &&
+      primero.value - segundo.value >= 4
+    ) primero.key else null
+  }
+
+  /** Valida las categorías manuales (sin permitir nombres ajenos al catálogo). */
+  fun canonico(nombre: String): String? = diccionario.keys.firstOrNull {
+    normalizar(it) == normalizar(nombre)
+  }
+
+  private fun normalizar(texto: String): String {
+    val separado = texto.replace(separacionCamel, " ")
+    val sinAcentos = Normalizer.normalize(
+      separado.lowercase(Locale.ROOT), Normalizer.Form.NFD
+    ).replace(diacriticos, "")
+    return sinAcentos.replace(separacionLetrasNumeros, " ")
+      .replace(simbolos, " ").trim().replace(espacios, " ")
+  }
 }
