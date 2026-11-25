@@ -98,6 +98,13 @@ desplegar. Para repetir la prueba: cargar el esquema, poner las claves demo con
 `ROKOLA_DEVICE_HMAC_SECRET` apuntando a esa base. En una base vacía la V2 falla: Flyway solo
 hace la línea base sobre una base que ya tiene tablas.
 
+Con esas variables puestas, `./gradlew test` también corre `RokolaBackendApplicationTests`, que
+arranca la aplicación con Flyway; sin `DB_URL` esa prueba se salta. Hecho el 2026-11-25 contra
+Postgres 16: Flyway llegó a V14, el ingreso al panel guarda `ultimo_acceso` y `GET /panel/usuarios`
+lo devuelve, `PUT /panel/volumen` no escribe en `accion_admin`, `POST /panel/canciones/reclasificar`
+responde con la forma de `Reclasificacion` (sin canciones: todo en 0) y `PUT /panel/horario` responde
+200. Sin YouTube ni base real.
+
 | Fecha | Qué | Archivos | Para revisar |
 |---|---|---|---|
 | 2026-11-12 | `tema` del bar (RF-059) y edición del establecimiento (RF-034) | `db/migration/V2__tema_establecimiento.sql`, `compat/ContratoEstablecimientoService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoQrBarController.kt` | Que `accion_admin.tipo` admita `editar_establecimiento` y que `detalle` sea JSONB; que la base real no tenga ya otra V2 de Flyway. Los teléfonos y la TV abiertos no reciben aviso del cambio: lo toman al recargar |

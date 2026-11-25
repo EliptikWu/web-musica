@@ -3,9 +3,9 @@
 Fuente de verdad del proyecto. Los documentos numerados son la versión de trabajo; los
 originales del equipo, con los que se entregó el curso, están en `fuente/`.
 
-**Estado (2026-11-25):** cerrados los puntos 2 a 20 de la lista de errores del equipo y el escáner
-de Android (iteraciones 32 a 34 del doc 08). Commits locales, sin subir. Lo pendiente está en
-«Lo que queda», abajo.
+**Estado (2026-11-25):** cerrados los puntos 2 a 20 de la lista de errores del equipo, el escáner
+de Android (iteraciones 32 a 34 del doc 08) y las tandas T1 a T4. Todo está en la rama
+`correcciones-del-equipo`, sin fusionar. Lo pendiente está en «Lo que queda», abajo.
 
 ## Índice
 
@@ -84,7 +84,8 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 | 2 | Probar la TV una noche con YouTube real y un televisor: que no se silencie ni se detenga al cambiar de canción o de pestaña (ADR-35) | La simulación no usa videos de verdad; solo se revisó en código y con pruebas unitarias |
 | 3 | Probar el escáner de la app en un teléfono: abrir la app recién instalada y escanear el QR de la TV de `npm run dev` (D22, D23) | El emulador no puede apuntar la cámara a un QR |
 | 4 | Confirmar la matriz del Operador (D9) y los valores de bloqueo de cuenta e inactividad | Decisiones abiertas del equipo |
-| 5 | Decidir si los commits locales se suben y cómo (rama y PR, o directo) | `CLAUDE.md`: no se sube nada sin pedirlo |
+| 5 | Revisar y fusionar la rama `correcciones-del-equipo` (el PR no se pudo abrir: GitHub respondió con error; abrirlo a mano si sigue sin aparecer) | Se subió el 2026-11-25 a pedido del usuario |
+| 6 | Decidir si se recorta `CLAUDE.md` (~3 500 tokens; el método propone 2 000) | Son instrucciones del usuario: no se recortan sin su visto bueno |
 
 ### Lo aplazado
 
@@ -97,10 +98,7 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 
 | Tanda | Qué (IDs) | Depende de | Apetito | Estado |
 |---|---|---|---|---|
-| T1 | La prueba de arranque del backend (`RokolaBackendApplicationTests`) exige una base Postgres (`DB_URL`) y falla sin ella: que corra con Testcontainers o se salte sin `DB_URL`, para que `./gradlew test` quede en verde. Fuera: cambiar las demás pruebas | — | 1 PR | Pendiente |
-| T2 | Los dos avisos de lint de `frontend/web/lib/api/hooks-panel.ts` (`window.location.assign` y un `eslint-disable` que sobra) | — | 1 PR | Pendiente |
-| T3 | Docs sobre su presupuesto (04, 05 y 08 pasan de 8 000 tokens; `CLAUDE.md` de 2 000): llevar lo cerrado del registro de iteraciones (08), del registro de cambios (05) y de «Pendiente del backend» (04) a `docs/historial/`. Fuera: reescribir lo vigente | — | 1 PR | Pendiente |
-| T4 | Probar contra el backend y Postgres locales lo de esta semana (V14, reclasificar, horario sin noche, D24) y anotar el resultado en el doc 11 | Docker local | 1 sesión | Pendiente |
+| T5 | Doc 04 sobre su presupuesto (~11 000 tokens de 8 000): llevar lo resuelto de «Pendiente del backend» a `docs/historial/` sin romper las referencias por número del doc 11 (dejar el número con «ver historial»). Fuera: el contrato vigente | — | 1 PR | Pendiente |
 
 ## Reglas de estos documentos
 
