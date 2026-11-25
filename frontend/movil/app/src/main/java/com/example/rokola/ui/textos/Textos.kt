@@ -181,7 +181,8 @@ fun servicioCerrado(estado: EstadoServicio, proximaApertura: Instant?, zona: Zon
         TextosCerrado(
             luzServicio(estado),
             "Por ahora no recibimos canciones",
-            if (cuando != null) "${conPunto("Los pedidos abren $cuando")} Mientras tanto suena la lista de la casa." else "Mientras tanto suena la lista de la casa.",
+            // Fuera de horario no suena nada, ni la lista de la casa (D24), igual que la web.
+            if (cuando != null) conPunto("Los pedidos abren $cuando") else "Los pedidos se abren en el horario del bar.",
         )
     }
 }

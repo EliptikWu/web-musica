@@ -19,6 +19,7 @@ con el contrato propuesto (doc 04). Integrar es apuntar a la API real.
 
 - Iteración en curso y registro de cada una: `docs/08-metodologia.md`, «Registro de
   iteraciones».
+- Backlog: docs/README.md («Lo que queda»)
 - Las iteraciones van seguidas (decisión del usuario, 2026-10-26). Cada una cierra con
   capturas, revisión de diseño y accesibilidad, `npm run check` en verde, barrido y un
   **commit local**. No se sube nada a ningún remoto sin pedirlo.

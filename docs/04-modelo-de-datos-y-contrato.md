@@ -54,7 +54,7 @@ Nombres del diccionario; solo se listan los campos que la interfaz usa.
 
 | Qué | Por qué |
 |---|---|
-| Estado `retirada` en `Solicitud`, con `motivo_retiro` | RF-041 (retirar con motivo) y RF-013 lo necesitan; el modelo no lo tiene |
+| ~~Estado `retirada` en `Solicitud`, con `motivo_retiro`~~ | Resuelto: el backend lo tiene, con el motivo en `motivo_estado` |
 | `no_disponible` también desde `pendiente` | RF-007 pide revalidar antes de reproducir |
 | `estado` de la reproducción: `sonando` \| `pausada` | RF-040 pide pausar y reanudar |
 | Roles `administrador` y `operador` | El modelo dice `admin`/`dj`; los requisitos, Administrador/Operador |
@@ -242,10 +242,10 @@ resincroniza al reconectar.
    «Canciones», RF-068), para RF-051 y los filtros de RF-055; y si la popularidad de los
    filtros son las veces pedida en el bar (lo propuesto) u otra medida.
 4. ~~Autenticación de la pantalla del bar~~ Resuelto el 2026-11-10: vinculación con código (RF-058, ADR-23).
-5. Matriz del Operador (D9) y estado `retirada`.
+5. Matriz del Operador (D9). ~~Estado `retirada`~~ Resuelto: el backend lo tiene (`EstadoSolicitud.RETIRADA`, `motivo_estado`, `compat/ContratoRetiroService.kt`).
 6. Valores de bloqueo de cuenta e inactividad del panel.
-7. Si la lista de la casa suena fuera de horario sin sesión abierta.
-8. Quién crea establecimientos y su primer Administrador.
+7. ~~Si la lista de la casa suena fuera de horario sin sesión abierta~~ Resuelto el 2026-11-25 (D24): no; suena con la noche abierta, también con las solicitudes en pausa.
+8. ~~Quién crea establecimientos y su primer Administrador~~ Resuelto el 2026-11-21 (D16, RF-064): el superadmin, desde `/plataforma`.
 9. ~~Si la canción que suena cuenta para el cupo de 3~~ Resuelto el 2026-11-10: cuenta hasta
    que termina (RN-01), como en los prototipos y la simulación.
 10. Cuánto dura «Subió N puestos» (`puesto_anterior`): la simulación lo mantiene 10 min

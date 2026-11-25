@@ -3,6 +3,10 @@
 Fuente de verdad del proyecto. Los documentos numerados son la versión de trabajo; los
 originales del equipo, con los que se entregó el curso, están en `fuente/`.
 
+**Estado (2026-11-25):** cerrados los puntos 2 a 20 de la lista de errores del equipo y el escáner
+de Android (iteraciones 32 a 34 del doc 08). Commits locales, sin subir. Lo pendiente está en
+«Lo que queda», abajo.
+
 ## Índice
 
 | Doc | De qué trata |
@@ -18,6 +22,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | [09 Pruebas y QA](09-pruebas-qa.md) | Niveles de prueba, matriz de permisos, puertas de calidad |
 | [10 Corrección de errores](10-correccion-de-errores.md) | El barrido, severidad, flujo de un error |
 | [11 Entrega al backend](11-entrega-al-backend.md) | Qué recibe el equipo de backend, cómo se conecta el frontend a su API y qué falta decidir |
+| [historial/](historial/README.md) | Lo cerrado de los registros vivos |
 | `fuente/` | Requisitos, historias, prototipos/arquitectura/modelo y backlog originales (.docx, .xlsx) |
 | `fuente/extraido/` | Su texto en Markdown (`python -I scripts/extraer-fuentes.py`) |
 
@@ -25,7 +30,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 
 | ID | Fecha | Decisión | Quién |
 |---|---|---|---|
-| D1 | 2026-10-26 | Este repositorio es solo el frontend; el backend es de otro equipo | Usuario |
+| D1 | 2026-10-26 | Este repositorio es solo el frontend; el backend es de otro equipo. *Reemplazada en parte por D14: el backend vive en `rokolaBackend/` y este equipo le hace lo que el frontend necesita* | Usuario |
 | D2 | 2026-10-26 | Se implementa solo la dirección visual **Rockola** (Tema #2); Vidrio y Afiche se descartan. *Reemplazada por D13* | Usuario |
 | D3 | 2026-10-26 | Next.js 16 + React 19 + Tailwind 4 + TypeScript estricto, en un monorepo con npm workspaces | Usuario |
 | D4 | 2026-10-26 | Una sola app (`apps/web`) con tres superficies: cliente, pantalla del bar y panel | Usuario |
@@ -55,7 +60,6 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | Tema | Qué falta decidir | Quién |
 |---|---|---|
 | Matriz del Operador | Confirmar D9 | Equipo |
-| Estado `retirada` | El modelo no lo tiene y RF-041/RF-013 lo necesitan (doc 04) | Equipo de backend |
 | Bloqueo de cuenta e inactividad | Número de intentos, minutos de bloqueo y de inactividad | Equipo |
 
 ## Pendiente de recibir
@@ -66,6 +70,37 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 - IDs de YouTube verificados de las canciones de ejemplo.
 - El documento de analítica que citan las historias PB-43 y PB-44 («hallazgos») y la
   sección 5.1 (EventoAnalitico), que no están en `fuente/`.
+
+## Lo que queda
+
+El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
+[historial/lo-que-queda-hecho.md](historial/lo-que-queda-hecho.md).
+
+### Lo que hace una persona
+
+| # | Qué | Por qué |
+|---|---|---|
+| 1 | Desplegar el backend con lo de esta semana: el arreglo de errores de D21, la migración V14, la música con solicitudes en pausa (D24) y el error de YouTube con la canción | «No carga superadmin» y «Todavía no ha entrado» vienen de un backend desplegado viejo; nada de esto se probó contra la base real |
+| 2 | Probar la TV una noche con YouTube real y un televisor: que no se silencie ni se detenga al cambiar de canción o de pestaña (ADR-35) | La simulación no usa videos de verdad; solo se revisó en código y con pruebas unitarias |
+| 3 | Probar el escáner de la app en un teléfono: abrir la app recién instalada y escanear el QR de la TV de `npm run dev` (D22, D23) | El emulador no puede apuntar la cámara a un QR |
+| 4 | Confirmar la matriz del Operador (D9) y los valores de bloqueo de cuenta e inactividad | Decisiones abiertas del equipo |
+| 5 | Decidir si los commits locales se suben y cómo (rama y PR, o directo) | `CLAUDE.md`: no se sube nada sin pedirlo |
+
+### Lo aplazado
+
+| Qué | Quién lo aplazó |
+|---|---|
+| Dominio real de la web y huella del APK firmado para `assetlinks.json` (`TBD`) | Equipo, hasta tener hosting |
+| Lo de «Pendiente de recibir», abajo | Equipo |
+
+### Lo técnico, por tandas
+
+| Tanda | Qué (IDs) | Depende de | Apetito | Estado |
+|---|---|---|---|---|
+| T1 | La prueba de arranque del backend (`RokolaBackendApplicationTests`) exige una base Postgres (`DB_URL`) y falla sin ella: que corra con Testcontainers o se salte sin `DB_URL`, para que `./gradlew test` quede en verde. Fuera: cambiar las demás pruebas | — | 1 PR | Pendiente |
+| T2 | Los dos avisos de lint de `frontend/web/lib/api/hooks-panel.ts` (`window.location.assign` y un `eslint-disable` que sobra) | — | 1 PR | Pendiente |
+| T3 | Docs sobre su presupuesto (04, 05 y 08 pasan de 8 000 tokens; `CLAUDE.md` de 2 000): llevar lo cerrado del registro de iteraciones (08), del registro de cambios (05) y de «Pendiente del backend» (04) a `docs/historial/`. Fuera: reescribir lo vigente | — | 1 PR | Pendiente |
+| T4 | Probar contra el backend y Postgres locales lo de esta semana (V14, reclasificar, horario sin noche, D24) y anotar el resultado en el doc 11 | Docker local | 1 sesión | Pendiente |
 
 ## Reglas de estos documentos
 
