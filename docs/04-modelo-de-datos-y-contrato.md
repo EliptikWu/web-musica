@@ -162,7 +162,7 @@ códigos pide una misma IP por minuto*)*.
 | `POST /panel/sesiones` · `POST /panel/sesiones/actual/cierre` | Abrir y cerrar la noche a mano | 037 |
 | `PUT /panel/servicio` (`{ modo_qr }`) · `POST /panel/servicio/mantenimiento` | Pausar/reanudar solicitudes; mantenimiento | 036, 038, 039 |
 | `POST /panel/reproduccion/{id}/salto` · `/pausa` · `/reanudacion` | Control de la reproducción | 040 |
-| `PUT /panel/volumen` | Volumen de la pantalla (`{ volumen }`, 0 a 100). Va a la bitácora como `cambiar_volumen` con el valor; sale en `Ahora.volumen` y `Noche.volumen` (80 sin dato) | 062 |
+| `PUT /panel/volumen` | Volumen de la pantalla (`{ volumen }`, 0 a 100). No va a la bitácora desde el 2026-11-25 (`cambiar_volumen` sigue en el contrato para las líneas viejas, que tampoco se listan sin filtro); sale en `Ahora.volumen` y `Noche.volumen` (80 sin dato) | 062 |
 | `POST /panel/solicitudes/{id}/retiro` (`{ motivo, detalle }`) | Retirar de la cola | 041 |
 | `GET /panel/bloqueos` · `POST` · `PATCH /{id}` · `DELETE /{id}` | Bloquear, extender, desbloquear | 042, 043 |
 | `GET /panel/horario` · `PUT /panel/horario` | Horario semanal | 036 |

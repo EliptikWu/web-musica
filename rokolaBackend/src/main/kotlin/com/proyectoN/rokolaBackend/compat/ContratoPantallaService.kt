@@ -31,6 +31,7 @@ class ContratoPantallaService(
     private val cambios: CambioColaPublisher,
     private val tokens: TokenSeguro,
     private val pantallas: ContratoPantallasService,
+    private val bitacora: ContratoBitacora,
 ) {
     private data class ReproduccionFila(
         val sesionId: Long,
@@ -165,6 +166,15 @@ class ContratoPantallaService(
                        VALUES (?, ?, 'YouTube', 'reproductor', ?, 'reproduccion')""",
                     idEstablecimiento, fila.sesionId,
                     if (codigo == null) "Fallo reportado por el reproductor sin código" else "Error de reproductor YouTube ($codigo)",
+                )
+                // Con la canción, para que el panel diga cuál falló y salga en el registro (RF-019).
+                val idCancion = jdbc.query(
+                    "SELECT id_cancion FROM public.reproduccion WHERE id_reproduccion = ?",
+                    { rs, _ -> rs.getLong(1) }, idReproduccion,
+                ).firstOrNull()
+                bitacora.anotar(
+                    null, "error_youtube", objetivoTipo = idCancion?.let { "cancion" }, objetivoId = idCancion,
+                    texto = "El reproductor dio el error ${codigo ?: "desconocido"}", idBar = idEstablecimiento,
                 )
             }
         }

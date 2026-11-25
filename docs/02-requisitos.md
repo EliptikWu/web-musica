@@ -141,7 +141,9 @@ prototipos del equipo: **Rockola** (Tema #2, la de siempre), **Vidrio** (Tema #1
 suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 - De 0 a 100 %, en pasos de 10 con las teclas o directo con la barra. 0 es silencio.
 - La TV lo aplica en 3 s o menos (RNF-009) y lo recuerda: al recargar vuelve al último.
-- Queda en la bitácora con el valor. El teléfono no lo muestra: la música la controla el bar.
+- No va a la bitácora (cambio del equipo, 2026-11-25: subir y bajar la llenaba y tapaba lo
+  importante). El teléfono no lo muestra: la música la controla el bar.
+- Un toque basta: el valor no vuelve atrás mientras el servidor responde.
 
 ### Módulo 8. Datos y analítica
 

@@ -118,7 +118,7 @@ export function Operacion() {
         .map((a) => (
           <p key={a.tipo} className="alerta-panel" role="status">
             <Icono nombre="alerta" />
-            YouTube no pudo reproducir algunas canciones ({a.detalle}). Mira el registro.
+            {P.erroresYoutube(a.detalle)}
           </p>
         ))}
 

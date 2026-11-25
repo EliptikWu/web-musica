@@ -333,7 +333,8 @@ export function bitacora(estado: EstadoSim, filtros: { desde?: string | null; ha
   const hasta = filtros.hasta ? Date.parse(filtros.hasta) : Infinity;
   const todas = recientesPrimero(
     estado.acciones
-      .filter((a) => a.fecha >= desde && a.fecha <= hasta)
+      // Las líneas de volumen de estados guardados antes no se muestran (RF-062, 2026-11-25).
+      .filter((a) => a.fecha >= desde && a.fecha <= hasta && (a.tipo !== 'cambiar_volumen' || filtros.tipo === 'cambiar_volumen'))
       .filter((a) => !filtros.usuario || (filtros.usuario === 'sistema' ? a.usuario === null : a.usuario?.id === filtros.usuario))
       .filter((a) => !filtros.tipo || a.tipo === filtros.tipo),
   );

@@ -27,6 +27,8 @@ export const P = {
   colaVacia: 'No hay solicitudes en la cola.',
   nadaSuena: 'No suena nada.',
   sinListaActiva: 'No hay una lista de la casa activa: si la cola se vacía, no sonará nada.',
+  /** RF-019: el detalle trae cuáles canciones (el servidor las nombra). */
+  erroresYoutube: (detalle: string | null) => `YouTube no pudo reproducir ${detalle ?? 'algunas canciones'}. La rockola pasó a la siguiente.`,
   sinRegistro: 'Todavía no hay acciones esta noche.',
   saltar: 'Saltar',
   bloquear: 'Bloquear',

@@ -46,7 +46,7 @@ class ContratoNocheService(
       if (lista == null) add(mapOf("tipo" to "sin_lista_activa", "detalle" to "Si la cola se vacía, no sonará nada."))
       if (sesion == null) add(mapOf("tipo" to "sin_sesion", "detalle" to null))
       val errores = erroresYoutube(p.barId)
-      if (errores > 0) add(mapOf("tipo" to "errores_youtube", "detalle" to "$errores en la última media hora"))
+      if (errores > 0) add(mapOf("tipo" to "errores_youtube", "detalle" to detalleErroresYoutube(titulosConError(p.barId), errores)))
     }
 
     return mapOf(
@@ -158,7 +158,30 @@ class ContratoNocheService(
     Int::class.javaObjectType, idBar,
   ) ?: 0
 
+  /** Las canciones que no pudo poner YouTube en la última media hora, la más reciente primero. */
+  private fun titulosConError(idBar: Long): List<String> = jdbc.query(
+    """SELECT c.titulo FROM public.accion_admin a
+       JOIN public.cancion c ON a.objetivo_tipo = 'cancion' AND c.id_cancion = a.objetivo_id
+       WHERE a.id_establecimiento = ? AND a.tipo = 'error_youtube' AND a.fecha > CURRENT_TIMESTAMP - INTERVAL '30 minutes'
+       ORDER BY a.fecha DESC, a.id_accion DESC""",
+    { rs, _ -> rs.getString(1) }, idBar,
+  )
+
   companion object {
+    /**
+     * El aviso del panel nombra hasta tres canciones y cuenta el resto (RF-019). [total] sale de
+     * `error_integracion`, que también tiene los errores de antes de que se anotara la canción.
+     * Igual que `detalleErroresYoutube` de la simulación de la web.
+     */
+    fun detalleErroresYoutube(titulos: List<String>, total: Int): String {
+      val n = maxOf(total, titulos.size)
+      val cuenta = "($n en la última media hora)"
+      if (titulos.isEmpty()) return "algunas canciones $cuenta"
+      val nombrados = titulos.take(3)
+      val resto = n - nombrados.size
+      return nombrados.joinToString(", ") { "«$it»" } + (if (resto > 0) " y $resto más" else "") + " $cuenta"
+    }
+
     private const val ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
     /**

@@ -229,14 +229,22 @@ test('volumen: el Operador lo sube desde el panel y la TV lo recibe (RF-062)', a
   await franja(page).waitFor();
   const control = page.getByRole('slider', { name: 'Volumen de la pantalla' });
   await expect(control).toHaveValue('80');
+  // Un toque, y esperar a que llegue al servidor: el valor no vuelve atrás entre el envío y la
+  // respuesta (antes volvía a 80 y el segundo toque mandaba 90 otra vez).
   await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
+  await expect(control).toHaveValue('90');
+  await page.waitForTimeout(1200);
+  await expect(control).toHaveValue('90');
   await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
+  await expect(control).toHaveValue('100');
+  await page.waitForTimeout(1200);
   await expect(control).toHaveValue('100');
   // En 100, «Subir» no hace nada pero sigue ahí con el foco (no se apaga: no se pierde el foco).
   await page.getByRole('button', { name: 'Subir el volumen 10 %' }).click();
   await expect(control).toHaveValue('100');
   await expect(page.getByRole('button', { name: 'Subir el volumen 10 %' })).toBeFocused();
-  await expect(registro(page).getByText(/cambió el volumen|Cambiaste el volumen/)).toBeVisible();
+  // El volumen no llena el registro ni la bitácora (pedido del equipo, 2026-11-25).
+  await expect(registro(page).getByText(/cambió el volumen|Cambiaste el volumen/)).toHaveCount(0);
   await sinViolaciones(page, 'volumen');
   await objetivosDe44(page, '.volumen button');
   // La TV del mismo navegador (la simulación se comparte entre pestañas) recibe el valor.

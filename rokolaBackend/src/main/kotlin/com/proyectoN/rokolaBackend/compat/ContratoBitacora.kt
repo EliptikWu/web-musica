@@ -77,7 +77,9 @@ class ContratoBitacora(private val jdbc: JdbcTemplate) {
     if (f.tipo != null) {
       condiciones += "a.tipo = ?"; valores += f.tipo
     } else {
-      condiciones += "a.tipo IN (${TIPOS_ACCION.joinToString { "?" }})"; valores.addAll(TIPOS_ACCION)
+      // Las líneas de volumen que quedaron de antes no se muestran (RF-062, 2026-11-25).
+      val visibles = TIPOS_ACCION - OCULTOS
+      condiciones += "a.tipo IN (${visibles.joinToString { "?" }})"; valores.addAll(visibles)
     }
     f.antesDe?.let {
       condiciones += "(a.fecha, a.id_accion) < (SELECT x.fecha, x.id_accion FROM public.accion_admin x WHERE x.id_accion = ? AND x.id_establecimiento = ?)"
@@ -143,6 +145,9 @@ class ContratoBitacora(private val jdbc: JdbcTemplate) {
       "vincular_pantalla", "desvincular_pantalla",
       "error_youtube", "intento_no_permitido",
     )
+
+    /** Tipos que siguen en el contrato pero no se listan sin filtro: el volumen llenaba la bitácora. */
+    private val OCULTOS = setOf("cambiar_volumen")
 
     /** `AccionAdmin.objetivo.tipo` del contrato, salvo la canción (que sale de su tabla). */
     private val TIPOS_OBJETIVO = setOf("usuario", "lista", "horario", "servicio", "sesion", "establecimiento", "evento", "pantalla")
