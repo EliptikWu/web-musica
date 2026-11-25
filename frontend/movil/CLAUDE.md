@@ -33,7 +33,9 @@ Android Studio abre `frontend/movil` como proyecto; Gradle se corre desde esa ca
 - Dos repositorios con la misma interfaz (`dominio/RepositorioRockola.kt`), elegidos al
   compilar en `Contenedor.kt`, como `NEXT_PUBLIC_API_MODE` en la web:
   - Sin `rockola.apiUrl`: la simulación (`datos/simulacion/`), con los datos de ejemplo de la
-    web (canciones reales; votos y horas de ejemplo) y el bar «demo» sin pedir QR.
+    web (canciones reales; votos y horas de ejemplo) y el bar «demo». Pide el QR como la real
+    (D23): el escáner acepta el de la web en `npm run dev` (ADR-34) y, sin QR, «Entrar al bar de
+    demostración». Con `--es pantalla|escenario|tema` entra directo a «demo».
   - Con `-Prockola.apiUrl=http://…/api`: la API real (`datos/api/`), con el contrato de
     `packages/contrato` campo por campo. Toda respuesta se valida: si no cumple,
     es un error, no un dato a medias.

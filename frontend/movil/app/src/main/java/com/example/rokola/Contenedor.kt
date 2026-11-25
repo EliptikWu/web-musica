@@ -11,6 +11,8 @@ import com.example.rokola.datos.api.nuevoHttp
 import com.example.rokola.datos.local.AlmacenTelefono
 import com.example.rokola.datos.simulacion.RepositorioSimulado
 import com.example.rokola.dominio.RepositorioRockola
+import com.example.rokola.viewmodel.Enlace
+import com.example.rokola.viewmodel.leerQrEscaneado
 import okhttp3.OkHttpClient
 
 /**
@@ -37,8 +39,12 @@ object Contenedor {
 
     val conApi: Boolean get() = BuildConfig.ROCKOLA_API_URL.isNotEmpty()
 
-    /** Sin backend, la app abre el bar de la simulación sin pedir QR. */
-    val barPorDefecto: String? get() = if (conApi) null else SLUG_SIMULADO
+    /** El bar de la simulación; sin backend se ofrece en «Escanea el QR de tu mesa» (D23). */
+    val barDeDemostracion: String? get() = if (conApi) null else SLUG_SIMULADO
+
+    /** Todo QR del escáner pasa por aquí (RF-066); sin backend vale también el de la web local (ADR-34). */
+    fun leerQr(texto: String): Enlace? =
+        leerQrEscaneado(texto, BuildConfig.ROCKOLA_DOMINIO, BuildConfig.ROCKOLA_API_URL, simulacion = !conApi)
 
     private val http: OkHttpClient by lazy { nuevoHttp() }
 

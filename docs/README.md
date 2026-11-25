@@ -46,7 +46,8 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D19 | 2026-11-21 | Reemplaza la parte de D13 sobre el panel: el panel con sesión y el tablero también muestran el diseño del bar, para que todas las vistas sean coherentes (RF-059, ADR-31). Entrar, cambiar la clave y `/plataforma` siguen en Rockola porque no pertenecen a un bar | Usuario |
 | D20 | 2026-11-21 | La app Android escanea el QR del bar con la cámara, con permiso pedido en contexto (RF-066, ADR-32) | Usuario |
 | D21 | 2026-11-24 | El equipo de backend entrega el cubo en vivo y la corrección manual del género; el frontend los integra: cubo en vivo por defecto y vista «Canciones» (RF-067, RF-068, ADR-33). Se arregla en el backend el manejador de errores que dejó sin forma de contrato la analítica, la plataforma y el QR del panel (D14) | Usuario |
-| D22 | 2026-11-24 | Reemplaza la parte de D20 sobre cuándo se pide la cámara: recién instalada y sin bar recordado, la app abre el escáner sola, para escanear el QR y entrar al bar sin otro paso (RF-066). Y «Cambiar de bar» en la bienvenida olvida el bar recordado y vuelve a la cámara, para irse a otro bar la misma noche (RF-069). Con la simulación, abrir la app entra al bar «demo» | Usuario |
+| D22 | 2026-11-24 | Reemplaza la parte de D20 sobre cuándo se pide la cámara: recién instalada y sin bar recordado, la app abre el escáner sola, para escanear el QR y entrar al bar sin otro paso (RF-066). Y «Cambiar de bar» en la bienvenida olvida el bar recordado y vuelve a la cámara, para irse a otro bar la misma noche (RF-069). | Usuario |
+| D23 | 2026-11-24 | La simulación de Android ya no entra sola al bar «demo»: pide el QR como la real (se abre el escáner, que acepta el QR de la web en simulación, ADR-34) y ofrece «Entrar al bar de demostración». Así el APK de prueba muestra el mismo recorrido que el de producción (RF-066) | Usuario |
 
 ## Decisiones abiertas
 

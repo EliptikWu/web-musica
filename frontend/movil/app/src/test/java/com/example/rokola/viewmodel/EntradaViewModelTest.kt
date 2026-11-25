@@ -47,7 +47,7 @@ class EntradaViewModelTest {
         repositorio = repo ?: Repo(RepositorioSimulado(slugPedido = { guardado })),
         leerSlug = { guardado },
         guardarSlug = { guardado = it },
-        barPorDefecto = porDefecto,
+        barDeDemostracion = porDefecto,
     )
 
     @Test
@@ -108,8 +108,8 @@ class EntradaViewModelTest {
         crear().also { it.iniciar(null) }.let { assertEquals(Entrada.Lista("demo"), it.estado.value) }
         guardado = null
         crear().also { it.iniciar(null) }.let { assertEquals(Entrada.SinBar, it.estado.value) }
-        // En la simulación no hace falta QR.
-        crear(porDefecto = "demo").also { it.iniciar(null) }.let { assertEquals(Entrada.Lista("demo"), it.estado.value) }
+        // La simulación también pide el QR (D23); el bar de demostración es una opción.
+        crear(porDefecto = "demo").also { it.iniciar(null) }.let { assertEquals(Entrada.SinBar, it.estado.value) }
     }
 
     @Test
@@ -122,7 +122,7 @@ class EntradaViewModelTest {
         guardado = "demo"
         assertEquals(false, crear().also { it.iniciar(null) }.tomarEscanerInicial())
         guardado = null
-        assertEquals(false, crear(porDefecto = "demo").also { it.iniciar(null) }.tomarEscanerInicial())
+        assertEquals(true, crear(porDefecto = "demo").also { it.iniciar(null) }.tomarEscanerInicial())
     }
 
     @Test
@@ -139,6 +139,18 @@ class EntradaViewModelTest {
         // Con un QR nuevo entra al otro bar.
         vm.abrir(Enlace.Bar("demo"))
         assertEquals(Entrada.Lista("demo"), vm.estado.value)
+    }
+
+    @Test
+    fun `en la simulación se entra al bar de demostración y se queda recordado`() {
+        guardado = null
+        val vm = crear(porDefecto = "demo").also { it.iniciar(null) }
+        vm.entrarALaDemostracion()
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+        assertEquals("demo", guardado)
+        // Con la API real no hay bar de demostración: no pasa nada.
+        guardado = null
+        crear().also { it.iniciar(null) }.also { it.entrarALaDemostracion() }.let { assertEquals(Entrada.SinBar, it.estado.value) }
     }
 
     @Test

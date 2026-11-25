@@ -197,6 +197,8 @@ object Conexion {
  * vez de «dirección» y, como tiene tecla para reintentar, el fallo de red no pide escanear.
  */
 object TextosEntrada {
+    /** Solo en la simulación (D23). */
+    const val DEMOSTRACION = "Entrar al bar de demostración"
     const val ABRIENDO = "Abriendo la rockola del bar…"
     val sinBar = TituloMeta("Escanea el QR de tu mesa", "La rockola de cada bar se abre desde su código QR. Toca «Escanear QR» y apunta al de tu mesa.")
     val reemplazado = TituloMeta("Este QR ya no está en uso", "El bar cambió su código. Escanea el QR que está ahora en tu mesa.")

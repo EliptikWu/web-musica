@@ -62,7 +62,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.rokola.BuildConfig
+import com.example.rokola.Contenedor
 import com.example.rokola.escaner.AnalizadorQr
 import com.example.rokola.ui.componentes.Aviso
 import com.example.rokola.ui.componentes.Enlace
@@ -82,7 +82,6 @@ import com.example.rokola.ui.theme.RadioMarco
 import com.example.rokola.ui.theme.Tinta
 import com.example.rokola.ui.theme.Tinta2
 import com.example.rokola.ui.theme.TituloSeccion
-import com.example.rokola.viewmodel.leerQrEscaneado
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.delay
@@ -157,7 +156,7 @@ fun PantallaEscaner(onLeido: (String) -> Unit, onCerrar: () -> Unit) {
             principal.execute {
                 when {
                     terminado.get() -> Unit
-                    leerQrEscaneado(texto, BuildConfig.ROCKOLA_DOMINIO, BuildConfig.ROCKOLA_API_URL) == null -> {
+                    Contenedor.leerQr(texto) == null -> {
                         ultimoAjeno = SystemClock.elapsedRealtime()
                         ajeno = true
                     }

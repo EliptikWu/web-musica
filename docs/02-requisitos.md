@@ -173,6 +173,8 @@ con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida
 - La imagen se analiza en el teléfono: no se guarda, no se envía y su contenido no va a los logs.
 - Solo abre enlaces `https` de la web de Rockola (`/q/<token>`, `/b/<slug>`) o un `/q/<token>`
   impreso con la dirección del backend. Cualquier otro QR se rechaza con un aviso y no se abre.
+  En la simulación (D23, ADR-34) vale también el QR de la web local, de cualquier host y con
+  `http`, pero solo con esas rutas; sin QR a mano, «Entrar al bar de demostración».
 - Un QR válido entra por el mismo camino que un enlace, con sus avisos de QR viejo o sin bar.
 
 **RF-069 — Cambiar de bar desde la app.** Añadido el 2026-11-24 (D22). La app recuerda el bar aunque

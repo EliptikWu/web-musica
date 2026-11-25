@@ -61,9 +61,13 @@ class RepositorioSimulado(
         salida
     }
 
-    /** Como apps/web/simulacion/handlers/cliente.ts: el QR vigente lleva al bar; otro, a ninguno. */
+    /**
+     * Como apps/web/simulacion/handlers/cliente.ts: el QR del bar lleva a él; otro, a ninguno.
+     * La simulación de la web numera el QR al regenerarlo (`demo-qr-2`…) y la de la app no se
+     * entera, así que vale cualquiera de esa serie (ADR-34).
+     */
     override suspend fun resolverQr(token: String): Resultado<String> = conEstado { e, _ ->
-        if (token == QR_VIGENTE) Resultado.Exito(e.bar.slug)
+        if (SERIE_QR.matches(token)) Resultado.Exito(e.bar.slug)
         else Resultado.Fallo(ErrorRockola(CodigoError.NO_ENCONTRADO, "QR desconocido"))
     }
 
@@ -129,7 +133,7 @@ class RepositorioSimulado(
     companion object {
         private const val REVISION_MS = 1000L
 
-        /** El token del QR de la semilla de la web (semilla.ts). */
-        const val QR_VIGENTE = "demo-qr-1"
+        /** Los tokens del QR de la simulación de la web (semilla.ts y gestion.ts). */
+        private val SERIE_QR = Regex("^demo-qr-[1-9][0-9]{0,5}$")
     }
 }
