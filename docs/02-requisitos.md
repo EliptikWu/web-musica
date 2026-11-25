@@ -206,7 +206,8 @@ agrega cuentas de Operador o Administrador a un bar, y da una clave nueva a una 
 perdió. Cada cuenta nace con una clave temporal, que se
 muestra una sola vez y obliga a cambiarla. No hay registro público. La plataforma no opera ningún
 bar ni ve datos de sus clientes, y una sesión del panel de un bar no entra en ella. La lista muestra
-cada bar plegado, con nombre, dirección web, dirección y horario; sus cuentas se despliegan.
+cada bar plegado, con nombre, dirección web, dirección y horario; sus cuentas se despliegan. Con
+varios bares, «Ir a un bar» deja solo el elegido, con sus cuentas abiertas (punto 15, 2026-11-25).
 
 **RF-063 — Cubo de participación.** Añadido el 2026-11-20 (D15) para el Entregable 6 de la guía
 del seminario. El Administrador explora en un cubo 3D **los KPI del entregable** por género,
@@ -243,6 +244,9 @@ que usó su bar (pedidas, en listas, bloqueadas o que sonaron) con su género y 
   confirma. El backend la marca `MANUAL` y la clasificación automática ya no la cambia.
 - El cubo en vivo la cuenta de inmediato; el histórico, cuando vuelva a correr el pipeline.
 - Queda en la bitácora. Solo el Administrador; el Operador no la ve.
+- Los géneros van en orden alfabético. «Clasificar las que faltan» vuelve a pasar por el
+  clasificador las que no tienen género (de 10 en 10, hasta 100 por vez) y dice cuántas encontró
+  y cuántas hay que poner a mano; nunca toca las `MANUAL` (punto 18, 2026-11-25).
 
 ### Módulo 9. Funcionalidades opcionales
 

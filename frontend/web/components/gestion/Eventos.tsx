@@ -57,7 +57,7 @@ export function Eventos() {
       </div>
       <div className="lista-gestion__acciones">
         <Tecla tamano="chica" aria-label={`Editar ${e.nombre}`} onClick={() => setEdicion({ evento: e })}>
-          {pasado ? 'Descripción' : 'Editar'}
+          {pasado ? 'Editar descripción' : 'Editar'}
         </Tecla>
         {Date.parse(e.inicio) > ahora ? (
           <Tecla tamano="chica" aria-label={`Eliminar ${e.nombre}`} onClick={() => setAEliminar(e)}>

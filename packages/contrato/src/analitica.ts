@@ -211,3 +211,23 @@ export const CategoriaCorregida = z
   .object({ id: Id, categoria: z.string(), origen_categoria: OrigenCategoria })
   .meta({ id: 'CategoriaCorregida' });
 export type CategoriaCorregida = z.infer<typeof CategoriaCorregida>;
+
+/**
+ * `POST /panel/canciones/reclasificar` (RF-068): vuelve a pasar por el clasificador hasta 10
+ * canciones del bar sin género, desde `despuesDe`. Nunca inventa: sin pistas en el video queda en
+ * `sin_coincidencia`. `interrumpida`: YouTube no respondió o se acabó la cuota; se puede reintentar
+ * desde `siguiente_desde_id`.
+ */
+export const Reclasificacion = z
+  .object({
+    consultadas: z.number().int().nonnegative(),
+    clasificadas: z.number().int().nonnegative(),
+    clasificadas_por_origen: z.object({ ETIQUETAS: z.number().int(), TITULO: z.number().int(), DESCRIPCION: z.number().int() }),
+    sin_coincidencia: z.number().int().nonnegative(),
+    no_disponibles: z.number().int().nonnegative(),
+    siguiente_desde_id: z.number().int().nonnegative(),
+    hay_mas: z.boolean(),
+    interrumpida: z.enum(['cuota_agotada', 'youtube_no_disponible']).nullable(),
+  })
+  .meta({ id: 'Reclasificacion' });
+export type Reclasificacion = z.infer<typeof Reclasificacion>;

@@ -138,7 +138,8 @@ function FormularioBar({
         <Campo etiqueta="Sin repetir (min)" ayuda="Después de sonar, nadie la puede pedir durante este tiempo." type="number" min={0} max={600} value={datos.ventana_no_repeticion_min} onChange={poner('ventana_no_repeticion_min')} error={errores.ventana} />
       </div>
       {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
-      <Tecla type="submit" variante="cereza" tamano="ancha" className="mt-auto self-start" ocupada={guardar.isPending}>
+      {/* A la derecha, al pie de lo que guarda (punto 17). */}
+      <Tecla type="submit" variante="cereza" tamano="ancha" className="self-end" ocupada={guardar.isPending}>
         Guardar datos
       </Tecla>
     </form>
@@ -205,13 +206,13 @@ function ElegirTema({
         }}
       />
       {aviso ? <Aviso tipo={aviso.tipo} titulo={aviso.texto} /> : null}
-      <div className="flex flex-wrap items-center gap-4">
-        <Tecla type="submit" variante="cereza" tamano="ancha" ocupada={guardar.isPending}>
-          Guardar diseño
-        </Tecla>
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <a className="enlace" href={`/b/${bar.slug}`} target="_blank" rel="noopener">
           Ver la rockola de los clientes
         </a>
+        <Tecla type="submit" variante="cereza" tamano="ancha" ocupada={guardar.isPending}>
+          Guardar diseño
+        </Tecla>
       </div>
     </form>
   );
@@ -230,7 +231,7 @@ function SinQr({ qr }: { qr: QrEstablecimiento }) {
       <ElegirDestino qr={qr} />
       <p className="text-crema-2">Este bar todavía no tiene un QR que se pueda mostrar. Si ya hay uno impreso, sigue funcionando; genera otro solo si necesitas imprimirlo.</p>
       {error ? <Aviso tipo="error" titulo={error} /> : null}
-      <Tecla variante="cereza" tamano="ancha" className="self-start" onClick={() => setConfirmar(true)}>
+      <Tecla variante="cereza" tamano="ancha" className="self-end" onClick={() => setConfirmar(true)}>
         Generar QR
       </Tecla>
       <DialogoConfirmar

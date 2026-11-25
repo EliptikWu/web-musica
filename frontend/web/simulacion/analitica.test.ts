@@ -1,7 +1,7 @@
-import { ComparacionAnalitica, CuboAnalitica, DiagnosticoAnalitica, ParticipacionAnalitica, Recomendacion, ResumenAnalitica } from '@rockola/contrato';
+import { ComparacionAnalitica, CuboAnalitica, DiagnosticoAnalitica, ParticipacionAnalitica, Reclasificacion, Recomendacion, ResumenAnalitica } from '@rockola/contrato';
 import { describe, expect, it } from 'vitest';
 import { comparar, cubo, cuboVivo, diagnostico, nochesDeEjemplo, pedidasEnEjemplo, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from './analitica';
-import { categoriaDe, corregirCategoria, listarCatalogo } from './categorias';
+import { categoriaDe, corregirCategoria, listarCatalogo, reclasificar } from './categorias';
 import { crearEstado } from './datos/semilla';
 import { ahoraSim } from './motor';
 
@@ -159,6 +159,26 @@ describe('RF-067: el cubo en vivo de la simulación', () => {
     expect(copia.acciones.at(-1)?.tipo).toBe('editar_categoria');
     const vivo = cuboVivo(copia, ahora, 'dia', (v) => categoriaDe(copia, v).categoria ?? 'Sin clasificar');
     expect(vivo.miembros.genero).toContain('Rock');
+  });
+
+  it('«Clasificar las que faltan» encuentra las que tienen pistas, deja las demás y no toca lo manual', () => {
+    const copia = structuredClone(estado);
+    const pedidas = pedidasEnEjemplo(copia);
+    const antes = listarCatalogo(copia, pedidas, { soloSinCategoria: true, q: '', limite: 100 }).length;
+    let desde = 0;
+    let clasificadas = 0;
+    for (let i = 0; i < 20; i++) {
+      const r = reclasificar(copia, pedidas, ahora, { id: 'u-admin', nombre: 'Admin' }, 10, desde);
+      if (!r.ok) throw new Error('falló');
+      Reclasificacion.parse(r.cuerpo);
+      clasificadas += r.cuerpo.clasificadas;
+      desde = r.cuerpo.siguiente_desde_id;
+      if (!r.cuerpo.hay_mas) break;
+    }
+    const despues = listarCatalogo(copia, pedidas, { soloSinCategoria: true, q: '', limite: 100 }).length;
+    expect(clasificadas).toBeGreaterThan(0);
+    expect(despues).toBe(antes - clasificadas);
+    expect(reclasificar(copia, pedidas, ahora, { id: 'u-admin', nombre: 'Admin' }, 10, -1)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
   });
 
   it('el catálogo rechaza un género que no existe y una canción ajena al bar', () => {

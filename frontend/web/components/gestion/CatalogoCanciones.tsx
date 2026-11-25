@@ -1,13 +1,14 @@
 'use client';
 
-import type { CancionCatalogo, OrigenCategoria } from '@rockola/contrato';
+import type { CancionCatalogo } from '@rockola/contrato';
 import { GrupoTeclas, Selector, TarjetaTitulo, Tecla } from '@rockola/ui';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
 import { claves } from '@/lib/api/claves';
 import { pedir } from '@/lib/api/cliente';
 import { useAccionGestion } from '@/lib/api/hooks-panel';
+import { ordenarGeneros, resumenReclasificacion, textoOrigen, type TotalReclasificacion } from '@/lib/generos';
 import { Cargando, mensajeDeError, PaginaGestion } from './PaginaGestion';
 
 const FILTROS = [
@@ -18,12 +19,6 @@ const FILTROS = [
 /** Lo que el backend devuelve como máximo, sin paginar: con más, toca buscar. */
 const LIMITE = 100;
 
-const ORIGEN: Record<NonNullable<OrigenCategoria>, string> = {
-  MANUAL: 'Puesto a mano',
-  ETIQUETAS: 'Automático, por las etiquetas del video',
-  TITULO: 'Automático, por el título',
-  DESCRIPCION: 'Automático, por la descripción',
-};
 
 /**
  * Catálogo de canciones (RF-068): el género de lo que el bar usa. La clasificación automática
@@ -44,7 +39,8 @@ export function CatalogoCanciones() {
     queryFn: ({ signal }) => pedir('cancionesPanel', { consulta, signal }),
     placeholderData: keepPreviousData,
   });
-  const generos = useQuery({ queryKey: claves.panel.generos, queryFn: ({ signal }) => pedir('generos', { signal }), staleTime: Infinity });
+  // En orden alfabético (punto 14): el servidor los manda por familias y eran 61 sin orden visible.
+  const generos = useQuery({ queryKey: claves.panel.generos, queryFn: ({ signal }) => pedir('generos', { signal }), staleTime: Infinity, select: ordenarGeneros });
   const [aviso, setAviso] = useState<{ tipo: 'luz' | 'error'; titulo: string; meta?: string } | null>(null);
   // Tras guardar, la fila se va («Sin género») o se vuelve a montar («Todas»): el foco se pone
   // cuando la lista ya muestra el cambio, en su selector o en el de la siguiente.
@@ -71,6 +67,7 @@ export function CatalogoCanciones() {
           <input id="catalogo-buscar" type="search" className="campo__entrada" value={texto} onChange={(e) => setTexto(e.target.value)} autoComplete="off" />
         </div>
       </div>
+      <Reclasificar onAviso={setAviso} />
       {generos.isError ? (
         <Aviso
           tipo="error"
@@ -116,6 +113,41 @@ export function CatalogoCanciones() {
   );
 }
 
+/** Pasa por el clasificador del backend, de 10 en 10, las que no tienen género (hasta 100 por vez). */
+async function reclasificarTodas(): Promise<TotalReclasificacion> {
+  const total: TotalReclasificacion = { clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: null };
+  let desde = 0;
+  for (let vuelta = 0; vuelta < 10; vuelta++) {
+    const r = await pedir('reclasificarCanciones', { consulta: { limite: '10', despuesDe: String(desde) } });
+    total.clasificadas += r.clasificadas;
+    total.sinPistas += r.sin_coincidencia;
+    total.noDisponibles += r.no_disponibles;
+    total.interrumpida = r.interrumpida;
+    desde = r.siguiente_desde_id;
+    if (r.interrumpida || !r.hay_mas) break;
+  }
+  return total;
+}
+
+/** Punto 18: la ruta ya existía en el backend y nadie la podía usar desde el panel. */
+function Reclasificar({ onAviso }: { onAviso: (a: { tipo: 'luz' | 'error'; titulo: string; meta?: string }) => void }) {
+  const qc = useQueryClient();
+  const accion = useMutation({
+    mutationFn: reclasificarTodas,
+    onSuccess: (t) => onAviso(resumenReclasificacion(t)),
+    onError: (e) => onAviso({ tipo: 'error', titulo: 'No se pudo clasificar.', meta: mensajeDeError(e, {}) }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ['panel', 'canciones'] }),
+  });
+  return (
+    <div className="catalogo-reclasificar mt-3">
+      <Tecla ocupada={accion.isPending} onClick={() => accion.mutate()}>
+        Clasificar las que faltan
+      </Tecla>
+      <p className="secundario text-[14px]">Vuelve a leer en YouTube las etiquetas, el título y la descripción de las que no tienen género. Lo que pusiste a mano no se toca.</p>
+    </div>
+  );
+}
+
 function FilaCancion({
   cancion: c, generos, onAviso, alGuardar,
 }: {
@@ -152,7 +184,7 @@ function FilaCancion({
       <div className="lista-gestion__info">
         <p className="lista-gestion__titulo">{c.categoria ?? 'Sin género'}</p>
         <p className="lista-gestion__meta">
-          {c.origen_categoria ? `${ORIGEN[c.origen_categoria]}.` : 'Nadie le ha puesto género.'} {c.pedidos === 1 ? 'Pedida 1 vez' : `Pedida ${c.pedidos} veces`} en el bar.
+          {textoOrigen(c.categoria, c.origen_categoria)} {c.pedidos === 1 ? 'Pedida 1 vez' : `Pedida ${c.pedidos} veces`} en el bar.
         </p>
       </div>
       <form

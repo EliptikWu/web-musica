@@ -63,7 +63,7 @@ class ContratoPanelAcceso(
       throw credencialesInvalidas()
     }
     jdbc.update(
-      "UPDATE public.usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id_usuario = ?",
+      "UPDATE public.usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL, ultimo_acceso = CURRENT_TIMESTAMP WHERE id_usuario = ?",
       acierto.personal.id,
     )
     return acierto.personal to sesiones.crear(acierto.personal.id)

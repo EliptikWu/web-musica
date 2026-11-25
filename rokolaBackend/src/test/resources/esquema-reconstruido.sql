@@ -111,6 +111,7 @@ CREATE TABLE public.usuario (
     cambiar_password   BOOLEAN      NOT NULL DEFAULT FALSE,  -- supuesto: valor por defecto
     intentos_fallidos  SMALLINT     NOT NULL DEFAULT 0,      -- supuesto: valor por defecto (el código lo limita a 32000)
     bloqueado_hasta    TIMESTAMPTZ,
+    ultimo_acceso      TIMESTAMPTZ,  -- V14
     fecha_creacion     TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- supuesto: valor por defecto
     -- Usuario.kt nombra uq_usuario_correo_establecimiento.
     -- supuesto: sobre (id_establecimiento, correo) tal cual; el login compara lower(correo),

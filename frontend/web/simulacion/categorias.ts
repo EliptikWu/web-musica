@@ -1,4 +1,4 @@
-import type { CancionCatalogo, CategoriaCorregida, OrigenCategoria } from '@rockola/contrato';
+import type { CancionCatalogo, CategoriaCorregida, OrigenCategoria, Reclasificacion } from '@rockola/contrato';
 import { nombreGenero } from '../lib/formato';
 import { anotar } from './gestion';
 import { cancion, normalizar, type Personal, type Resultado } from './motor';
@@ -40,6 +40,8 @@ function huella(texto: string): number {
 export function categoriaDe(estado: EstadoSim, videoId: string): { categoria: string | null; origen: OrigenCategoria } {
   const manual = estado.categorias?.[videoId];
   if (manual) return { categoria: manual, origen: 'MANUAL' };
+  const reclasificada = estado.categorias_auto?.[videoId];
+  if (reclasificada) return { categoria: reclasificada, origen: 'DESCRIPCION' };
   const genero = cancion(estado, videoId).genero;
   const h = huella(videoId);
   if (genero === 'sin_clasificar' || h % 7 === 0) return { categoria: null, origen: null };
@@ -83,4 +85,42 @@ export function corregirCategoria(estado: EstadoSim, pedidasAntes: Map<string, n
   const c = cancion(estado, id);
   anotar(estado, ahora, quien, 'editar_categoria', { tipo: 'cancion', nombre: c.titulo, detalle: c.artista || null }, `Asignó género: ${categoria}`);
   return { ok: true, estado: 200, cuerpo: { id, categoria, origen_categoria: 'MANUAL' } };
+}
+
+/**
+ * `POST /panel/canciones/reclasificar` (RF-068) imitado: las que quedaron sin género por la
+ * huella sí tienen género en el catálogo y «se encuentran» ahora; las `sin_clasificar` siguen
+ * sin pistas, como un video sin etiquetas útiles. El cursor es la posición en la lista.
+ */
+export function reclasificar(estado: EstadoSim, pedidasAntes: Map<string, number>, ahora: number, quien: Personal, limite: number, despuesDe: number): Resultado<Reclasificacion> {
+  if (!Number.isInteger(despuesDe) || despuesDe < 0) return { ok: false, estado: 400, codigo: 'datos_invalidos', mensaje: 'despuesDe debe ser >= 0' };
+  const tope = Math.min(10, Math.max(1, Number.isFinite(limite) ? limite : 10));
+  const candidatas = [...cancionesDelBar(estado, pedidasAntes).keys()].filter((v) => categoriaDe(estado, v).categoria === null).sort();
+  const lote = candidatas.filter((_, i) => i + 1 > despuesDe).slice(0, tope);
+  let clasificadas = 0;
+  for (const video of lote) {
+    const genero = cancion(estado, video).genero;
+    if (genero === 'sin_clasificar') continue;
+    const nombre = nombreGenero(genero);
+    estado.categorias_auto = { ...estado.categorias_auto, [video]: nombre };
+    clasificadas++;
+    const c = cancion(estado, video);
+    anotar(estado, ahora, quien, 'editar_categoria', { tipo: 'cancion', nombre: c.titulo, detalle: c.artista || null }, `Clasificación DESCRIPCION: ${nombre}`);
+  }
+  // Las clasificadas salen de la lista de candidatas: el cursor solo cuenta las que siguen sin género.
+  const siguiente = despuesDe + lote.length - clasificadas;
+  return {
+    ok: true,
+    estado: 200,
+    cuerpo: {
+      consultadas: lote.length,
+      clasificadas,
+      clasificadas_por_origen: { ETIQUETAS: 0, TITULO: 0, DESCRIPCION: clasificadas },
+      sin_coincidencia: lote.length - clasificadas,
+      no_disponibles: 0,
+      siguiente_desde_id: siguiente,
+      hay_mas: lote.length === tope && candidatas.length > despuesDe + lote.length,
+      interrumpida: null,
+    },
+  };
 }

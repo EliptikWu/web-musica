@@ -28,7 +28,7 @@
     color: var(--vidrio-texto-2); font-stretch: normal; font-weight: 500; letter-spacing: 0; text-transform: none;
   }
   & :is(.panel-subnav a, .analitica-nav a):hover { color: var(--vidrio-texto); }
-  & :is(.panel-subnav a, .analitica-nav a)[aria-current="page"] {
+  & :is(.panel-subnav a[aria-current], .analitica-nav a[aria-current="page"]) {
     border-color: var(--vidrio-votado-borde); background: var(--vidrio-votado); color: var(--vidrio-texto); font-weight: 600; box-shadow: none; transform: none;
   }
 

@@ -1,6 +1,8 @@
 /** Textos de la plataforma (RF-064). Español de Colombia, en la voz del panel. */
 export const plataforma = {
   marca: 'Administración de bares',
+  elegirBar: 'Ir a un bar',
+  todosLosBares: (n: number) => `Todos los bares (${n})`,
   cargando: 'Cargando la plataforma…',
   noCargo: 'La plataforma no cargó',
   errorGenerico: 'Revisa la conexión e inténtalo de nuevo.',

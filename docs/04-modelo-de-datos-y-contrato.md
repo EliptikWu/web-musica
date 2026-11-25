@@ -162,6 +162,7 @@ códigos pide una misma IP por minuto*)*.
 | `POST /panel/sesiones` · `POST /panel/sesiones/actual/cierre` | Abrir y cerrar la noche a mano | 037 |
 | `PUT /panel/servicio` (`{ modo_qr }`) · `POST /panel/servicio/mantenimiento` | Pausar/reanudar solicitudes; mantenimiento | 036, 038, 039 |
 | `POST /panel/reproduccion/{id}/salto` · `/pausa` · `/reanudacion` | Control de la reproducción | 040 |
+| `POST /panel/canciones/reclasificar` | Vuelve a clasificar hasta 10 canciones del bar sin género desde `despuesDe` (`Reclasificacion`); nunca toca las `MANUAL`. La web la llama de 10 en 10 desde «Canciones» (hasta 100 por vez) | 068 |
 | `PUT /panel/volumen` | Volumen de la pantalla (`{ volumen }`, 0 a 100). No va a la bitácora desde el 2026-11-25 (`cambiar_volumen` sigue en el contrato para las líneas viejas, que tampoco se listan sin filtro); sale en `Ahora.volumen` y `Noche.volumen` (80 sin dato) | 062 |
 | `POST /panel/solicitudes/{id}/retiro` (`{ motivo, detalle }`) | Retirar de la cola | 041 |
 | `GET /panel/bloqueos` · `POST` · `PATCH /{id}` · `DELETE /{id}` | Bloquear, extender, desbloquear | 042, 043 |
@@ -443,8 +444,9 @@ resincroniza al reconectar.
       a los teléfonos, que lo ignoran. **`TBD`:** mandarlo solo a quien tiene sesión del panel.
     - El cubo en vivo recorre todas las noches del bar con `CUBE` en cada consulta. **`TBD`:**
       medir cuánto tarda con meses de datos (doc 07).
-    - Hay además `POST /panel/canciones/reclasificar`, `GET /panel/generos/estado-analitica` y
-      `GET /panel/generos/resumen`, que el frontend no usa (no hay requisito que los pida).
+    - `POST /panel/canciones/reclasificar` ya está en el contrato y la usa «Canciones» (punto 18
+      del equipo, 2026-11-25). `GET /panel/generos/estado-analitica` y `GET /panel/generos/resumen`
+      siguen sin uso en el frontend (no hay requisito que los pida).
     - El frontend arregló en `ContratoError.kt` la lista del manejador de errores: el cambio
       había sacado la analítica, la plataforma y el QR del panel, y sus errores perdían
       `{ codigo, mensaje }` (D14, doc 11).

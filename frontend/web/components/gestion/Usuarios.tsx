@@ -90,7 +90,7 @@ export function Usuarios() {
                         {u.debe_cambiar_clave ? <span className="etiqueta">Clave temporal</span> : null}
                       </p>
                       <p className="lista-gestion__meta">
-                        {u.correo}. {u.ultimo_acceso ? conPunto(`Último ingreso: ${fechaYHora(u.ultimo_acceso, yo.establecimiento.zona_horaria)}`) : 'Todavía no ha entrado.'}
+                        {u.correo}. {u.ultimo_acceso ? conPunto(`Último ingreso: ${fechaYHora(u.ultimo_acceso, yo.establecimiento.zona_horaria)}`) : 'Sin ingresos registrados todavía.'}
                       </p>
                     </div>
                     <div className="lista-gestion__acciones lista-gestion__acciones--columnas">

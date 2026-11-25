@@ -139,6 +139,12 @@ test('eventos: agregar uno próximo (PB-41)', async ({ page }) => {
   await dialogo.getByRole('button', { name: 'Guardar' }).click();
   await expect(page.getByRole('region', { name: 'Próximos' })).toContainText('Noche de boleros');
   await sinViolaciones(page, 'eventos');
+  // Y se edita (punto 8 del equipo): el nombre cambia en la lista.
+  await page.getByRole('button', { name: 'Editar Noche de boleros' }).click();
+  const edicion = page.getByRole('dialog', { name: 'Editar «Noche de boleros»' });
+  await edicion.getByLabel('Nombre').fill('Noche de boleros y tangos');
+  await edicion.getByRole('button', { name: 'Guardar' }).click();
+  await expect(page.getByRole('region', { name: 'Próximos' })).toContainText('Noche de boleros y tangos');
 });
 
 test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', async ({ page }) => {
