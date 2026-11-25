@@ -199,6 +199,7 @@
   & .aviso--error { border-color: var(--vidrio-rosa); }
   & .banner-conexion { background: var(--vidrio-velo); color: var(--vidrio-texto); border-bottom: 1px solid var(--vidrio-rosa); }
   & .banner-conexion__punto { background: var(--vidrio-rosa); opacity: 1; }
+  & .banner-cierre { background: var(--vidrio-velo); color: var(--vidrio-texto); border-bottom: 1px solid var(--vidrio-borde); }
 
   /* ── «Tu canción»: la tarjeta con el degradado ──────────────────────────── */
   & .marco { padding: 0; border-radius: var(--radio-marco); background: none; box-shadow: var(--vidrio-sombra-tuya); }
@@ -215,7 +216,7 @@
     background: var(--vidrio-superficie);
     -webkit-backdrop-filter: var(--vidrio-desenfoque); backdrop-filter: var(--vidrio-desenfoque);
   }
-  & .horario-bar > p { text-align: left; }
+  & .horario-bar > p { text-align: center; }
   & .dia { height: 58px; border: 1px solid transparent; background: none; box-shadow: none; color: var(--vidrio-texto-2); font-weight: 500; }
   & .dia--abre { background: var(--vidrio-superficie-alta); border-color: var(--vidrio-tecla-borde); color: var(--vidrio-texto); font-weight: 600; transform: none; box-shadow: none; }
   & .dia:has(small) { border-color: var(--vidrio-hoy); }

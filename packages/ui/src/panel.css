@@ -116,7 +116,8 @@
   .metrica dd small { font-stretch: 100%; font-size: 16px; font-weight: 500; color: var(--crema-2); }
 
   .caja .dias .dia { height: 40px; }
-  .horas { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  /* Centrado (punto 13 del equipo, 2026-11-25): antes iban a los dos bordes. */
+  .horas { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; margin-top: 12px; text-align: center; }
   .horas b { font-size: 16px; font-weight: 700; }
 
   .casa { display: flex; align-items: center; gap: 12px; }

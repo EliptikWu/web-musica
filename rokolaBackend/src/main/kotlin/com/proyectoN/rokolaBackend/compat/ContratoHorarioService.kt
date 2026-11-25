@@ -1,6 +1,5 @@
 package com.proyectoN.rokolaBackend.compat
 
-import com.proyectoN.rokolaBackend.tiemporeal.CambioColaPublisher
 import com.proyectoN.rokolaBackend.tiemporeal.CambioPanelPublisher
 import org.springframework.http.HttpStatus
 import org.springframework.jdbc.core.JdbcTemplate
@@ -19,8 +18,8 @@ import java.time.format.DateTimeFormatter
 class ContratoHorarioService(
   private val jdbc: JdbcTemplate,
   private val bitacora: ContratoBitacora,
-  private val cola: CambioColaPublisher,
   private val panel: CambioPanelPublisher,
+  private val servicio: ContratoServicioService,
 ) {
   fun leer(p: ContratoPanelAcceso.Personal): Map<String, Any?> =
     mapOf("zona_horaria" to p.barZona, "franjas" to franjas(p.barId).map(ReglasHorario.Franja::aContrato))
@@ -46,11 +45,9 @@ class ContratoHorarioService(
     )
     val dias = franjas.count { it.activo }
     bitacora.anotar(p, "editar_horario", "horario", null, "Horario", "$dias franjas activas")
-    // El horario cambia si se reciben canciones: el teléfono y la TV lo ven en la próxima foto.
-    jdbc.query(
-      "SELECT id_sesion FROM public.sesion WHERE id_establecimiento = ? AND estado = 'abierta'",
-      { rs, _ -> rs.getLong(1) }, p.barId,
-    ).forEach { cola.publicar(it, "horario") }
+    // El teléfono y la TV ven el horario nuevo haya o no noche abierta: sin noche es justo cuando
+    // muestran «Los pedidos abren…» (punto 7 del equipo). Como los eventos (RF-045).
+    servicio.avisarHorario(p)
     panel.publicar(p.barSlug, setOf("horario", "noche", "bitacora"))
     return leer(p)
   }

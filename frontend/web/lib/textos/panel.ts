@@ -27,6 +27,8 @@ export const P = {
   colaVacia: 'No hay solicitudes en la cola.',
   nadaSuena: 'No suena nada.',
   sinListaActiva: 'No hay una lista de la casa activa: si la cola se vacía, no sonará nada.',
+  /** Punto 6: el horario está por cerrar las solicitudes. */
+  cierraPronto: (minutos: number, hora: string) => `Las solicitudes se cierran ${minutos <= 1 ? 'en menos de un minuto' : `en ${minutos} min`}, a las ${hora}, según el horario del QR. Lo que quede en la cola se descarta.`,
   /** RF-019: el detalle trae cuáles canciones (el servidor las nombra). */
   erroresYoutube: (detalle: string | null) => `YouTube no pudo reproducir ${detalle ?? 'algunas canciones'}. La rockola pasó a la siguiente.`,
   sinRegistro: 'Todavía no hay acciones esta noche.',

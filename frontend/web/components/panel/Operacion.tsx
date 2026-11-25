@@ -14,7 +14,7 @@ import { MODO } from '@/lib/modo';
 import { puede } from '@/lib/permisos';
 import { duracionCola } from '@/lib/reglas/cola';
 import { posicionActual } from '@/lib/reglas/espera';
-import { diasQueAbren, momentoLocal } from '@/lib/reglas/horario';
+import { diasQueAbren, minutosParaCerrar, momentoLocal } from '@/lib/reglas/horario';
 import { useAhoraServidor } from '@/lib/reloj-servidor';
 import { acciones, dialogos, errores, franjaEstado, lineasRegistro, P } from '@/lib/textos/panel';
 import { ControlVolumen } from './ControlVolumen';
@@ -69,6 +69,8 @@ export function Operacion() {
   const n = noche.data;
   const zona = yo.establecimiento.zona_horaria;
   const momento = instante || Date.parse(n.servidor_ahora);
+  // Punto 6: se avisa antes de que el horario cierre las solicitudes (no con la apertura forzada).
+  const cierraEn = n.servicio.estado === 'abierto' && n.servicio.modo_qr !== 'forzado_activo' ? minutosParaCerrar(n.servicio.hasta, instante) : null;
 
   return (
     <>
@@ -111,6 +113,12 @@ export function Operacion() {
         <p className="alerta-panel" role="status">
           <Icono nombre="alerta" />
           {P.sinListaActiva}
+        </p>
+      ) : null}
+      {cierraEn !== null && n.servicio.hasta ? (
+        <p className="alerta-panel" role="status">
+          <Icono nombre="alerta" />
+          {P.cierraPronto(cierraEn, formatoHora(n.servicio.hasta, zona))}
         </p>
       ) : null}
       {n.alertas

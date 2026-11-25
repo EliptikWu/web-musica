@@ -23,7 +23,7 @@ export function Horario() {
   // El aviso y la acción viven aquí: al guardar, el editor se vuelve a montar con el horario
   // nuevo, y React Query no avisa del resultado a un componente que ya no está.
   const [aviso, setAviso] = useState<Mensaje | null>(null);
-  const guardar = useAccionGestion('guardarHorario', [claves.panel.horario]);
+  const guardar = useAccionGestion('guardarHorario', [claves.panel.horario, ['bar']]);
   return (
     <PaginaGestion titulo="Horario del QR" nota="Las solicitudes se abren y se cierran solas con este horario. Si un tramo pasa de medianoche, cuenta para el día en que empieza.">
       <Cargando consulta={horario}>
@@ -71,7 +71,7 @@ function EditorHorario({
 
   return (
     <form
-      className="caja mt-4 max-w-[52rem]"
+      className="caja mx-auto mt-4 w-full max-w-[52rem]"
       onSubmit={(e) => {
         e.preventDefault();
         if (problemas.length > 0) return;

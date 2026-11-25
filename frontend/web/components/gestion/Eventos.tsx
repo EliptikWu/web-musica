@@ -31,7 +31,7 @@ export function Eventos() {
   // La hora del servidor (en la simulación, la de la noche simulada); 0 hasta montarse.
   const ahora = useAhoraServidor();
   const eventos = useQuery({ queryKey: claves.panel.eventos, queryFn: ({ signal }) => pedir('eventos', { signal }) });
-  const invalidar = [claves.panel.eventos];
+  const invalidar = [claves.panel.eventos, ['bar']];
   const crear = useAccionGestion('crearEvento', invalidar);
   const editar = useAccionGestion('editarEvento', invalidar);
   const eliminar = useAccionGestion('eliminarEvento', invalidar);

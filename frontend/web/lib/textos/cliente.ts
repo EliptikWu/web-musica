@@ -217,6 +217,9 @@ export function diaRelativo(fecha: string, ahora: number, zona: string): string 
   return `el ${new Intl.DateTimeFormat('es-CO', { timeZone: zona, weekday: 'long' }).format(new Date(objetivo))}`;
 }
 
+/** Punto 6: el horario está por cerrar los pedidos. */
+export const avisoCierre = (minutos: number) => (minutos <= 1 ? 'Los pedidos se cierran en menos de un minuto.' : `Los pedidos se cierran en ${minutos} min. Si quieres pedir, este es el momento.`);
+
 export const conexion = {
   luz: 'Sin conexión',
   reconectando: 'Se perdió la conexión en vivo. Reconectando…',

@@ -245,6 +245,11 @@ export function useTiempoRealBar(slug: string) {
             if (recurso === 'analitica') cuboEnVivo.avisar();
             else void qc.invalidateQueries({ queryKey: ['panel', recurso] });
           }
+          // El horario, los eventos y los datos del bar también se ven en el teléfono y la TV
+          // (días, horas, «abren a las…»): sin esto quedaban viejos hasta recargar (punto 7).
+          if (evento.recursos.some((r) => r === 'horario' || r === 'eventos' || r === 'establecimiento')) {
+            void qc.invalidateQueries({ queryKey: claves.bar(slug) });
+          }
         }
       },
       (estado) => {

@@ -86,7 +86,7 @@
   .qr-tv .qr-tv__enlace { margin-top: 8px; color: var(--tinta); font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
 
   /* AÑADIDO: el cartel de la TV cuando no se reciben canciones o la cola está vacía. */
-  .tv-aviso { margin-top: 12px; padding: 18px 20px 20px; border-radius: var(--radio-caja); background: var(--papel); color: var(--tinta); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12), 0 2px 0 rgba(0, 0, 0, .3); }
+  .tv-aviso { margin-top: 12px; text-align: center; padding: 18px 20px 20px; border-radius: var(--radio-caja); background: var(--papel); color: var(--tinta); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12), 0 2px 0 rgba(0, 0, 0, .3); }
   .tv-aviso h3 { font-stretch: 75%; font-weight: 700; font-size: 34px; line-height: 1; }
   .tv-aviso p { margin-top: 8px; font-size: 17px; line-height: 1.4; color: var(--tinta-2); }
   .tv-aviso .dias { margin-top: 14px; }
