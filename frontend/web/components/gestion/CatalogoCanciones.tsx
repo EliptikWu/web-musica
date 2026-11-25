@@ -140,7 +140,7 @@ function Reclasificar({ onAviso }: { onAviso: (a: { tipo: 'luz' | 'error'; titul
   });
   return (
     <div className="catalogo-reclasificar mt-3">
-      <Tecla ocupada={accion.isPending} onClick={() => accion.mutate()}>
+      <Tecla tamano="ancha" ocupada={accion.isPending} onClick={() => accion.mutate()}>
         Clasificar las que faltan
       </Tecla>
       <p className="secundario text-[14px]">Vuelve a leer en YouTube las etiquetas, el título y la descripción de las que no tienen género. Lo que pusiste a mano no se toca.</p>

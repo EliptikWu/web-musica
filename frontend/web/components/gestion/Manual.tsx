@@ -8,14 +8,34 @@ import { useEffect, useRef } from 'react';
 import { useYoDelPanel } from '@/components/panel/MarcoPanel';
 import { PaginaGestion } from './PaginaGestion';
 
-type Seccion = { id: string; titulo: string; para: Rol; pasos: string[]; imagen?: { archivo: string; texto: string } };
+/** `inicio`: la guía para dejar el bar listo, antes que todo lo demás (punto 20). */
+type Seccion = { id: string; titulo: string; para: Rol; inicio?: boolean; pasos: string[]; imagen?: { archivo: string; texto: string } };
 
 /**
  * El manual del panel (RNF-016, PB-42): pasos cortos con la captura de la pantalla de verdad.
  * Las capturas las genera `npm run capturas -w @rockola/web` (e2e/capturas.spec.ts) en
- * `public/manual/`, así se actualizan cuando cambia la interfaz. El Operador ve su parte.
+ * `public/manual/`, así se actualizan cuando cambia la interfaz; llevan marcado dónde tocar. El
+ * Operador ve su parte.
  */
 const SECCIONES: Seccion[] = [
+  {
+    id: 'configurar',
+    titulo: 'Configurar el bar paso a paso',
+    para: 'administrador',
+    inicio: true,
+    pasos: [
+      'Arriba del panel las secciones van en grupos: Noche, Bar, Música, Análisis y Manual. Al tocar un grupo, debajo salen sus secciones.',
+      'En Bar, «Bar y QR»: revisa el nombre, la dirección y las reglas de los pedidos, y pulsa «Guardar datos».',
+      'En la misma página, genera el QR, descárgalo o imprímelo y ponlo en las mesas. Elige si abre la web o la app.',
+      'Enciende la TV del bar, abre su pantalla y escribe en «Pantallas» el código que muestra.',
+      'En Noche, «Horario»: marca los días y las horas en que se reciben canciones. Las solicitudes se abren y se cierran solas.',
+      'En Música, «Listas de la casa»: arma una lista y actívala. Suena cuando la cola está vacía y la noche abierta.',
+      'En Bar, «Personal»: agrega a quienes operan la noche. Cada cuenta recibe una clave temporal que se cambia al entrar.',
+      'Si hay karaoke, partido o noche temática, agrégalo en Noche, «Eventos».',
+      'Después de unas noches, corrige géneros en Música, «Canciones», y mira el tablero en Análisis.',
+    ],
+    imagen: { archivo: 'menu.jpg', texto: 'Los grupos del panel, marcados arriba.' },
+  },
   {
     id: 'entrar',
     titulo: 'Entrar al panel',
@@ -47,6 +67,7 @@ const SECCIONES: Seccion[] = [
       '«Pausar música» detiene la pantalla del bar; «Reanudar música» la sigue desde donde iba.',
       'Todo queda en el registro con tu nombre.',
     ],
+    imagen: { archivo: 'musica.jpg', texto: 'Las teclas «Saltar» y «Pausar música», marcadas.' },
   },
   {
     id: 'pausa',
@@ -169,6 +190,7 @@ const SECCIONES: Seccion[] = [
       'En «Tablero analítico» elige las noches arriba: todas, las últimas cuatro semanas, una noche o unas fechas. Cada noche entra al tablero cuando se cierra.',
       '«Resumen» dice cuánto se pidió, cuánto se esperó y cuánto sonó lo pedido frente a la lista de la casa. «Participación» muestra los géneros y las horas con más movimiento.',
       '«Diagnóstico» señala las canciones muy votadas que no sonaron, si pocos teléfonos deciden la cola y las noches flojas; los umbrales se cambian ahí mismo.',
+      '«Cubo» cruza género, hora y día o evento con el KPI que elijas; «Comparar» pone noches, días o eventos lado a lado.',
       '«Recomendaciones» sugiere cambios con el dato en que se basa y te lleva a la sección donde decides. Nada se aplica solo.',
     ],
     imagen: { archivo: 'tablero.jpg', texto: 'El resumen del tablero analítico.' },
@@ -181,17 +203,38 @@ const SECCIONES: Seccion[] = [
       '«Cerrar la noche» cierra las solicitudes hasta la próxima franja del horario; lo que quedaba en la cola se descarta.',
       '«Modo mantenimiento» cierra la noche y nadie puede pedir hasta que pulses «Reanudar solicitudes». El historial se guarda.',
     ],
+    imagen: { archivo: 'mantenimiento.jpg', texto: '«Cerrar la noche» y «Modo mantenimiento», marcadas en la franja de arriba.' },
+  },
+  {
+    id: 'canciones',
+    titulo: 'Corregir el género de las canciones',
+    para: 'administrador',
+    pasos: [
+      'En Música, «Canciones», salen primero las canciones del bar que no tienen género.',
+      '«Clasificar las que faltan» las vuelve a revisar en YouTube y dice cuántas encontró.',
+      'A las demás elige el género en «Cambiar a» y pulsa «Guardar». Lo que pones a mano no se vuelve a cambiar solo.',
+      'El cubo en vivo del tablero las cuenta de inmediato.',
+    ],
+    imagen: { archivo: 'canciones.jpg', texto: '«Clasificar las que faltan», marcada, y la lista de canciones sin género.' },
   },
 ];
 
 /** El tema abierto vive en `?tema=` de la URL: se puede enlazar y el botón Atrás del navegador sirve. */
 const rutaDe = (id: string) => `/panel/manual?tema=${id}`;
 
-function IndiceGrupo({ titulo, temas, actual }: { titulo: string; temas: Seccion[]; actual: string }) {
+/** Las etiquetas de color del manual (punto 20): de un vistazo, de quién es cada tema. */
+function Insignia({ tema }: { tema: Seccion }) {
+  if (tema.inicio) return <span className="etiqueta etiqueta--luz">Para empezar</span>;
+  return tema.para === 'administrador' ? <span className="etiqueta etiqueta--cereza">Solo el Administrador</span> : <span className="etiqueta etiqueta--noche">En la noche</span>;
+}
+
+function IndiceGrupo({ titulo, temas, actual }: { titulo: Seccion; temas: Seccion[]; actual: string }) {
   if (temas.length === 0) return null;
   return (
     <>
-      <h2>{titulo}</h2>
+      <h2>
+        <Insignia tema={titulo} />
+      </h2>
       <ul>
         {temas.map((s) => (
           <li key={s.id}>
@@ -209,8 +252,9 @@ export function Manual() {
   const yo = useYoDelPanel();
   const esAdmin = yo.usuario.rol === 'administrador';
   const secciones = SECCIONES.filter((s) => esAdmin || s.para === 'operador');
-  const delOperador = secciones.filter((s) => s.para === 'operador');
-  const delAdmin = secciones.filter((s) => s.para === 'administrador');
+  const inicio = secciones.filter((s) => s.inicio);
+  const delOperador = secciones.filter((s) => !s.inicio && s.para === 'operador');
+  const delAdmin = secciones.filter((s) => !s.inicio && s.para === 'administrador');
   const router = useRouter();
   const pedido = useSearchParams().get('tema');
   // Un tema desconocido, o que este rol no ve, abre el primero.
@@ -255,15 +299,16 @@ export function Manual() {
           </Selector>
         </div>
         <nav className="caja manual-indice hidden lg:block" aria-label="Temas del manual">
-          <IndiceGrupo titulo="En la noche" temas={delOperador} actual={tema.id} />
-          <IndiceGrupo titulo="Solo el Administrador" temas={delAdmin} actual={tema.id} />
+          <IndiceGrupo titulo={inicio[0]!} temas={inicio} actual={tema.id} />
+          <IndiceGrupo titulo={delOperador[0]!} temas={delOperador} actual={tema.id} />
+          <IndiceGrupo titulo={delAdmin[0]!} temas={delAdmin} actual={tema.id} />
         </nav>
         <section key={tema.id} className="caja manual-seccion" aria-labelledby={`t-${tema.id}`}>
           <div className="caja__cabeza mb-0!">
             <h2 id={`t-${tema.id}`} ref={titulo} tabIndex={-1} className="focus:outline-none">
               {tema.titulo}
             </h2>
-            {tema.para === 'administrador' ? <span>Solo el Administrador</span> : null}
+            <Insignia tema={tema} />
           </div>
           <ol className="manual-pasos">
             {tema.pasos.map((p) => (

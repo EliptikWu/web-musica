@@ -278,7 +278,7 @@ Should) y PB-49 en Should (RF-054 dice Could). Aquí manda el requisito.
 | RNF-013 | Mantenibilidad | Capas y paquetes del doc 03 | Revisión de código |
 | RNF-014 | Trazabilidad | Las acciones del panel quedan en la bitácora | e2e del panel |
 | RNF-015 | Calidad de datos analíticos | Mostrar origen y fecha de los datos; rotular los de ejemplo | Revisión |
-| RNF-016 | Manual de uso | Manual ilustrado dentro del panel, por rol | Iteración 4 |
+| RNF-016 | Manual de uso | Manual ilustrado dentro del panel, por rol. Desde el 2026-11-25 (punto 20): empieza con «Configurar el bar paso a paso», todos los temas tienen captura con anillo y flecha donde se toca, y cada tema lleva su etiqueta de color («Para empezar», «En la noche», «Solo el Administrador») | Iteración 4 |
 
 ## Reglas de negocio
 

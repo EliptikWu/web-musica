@@ -112,6 +112,7 @@
   & .alerta-panel a { color: var(--vidrio-texto); }
   & .etiqueta--luz { background: var(--vidrio-acento); color: var(--vidrio-tinta); }
   & .etiqueta--cereza { background: var(--vidrio-votado); color: var(--vidrio-texto); }
+  & .etiqueta--noche { background: var(--vidrio-superficie-alta); color: var(--vidrio-texto); }
   & .dialogo { background: var(--vidrio-carbon); box-shadow: inset 0 0 0 1px var(--vidrio-borde); }
   & .dialogo__titulo { font-stretch: normal; font-weight: 600; letter-spacing: -.01em; }
   /* El radio de tecla de Vidrio es de píldora: en una captura la volvería un óvalo. */
