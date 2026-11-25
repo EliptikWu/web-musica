@@ -203,7 +203,7 @@ function Bares({ yo }: { yo: YoPlataforma }) {
                     <div className="plataforma-elegir mt-4">
                       <Selector
                         etiqueta={T.elegirBar}
-                        value={elegido}
+                        value={bares.data!.bares.some((x) => x.id === elegido) ? elegido : ''}
                         onChange={(e) => {
                           const id = e.target.value;
                           setElegido(id);
@@ -220,7 +220,7 @@ function Bares({ yo }: { yo: YoPlataforma }) {
                       </Selector>
                     </div>
                   ) : null}
-                  {bares.data!.bares.filter((b) => !elegido || b.id === elegido).map((b) => (
+                  {bares.data!.bares.filter((b) => !bares.data!.bares.some((x) => x.id === elegido) || b.id === elegido).map((b) => (
                     <FichaBar
                       key={b.id}
                       bar={b}

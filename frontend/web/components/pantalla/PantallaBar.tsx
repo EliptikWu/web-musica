@@ -41,6 +41,7 @@ export function PantallaBar({ slug }: { slug: string }) {
   const [ultima, setUltima] = useState<Reproduccion | null>(null);
   const repFoto = ahora.data?.reproduccion ?? null;
   if (repFoto && !esIdSimulado(repFoto.cancion.video_id) && repFoto.id !== ultima?.id) setUltima(repFoto);
+  if (ultima && ahora.data && ahora.data.servicio.estado !== 'abierto') setUltima(null);
   const consultas = useQueryClient();
   const reporte = useMutation({
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
@@ -96,7 +97,8 @@ export function PantallaBar({ slug }: { slug: string }) {
   const rep = foto.reproduccion;
   const momento = instante || Date.parse(foto.servidor_ahora);
   const posicion = rep ? posicionActual(rep, foto.servidor_ahora, momento) : 0;
-  const enEspera = !rep && encendida && ultima !== null;
+  // Solo entre canciones de una noche abierta: cerrada o en mantenimiento, el reproductor se suelta.
+  const enEspera = !rep && encendida && ultima !== null && foto.servicio.estado === 'abierto';
   const enReproductor = rep ?? (enEspera ? { ...ultima, estado: 'pausada' as const } : null);
   const avance = avanceDesdeFoto(rep, foto.servidor_ahora, momento);
   const estado = foto.servicio.estado;

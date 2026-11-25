@@ -115,10 +115,11 @@ export function CatalogoCanciones() {
 
 /** Pasa por el clasificador del backend, de 10 en 10, las que no tienen género (hasta 100 por vez). */
 async function reclasificarTodas(): Promise<TotalReclasificacion> {
-  const total: TotalReclasificacion = { clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: null };
+  const total: TotalReclasificacion = { consultadas: 0, clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: null };
   let desde = 0;
   for (let vuelta = 0; vuelta < 10; vuelta++) {
     const r = await pedir('reclasificarCanciones', { consulta: { limite: '10', despuesDe: String(desde) } });
+    total.consultadas += r.consultadas;
     total.clasificadas += r.clasificadas;
     total.sinPistas += r.sin_coincidencia;
     total.noDisponibles += r.no_disponibles;

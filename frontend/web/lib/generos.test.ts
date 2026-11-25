@@ -17,15 +17,18 @@ describe('géneros en «Canciones» (RF-068)', () => {
 
 describe('«Clasificar las que faltan» (RF-068, punto 18)', () => {
   it('dice cuántas encontró y qué hacer con las demás', () => {
-    expect(resumenReclasificacion({ clasificadas: 3, sinPistas: 1, noDisponibles: 0, interrumpida: null })).toEqual({
+    expect(resumenReclasificacion({ consultadas: 4, clasificadas: 3, sinPistas: 1, noDisponibles: 0, interrumpida: null })).toEqual({
       tipo: 'luz',
       titulo: 'Se encontró el género de 3 canciones.',
       meta: '1 no tiene pistas en YouTube: ponles el género a mano.',
     });
   });
   it('sin cuota de YouTube y sin ninguna encontrada es un error que se puede reintentar', () => {
-    const r = resumenReclasificacion({ clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: 'cuota_agotada' });
+    const r = resumenReclasificacion({ consultadas: 0, clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: 'cuota_agotada' });
     expect(r.tipo).toBe('error');
     expect(r.meta).toContain('mañana');
+  });
+  it('sin nada por revisar no dice que falló', () => {
+    expect(resumenReclasificacion({ consultadas: 0, clasificadas: 0, sinPistas: 0, noDisponibles: 0, interrumpida: null }).titulo).toBe('No hay canciones sin género por revisar.');
   });
 });

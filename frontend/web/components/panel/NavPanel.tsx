@@ -62,13 +62,15 @@ export function NavPanel({ rol }: { rol: Rol }) {
   const grupos = GRUPOS.map((g) => ({ ...g, secciones: g.secciones.filter((s) => puede(rol, s.permiso)) })).filter((g) => g.secciones.length > 0);
   const actual = grupos.find((g) => g.secciones.some((s) => esActual(s.href, ruta)));
   // En el teléfono las pestañas se desplazan de lado: la actual queda a la vista, sin mover la página.
+  // Vale para las dos filas: la de grupos y la de secciones.
   useEffect(() => {
-    const barra = nav.current?.querySelector<HTMLElement>('.panel-subnav');
-    const elegida = barra?.querySelector<HTMLElement>('[aria-current]');
-    if (!barra || !elegida || barra.scrollWidth <= barra.clientWidth) return;
-    const b = barra.getBoundingClientRect();
-    const a = elegida.getBoundingClientRect();
-    barra.scrollLeft += a.left - b.left - (b.width - a.width) / 2;
+    for (const barra of nav.current?.querySelectorAll<HTMLElement>('.panel-subnav') ?? []) {
+      const elegida = barra.querySelector<HTMLElement>('[aria-current]');
+      if (!elegida || barra.scrollWidth <= barra.clientWidth) continue;
+      const b = barra.getBoundingClientRect();
+      const a = elegida.getBoundingClientRect();
+      barra.scrollLeft += a.left - b.left - (b.width - a.width) / 2;
+    }
   }, [ruta]);
   return (
     <nav ref={nav} className="no-imprimir" aria-label="Secciones del panel">

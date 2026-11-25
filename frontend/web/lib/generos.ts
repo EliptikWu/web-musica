@@ -19,10 +19,11 @@ const ORIGEN: Record<NonNullable<OrigenCategoria>, string> = {
   DESCRIPCION: 'Automático, por la descripción',
 };
 
-export type TotalReclasificacion = { clasificadas: number; sinPistas: number; noDisponibles: number; interrumpida: 'cuota_agotada' | 'youtube_no_disponible' | null };
+export type TotalReclasificacion = { consultadas: number; clasificadas: number; sinPistas: number; noDisponibles: number; interrumpida: 'cuota_agotada' | 'youtube_no_disponible' | null };
 
 /** El resultado de «Clasificar las que faltan» (RF-068), para el aviso de «Canciones». */
 export function resumenReclasificacion(t: TotalReclasificacion): { tipo: 'luz' | 'error'; titulo: string; meta?: string } {
+  if (t.consultadas === 0 && !t.interrumpida) return { tipo: 'luz', titulo: 'No hay canciones sin género por revisar.' };
   const titulo =
     t.clasificadas === 0 ? 'No se encontró el género de ninguna.' : t.clasificadas === 1 ? 'Se encontró el género de 1 canción.' : `Se encontró el género de ${t.clasificadas} canciones.`;
   const partes = [

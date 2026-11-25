@@ -218,7 +218,10 @@ export function diaRelativo(fecha: string, ahora: number, zona: string): string 
 }
 
 /** Punto 6: el horario está por cerrar los pedidos. */
-export const avisoCierre = (minutos: number) => (minutos <= 1 ? 'Los pedidos se cierran en menos de un minuto.' : `Los pedidos se cierran en ${minutos} min. Si quieres pedir, este es el momento.`);
+export const avisoCierre = (minutos: number, hora: string) => ({
+  anuncio: `Los pedidos se cierran a las ${hora}.`,
+  cuenta: minutos <= 1 ? 'Falta menos de un minuto.' : `Faltan ${minutos} min: si quieres pedir, este es el momento.`,
+});
 
 export const conexion = {
   luz: 'Sin conexión',

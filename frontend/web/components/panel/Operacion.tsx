@@ -116,9 +116,11 @@ export function Operacion() {
         </p>
       ) : null}
       {cierraEn !== null && n.servicio.hasta ? (
-        <p className="alerta-panel" role="status">
+        <p className="alerta-panel">
           <Icono nombre="alerta" />
-          {P.cierraPronto(cierraEn, formatoHora(n.servicio.hasta, zona))}
+          <span>
+            <span role="status">{P.cierraPronto(formatoHora(n.servicio.hasta, zona))}</span> <span aria-hidden="true">{P.cierraEn(cierraEn)}</span>
+          </span>
         </p>
       ) : null}
       {n.alertas

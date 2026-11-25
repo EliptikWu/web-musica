@@ -200,6 +200,7 @@ export function crearEstado(escenario: Escenario, persona: string, ahoraReal: nu
     case 'mantenimiento': {
       estado.mantenimiento = true;
       estado.sesion = null;
+      estado.reproduccion = null; // En mantenimiento no suena nada (D24).
       pendientesFuera();
       break;
     }
