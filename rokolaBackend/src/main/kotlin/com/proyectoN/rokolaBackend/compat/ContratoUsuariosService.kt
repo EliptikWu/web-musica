@@ -24,11 +24,15 @@ class ContratoUsuariosService(
   private val bitacora: ContratoBitacora,
   private val panel: CambioPanelPublisher,
 ) {
-  private data class Fila(val id: Long, val nombre: String, val correo: String, val rol: String, val activo: Boolean, val debeCambiar: Boolean) {
+  private data class Fila(
+    val id: Long, val nombre: String, val correo: String, val rol: String, val activo: Boolean, val debeCambiar: Boolean,
+    val ultimoAcceso: java.time.OffsetDateTime?,
+  ) {
     fun aContrato(): Map<String, Any?> = mapOf(
       "id" to id.toString(), "nombre" to nombre, "correo" to correo, "rol" to rol,
       "estado" to if (activo) "activo" else "inactivo", "debe_cambiar_clave" to debeCambiar,
-      "ultimo_acceso" to null, // La tabla usuario no guarda el último acceso.
+      // Desde V14; las cuentas que no han entrado desde entonces siguen en null (punto 16).
+      "ultimo_acceso" to ultimoAcceso,
     )
   }
 
@@ -188,7 +192,7 @@ class ContratoUsuariosService(
     fila(p.barId, ContratoCuerpo.id(idTexto, "Ese usuario no existe")) ?: ContratoCuerpo.noEncontrado("Ese usuario no existe")
 
   private val selectFila = """
-    SELECT u.id_usuario, u.nombre, u.correo, lower(r.nombre) AS rol, u.activo, u.cambiar_password
+    SELECT u.id_usuario, u.nombre, u.correo, lower(r.nombre) AS rol, u.activo, u.cambiar_password, u.ultimo_acceso
     FROM public.usuario u JOIN public.rol r ON r.id_rol = u.id_rol
     WHERE u.id_establecimiento = ? AND lower(r.nombre) IN ('operador', 'administrador')
   """.trimIndent()
@@ -201,6 +205,7 @@ class ContratoUsuariosService(
   private fun leerFila(rs: java.sql.ResultSet) = Fila(
     rs.getLong("id_usuario"), rs.getString("nombre"), rs.getString("correo"), rs.getString("rol"),
     rs.getBoolean("activo"), rs.getBoolean("cambiar_password"),
+    rs.getObject("ultimo_acceso", java.time.OffsetDateTime::class.java),
   )
 
   /** 12 caracteres sin los que se confunden al dictarlos (0/O, 1/I/l), en tres grupos. */

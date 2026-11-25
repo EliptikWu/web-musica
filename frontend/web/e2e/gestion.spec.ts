@@ -139,6 +139,12 @@ test('eventos: agregar uno próximo (PB-41)', async ({ page }) => {
   await dialogo.getByRole('button', { name: 'Guardar' }).click();
   await expect(page.getByRole('region', { name: 'Próximos' })).toContainText('Noche de boleros');
   await sinViolaciones(page, 'eventos');
+  // Y se edita (punto 8 del equipo): el nombre cambia en la lista.
+  await page.getByRole('button', { name: 'Editar Noche de boleros' }).click();
+  const edicion = page.getByRole('dialog', { name: 'Editar «Noche de boleros»' });
+  await edicion.getByLabel('Nombre').fill('Noche de boleros y tangos');
+  await edicion.getByRole('button', { name: 'Guardar' }).click();
+  await expect(page.getByRole('region', { name: 'Próximos' })).toContainText('Noche de boleros y tangos');
 });
 
 test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', async ({ page }) => {
@@ -179,6 +185,20 @@ test('manual: el Operador ve su parte y nada de la gestión (PB-42, RNF-016)', a
   }
   await page.waitForTimeout(1500);
   expect(pedidas).toEqual([]);
+});
+
+test('manual del Administrador: empieza por la guía paso a paso y cada tema lleva su imagen (punto 20)', async ({ page }) => {
+  await entrar(page);
+  await page.goto('/panel/manual');
+  await expect(page.getByRole('heading', { level: 2, name: 'Configurar el bar paso a paso' })).toBeVisible();
+  await expect(page.locator('.manual-seccion .etiqueta')).toHaveText('Para empezar');
+  for (const tema of ['musica', 'mantenimiento', 'canciones']) {
+    await page.goto(`/panel/manual?tema=${tema}`);
+    const imagen = page.locator('.manual-figura img');
+    await expect(imagen).toBeVisible();
+    expect(await imagen.evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
+  }
+  await sinViolaciones(page, 'manual del Administrador');
 });
 
 test('destino del QR: el mismo código abre la web o, en Android, ofrece la app (RF-065)', async ({ page, browser }) => {

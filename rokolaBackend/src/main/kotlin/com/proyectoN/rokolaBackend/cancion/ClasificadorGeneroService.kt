@@ -22,14 +22,16 @@ class ClasificadorGeneroService {
         "Salsa" to listOf(
             "salsa", "salsa romantica", "salsa dura", "salsa music", "salsa colombiana",
             "salsa caleña", "salsa calena", "salsa cubana", "salsa choke", "salsa brava",
-            "salsa clasica", "salsa vieja", "salsa baul", "salsa baúl", "salsa tropical"
+            "salsa clasica", "salsa vieja", "salsa baul", "salsa baúl", "salsa tropical",
+            "salsa sensual", "salsa erotica", "salsas romanticas"
         ),
         "Urbano" to listOf(
             "reggaeton", "reguetón", "regueton", "reggaetón", "reggaeton latino",
             "reggaeton colombiano", "reggaeton romantico", "reggaeton viejo",
             "reggaeton old school", "perreo", "perreo intenso", "musica urbana",
             "urbano latino", "urban latino", "latin urban", "trap latino", "latin trap",
-            "trap en espanol", "trap en español", "trap music", "neoperreo"
+            "trap en espanol", "trap en español", "trap music", "neoperreo",
+            "reggaeton music", "trap colombiano", "reggaetones"
         ),
         "Pop" to listOf(
             "pop", "pop latino", "latin pop", "pop music", "pop en espanol",
@@ -42,11 +44,13 @@ class ClasificadorGeneroService {
         "Vallenato" to listOf(
             "vallenato", "vallenato romantico", "vallenato music", "vallenato colombiano",
             "vallenato clasico", "vallenato nuevo", "vallenato tradicional",
-            "vallenato de la nueva ola", "paseo vallenato", "merengue vallenato"
+            "vallenato de la nueva ola", "paseo vallenato", "merengue vallenato",
+            "vallenatos", "vallenatos romanticos", "vallenatos clasicos"
         ),
         "Bachata" to listOf(
             "bachata", "bachata romantica", "bachata music", "bachata moderna",
-            "bachata dominicana", "bachata sensual", "bachata urbana", "bachata pop"
+            "bachata dominicana", "bachata sensual", "bachata urbana", "bachata pop",
+            "bachatas", "bachatas romanticas"
         ),
         "Rock" to listOf(
             "rock", "rock en espanol", "rock en español", "latin rock", "rock music",
@@ -60,20 +64,22 @@ class ClasificadorGeneroService {
         ),
         "Merengue" to listOf(
             "merengue", "merengue music", "merengue dominicano", "merengue clasico",
-            "merengue de calle", "merengue urbano", "merengue mambo"
+            "merengue de calle", "merengue urbano", "merengue mambo", "merengues"
         ),
         "Cumbia" to listOf(
             "cumbia", "cumbia colombiana", "cumbia music", "cumbia argentina",
             "cumbia villera", "cumbia mexicana", "cumbia sonidera", "cumbia peruana",
-            "cumbia tropical", "cumbia romantica", "cumbia rebajada", "tecnocumbia"
+            "cumbia tropical", "cumbia romantica", "cumbia rebajada", "tecnocumbia",
+            "cumbias", "cumbia sabanera"
         ),
 
         // Más estilos latinoamericanos.
-        "Champeta" to listOf("champeta", "champeta urbana", "champeta africana", "champeta cartagenera"),
+        "Champeta" to listOf("champeta", "champeta urbana", "champeta africana", "champeta cartagenera", "champeta criolla"),
         "Porro" to listOf("porro", "porro colombiano", "porro sabanero", "porro pelayero"),
         "Música Popular" to listOf(
             "musica popular colombiana", "popular colombiana", "carrilera",
-            "musica de despecho", "canciones de despecho", "guascarrilera"
+            "musica de despecho", "canciones de despecho", "guascarrilera",
+            "despecho", "musica de cantina", "musica guasca"
         ),
         "Música Llanera" to listOf(
             "musica llanera", "llanera", "joropo", "joropo llanero", "pasaje llanero", "folclor llanero"
@@ -89,9 +95,9 @@ class ClasificadorGeneroService {
         "Bolero" to listOf("bolero", "boleros", "bolero romantico", "bolero cubano", "bolero clasico"),
         "Balada" to listOf(
             "balada", "balada romantica", "baladas romanticas", "balada en espanol",
-            "balada pop", "balada latina", "power ballad"
+            "balada pop", "balada latina", "power ballad", "baladas"
         ),
-        "Tango" to listOf("tango", "tango argentino", "tango music", "tango tradicional", "tango electronico"),
+        "Tango" to listOf("tango", "tango argentino", "tango music", "tango tradicional", "tango electronico", "tangos"),
         "Samba" to listOf("samba", "samba brasileira", "samba brasilena", "samba music", "pagode brasileiro"),
         "Bossa Nova" to listOf("bossa nova", "bossanova", "bossa nova brasileira", "brazilian bossa"),
         "Forró" to listOf("forro", "forró", "forro brasileiro", "forro pe de serra", "forró pé de serra"),

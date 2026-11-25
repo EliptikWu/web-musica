@@ -99,3 +99,18 @@ export function validarFranjas(franjas: readonly FranjaHorario[]): ProblemaHorar
 export function diasQueAbren(franjas: readonly FranjaHorario[]): Set<number> {
   return new Set(franjas.filter((f) => f.activo && duracionFranja(f) > 0).map((f) => f.dia_semana));
 }
+
+/** Cuánto antes del cierre por horario se avisa en el teléfono y el panel (*propuesto*). */
+export const AVISO_CIERRE_MIN = 15;
+
+/**
+ * Minutos que faltan para que el horario cierre las solicitudes, si son [AVISO_CIERRE_MIN] o
+ * menos (punto 6 del equipo); null si falta más, ya pasó o no hay cierre. `hasta` es el
+ * `servicio.hasta` de la foto. Se redondea hacia arriba: a 30 s del cierre dice «1 min».
+ */
+export function minutosParaCerrar(hasta: string | null, ahoraMs: number): number | null {
+  if (!hasta || !ahoraMs) return null;
+  const faltan = Date.parse(hasta) - ahoraMs;
+  if (!(faltan > 0) || faltan > AVISO_CIERRE_MIN * 60_000) return null;
+  return Math.ceil(faltan / 60_000);
+}

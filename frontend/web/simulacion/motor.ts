@@ -104,6 +104,18 @@ export function recientesPrimero(acciones: readonly AccionSim[]): AccionSim[] {
   return [...acciones].reverse().sort((a, b) => b.fecha - a.fecha);
 }
 
+/**
+ * El aviso del panel dice cuáles canciones no pudo poner YouTube (RF-019): las tres más recientes
+ * y cuántas más. Igual que `ContratoNocheService.detalleErroresYoutube` del backend.
+ */
+export function detalleErroresYoutube(titulos: (string | null)[]): string {
+  const conNombre = titulos.filter((t): t is string => !!t);
+  const total = `(${titulos.length} en la última media hora)`;
+  if (conNombre.length === 0) return `algunas canciones ${total}`;
+  const resto = titulos.length - Math.min(3, conNombre.length);
+  return `${conNombre.slice(0, 3).map((t) => `«${t}»`).join(', ')}${resto > 0 ? ` y ${resto} más` : ''} ${total}`;
+}
+
 const objetivoCancion = (c: CancionSim): AccionSim['objetivo'] => ({ tipo: 'cancion', nombre: c.titulo, detalle: c.artista });
 
 // ── Servicio y sesión (RF-003, RF-036 a RF-039, RN-09, RN-10) ────────────────
@@ -195,6 +207,12 @@ function siguienteDeLista(estado: EstadoSim, en: number): string | null {
 }
 
 function iniciarSiguiente(estado: EstadoSim, en: number) {
+  // Como el backend (D24): suena con la noche abierta, también con las solicitudes en pausa;
+  // sin noche o en mantenimiento, nada, ni la lista de la casa.
+  if (!estado.sesion || estado.mantenimiento) {
+    estado.reproduccion = null;
+    return;
+  }
   const siguiente = pendientes(estado)[0];
   if (siguiente) {
     siguiente.estado = 'reproduciendo';
@@ -252,7 +270,7 @@ export function avanzar(estado: EstadoSim, ahora: number): boolean {
     estado.reproduccion.reanudada_en = ahora;
     estado.reproduccion.acumulado_seg = 0;
   }
-  if (!estado.reproduccion && (pendientes(estado).length > 0 || estado.listas.some((l) => l.activa && l.elementos.length > 0))) {
+  if (!estado.reproduccion && estado.sesion && !estado.mantenimiento && (pendientes(estado).length > 0 || estado.listas.some((l) => l.activa && l.elementos.length > 0))) {
     iniciarSiguiente(estado, ahora);
     if (estado.reproduccion) tocar(estado);
   }
@@ -318,12 +336,11 @@ export function construirAhora(estado: EstadoSim, ahora: number): Ahora {
 /** RF-062: sin dato (o un estado guardado antes de la iteración 13), el volumen es 80. */
 export const VOLUMEN_INICIAL = 80;
 
-/** RF-062: el volumen de la pantalla del bar, desde el panel. Va a la bitácora con su valor. */
-export function cambiarVolumen(estado: EstadoSim, volumen: number, quien: Personal, ahora: number): Resultado<null> {
+/** RF-062: el volumen de la pantalla del bar, desde el panel. No va a la bitácora: la llenaba (2026-11-25). */
+export function cambiarVolumen(estado: EstadoSim, volumen: number): Resultado<null> {
   if (!Number.isInteger(volumen) || volumen < 0 || volumen > 100) return mal(400, 'datos_invalidos', 'El volumen va de 0 a 100');
   if ((estado.volumen ?? VOLUMEN_INICIAL) === volumen) return bien(null, 204);
   estado.volumen = volumen;
-  accion(estado, ahora, quien, 'cambiar_volumen', null, `${volumen} %`);
   tocar(estado);
   return bien(null, 204);
 }
@@ -727,8 +744,8 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
   const alertas: Noche['alertas'] = [];
   if (!lista) alertas.push({ tipo: 'sin_lista_activa', detalle: 'Si la cola se vacía, no sonará nada.' });
   if (!estado.sesion && ahoraFoto.servicio.estado === 'abierto') alertas.push({ tipo: 'sin_sesion', detalle: null });
-  const errores = estado.acciones.filter((a) => a.tipo === 'error_youtube' && a.fecha > ahora - 30 * 60_000).length;
-  if (errores > 0) alertas.push({ tipo: 'errores_youtube', detalle: `${errores} en la última media hora` });
+  const errores = estado.acciones.filter((a) => a.tipo === 'error_youtube' && a.fecha > ahora - 30 * 60_000);
+  if (errores.length > 0) alertas.push({ tipo: 'errores_youtube', detalle: detalleErroresYoutube(recientesPrimero(errores).map((a) => a.objetivo?.nombre ?? null)) });
   const m = estado.metricas;
   return {
     version: estado.version,
@@ -749,7 +766,7 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
       votos: m.votos,
       espera_promedio_seg: m.espera_n > 0 ? Math.round(m.espera_seg_suma / m.espera_n) : null,
     },
-    registro: recientesPrimero(estado.acciones.filter((a) => a.fecha >= inicioNoche))
+    registro: recientesPrimero(estado.acciones.filter((a) => a.fecha >= inicioNoche && a.tipo !== 'cambiar_volumen'))
       .slice(0, 20)
       .map((a) => ({ ...a, fecha: iso(a.fecha) })),
     horario: estado.horario,

@@ -71,7 +71,7 @@ fun PantallaBienvenida(
     onEntrar: () -> Unit,
     onVerQueSuena: () -> Unit,
     onPolitica: () -> Unit,
-    onEscanear: () -> Unit,
+    onCambiarBar: () -> Unit,
 ) {
     val datos = when (estado) {
         is EstadoPantalla.Contenido -> estado.datos
@@ -86,7 +86,7 @@ fun PantallaBienvenida(
             apagada = true,
             sinConexion = !datos.enVivo,
             titulo = datos.bar.nombre,
-            abajo = { EstadoCerradoAbajo(onVerQueSuena, onPolitica, onEscanear) },
+            abajo = { EstadoCerradoAbajo(onVerQueSuena, onPolitica, onCambiarBar) },
         ) { EstadoCerradoArriba(datos.bar, datos.ahora) }
         return
     }
@@ -114,7 +114,7 @@ fun PantallaBienvenida(
                 textAlign = TextAlign.Center,
             )
             Tecla(T.ENTRAR, onEntrar, variante = VarianteTecla.CEREZA, tamano = TamanoTecla.GRANDE)
-            Enlace(TextosEscaner.ESCANEAR_OTRO, onEscanear, Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp))
+            Enlace(TextosEscaner.CAMBIAR_BAR, onCambiarBar, Modifier.align(Alignment.CenterHorizontally).padding(top = 6.dp))
         },
     ) {
         CabeceraBar(datos.bar.nombre, if (datos.enVivo) T.EN_VIVO else Conexion.LUZ, encendida = datos.enVivo)

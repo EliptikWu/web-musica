@@ -1,7 +1,7 @@
 'use client';
 
 import { type BarPlataforma, type CuentaBar, CuerpoCuentaBar, type Rol, type YoPlataforma } from '@rockola/contrato';
-import { Campo, Dialogo, GrupoTeclas, Icono, LuzEstado, Tecla } from '@rockola/ui';
+import { Campo, Dialogo, GrupoTeclas, Icono, LuzEstado, Selector, Tecla } from '@rockola/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -143,6 +143,8 @@ function Bares({ yo }: { yo: YoPlataforma }) {
       return siguientes;
     });
   const [barCuenta, setBarCuenta] = useState<BarPlataforma | null>(null);
+  // Punto 15: con varios bares, elegir uno de la lista en vez de bajar por todas las fichas.
+  const [elegido, setElegido] = useState('');
   const [clave, setClave] = useState<{ quien: string; donde: string; clave: string } | null>(null);
   const [aRestablecer, setARestablecer] = useState<{ cuenta: CuentaBar; bar: string } | null>(null);
   const [errorClave, setErrorClave] = useState<string | null>(null);
@@ -197,7 +199,28 @@ function Bares({ yo }: { yo: YoPlataforma }) {
                 <section className="caja mt-4"><p className="secundario">{T.vacio}</p></section>
               ) : (
                 <>
-                  {bares.data!.bares.map((b) => (
+                  {bares.data!.bares.length > 1 ? (
+                    <div className="plataforma-elegir mt-4">
+                      <Selector
+                        etiqueta={T.elegirBar}
+                        value={bares.data!.bares.some((x) => x.id === elegido) ? elegido : ''}
+                        onChange={(e) => {
+                          const id = e.target.value;
+                          setElegido(id);
+                          // El bar elegido se ve con sus cuentas: es lo que se viene a revisar.
+                          if (id) setAbiertos((previos) => new Set(previos).add(id));
+                        }}
+                      >
+                        <option value="">{T.todosLosBares(bares.data!.bares.length)}</option>
+                        {[...bares.data!.bares].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map((b) => (
+                          <option key={b.id} value={b.id}>
+                            {b.nombre}
+                          </option>
+                        ))}
+                      </Selector>
+                    </div>
+                  ) : null}
+                  {bares.data!.bares.filter((b) => !bares.data!.bares.some((x) => x.id === elegido) || b.id === elegido).map((b) => (
                     <FichaBar
                       key={b.id}
                       bar={b}

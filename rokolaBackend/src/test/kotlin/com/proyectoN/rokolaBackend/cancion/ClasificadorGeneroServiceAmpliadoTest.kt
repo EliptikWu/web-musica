@@ -27,6 +27,16 @@ class ClasificadorGeneroServiceAmpliadoTest {
     }
 
     @Test
+    fun `reconoce plurales y nombres de uso comun en Colombia`() {
+        assertEquals("Vallenato", clasificador.detectar(listOf("Vallenatos Románticos")))
+        assertEquals("Cumbia", clasificador.detectar(listOf("cumbias")))
+        assertEquals("Merengue", clasificador.detectar(listOf("merengues")))
+        assertEquals("Champeta", clasificador.detectar(listOf("champeta criolla")))
+        assertEquals("Música Popular", clasificador.detectar(listOf("despecho", "música de cantina")))
+        assertEquals("Balada", clasificador.detectar(listOf("baladas")))
+    }
+
+    @Test
     fun `prefiere genero concreto en lugar de categoria generica`() {
         assertEquals("Salsa", clasificador.detectar(listOf("salsa", "tropical music")))
         assertEquals("House", clasificador.detectar(listOf("house music", "edm")))

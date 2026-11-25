@@ -181,7 +181,8 @@ fun servicioCerrado(estado: EstadoServicio, proximaApertura: Instant?, zona: Zon
         TextosCerrado(
             luzServicio(estado),
             "Por ahora no recibimos canciones",
-            if (cuando != null) "${conPunto("Los pedidos abren $cuando")} Mientras tanto suena la lista de la casa." else "Mientras tanto suena la lista de la casa.",
+            // Fuera de horario no suena nada, ni la lista de la casa (D24), igual que la web.
+            if (cuando != null) conPunto("Los pedidos abren $cuando") else "Los pedidos se abren en el horario del bar.",
         )
     }
 }
@@ -197,6 +198,8 @@ object Conexion {
  * vez de «dirección» y, como tiene tecla para reintentar, el fallo de red no pide escanear.
  */
 object TextosEntrada {
+    /** Solo en la simulación (D23). */
+    const val DEMOSTRACION = "Entrar al bar de demostración"
     const val ABRIENDO = "Abriendo la rockola del bar…"
     val sinBar = TituloMeta("Escanea el QR de tu mesa", "La rockola de cada bar se abre desde su código QR. Toca «Escanear QR» y apunta al de tu mesa.")
     val reemplazado = TituloMeta("Este QR ya no está en uso", "El bar cambió su código. Escanea el QR que está ahora en tu mesa.")
@@ -208,7 +211,8 @@ object TextosEntrada {
 /** El escáner del QR (RF-066). */
 object TextosEscaner {
     const val ESCANEAR = "Escanear QR"
-    const val ESCANEAR_OTRO = "Escanear otro QR"
+    /** Olvida el bar del teléfono y abre la cámara para el QR del siguiente (RF-069). */
+    const val CAMBIAR_BAR = "Cambiar de bar"
     const val TITULO = "Escanea el QR"
     const val INSTRUCCION = "Apunta la cámara al QR de tu mesa. Se abre solo."
     const val PRIVACIDAD = "La cámara solo lee el QR. No toma fotos ni guarda imágenes."

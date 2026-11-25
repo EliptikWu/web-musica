@@ -42,12 +42,20 @@ private const val LARGO_MAXIMO_QR = 512
  * Lo que dice un QR escaneado es texto de cualquiera (RF-066). Solo vale un `https` a la web de
  * Rockola, o un `/q/<token>` impreso con la dirección del backend (ADR-30). La ruta se lee sin
  * decodificar: `%2F` o `%2E` no pueden fabricar otra.
+ *
+ * [simulacion]: sin backend, también el QR que muestra la web en simulación
+ * (`http://<pc>:3200/q/<token>`), de cualquier host; la ruta se revisa igual (ADR-34).
  */
-fun leerQrEscaneado(texto: String, dominio: String, apiUrl: String): Enlace? {
+fun leerQrEscaneado(texto: String, dominio: String, apiUrl: String, simulacion: Boolean = false): Enlace? {
     val limpio = texto.trim()
     if (limpio.isEmpty() || limpio.length > LARGO_MAXIMO_QR) return null
     val uri = runCatching { URI(limpio) }.getOrNull() ?: return null
-    if (!uri.scheme.equals("https", ignoreCase = true) || uri.rawUserInfo != null) return null
+    if (uri.rawUserInfo != null) return null
+    val esquema = uri.scheme?.lowercase()
+    if (simulacion && (esquema == "https" || esquema == "http") && uri.host != null) {
+        return leerEnlace(uri.rawPath.orEmpty().removePrefix("/").removeSuffix("/").split("/"))
+    }
+    if (esquema != "https") return null
     val host = uri.host?.lowercase() ?: return null
     val esWeb = host == dominio.lowercase()
     val esApi = !esWeb && host == runCatching { URI(apiUrl).host?.lowercase() }.getOrNull()
@@ -74,13 +82,14 @@ sealed interface Entrada {
  * token, no el bar, para poder invalidarlo al regenerarlo: se resuelve y se recuerda el bar
  * para la próxima vez. Un bar que no existe no reemplaza al que se recordaba.
  *
- * [barPorDefecto] es el de la simulación («demo»): sin backend no hace falta un QR para probar.
+ * [barDeDemostracion] es el de la simulación («demo»): sin backend se entra con su QR de la web o
+ * con «Entrar al bar de demostración» (D23). Con la API real es null.
  */
 class EntradaViewModel(
     private val repositorio: RepositorioRockola,
     private val leerSlug: () -> String?,
     private val guardarSlug: (String?) -> Unit,
-    private val barPorDefecto: String?,
+    val barDeDemostracion: String?,
 ) : ViewModel() {
 
     private val _estado = MutableStateFlow<Entrada>(Entrada.Abriendo)
@@ -107,7 +116,7 @@ class EntradaViewModel(
             null -> {
                 // Ya dentro de un bar (p. ej. al girar el teléfono), se queda en él.
                 if (_estado.value is Entrada.Lista) return
-                val slug = leerSlug() ?: barPorDefecto
+                val slug = leerSlug()
                 _estado.value = if (slug == null) Entrada.SinBar else Entrada.Lista(slug)
             }
             is Enlace.Bar -> trabajo = viewModelScope.launch { entrar(enlace.slug, enlace) }
@@ -128,6 +137,36 @@ class EntradaViewModel(
         }
     }
 
+    private var escanerInicialUsado = false
+
+    /**
+     * Sin bar recordado, la app abre la cámara sola (RF-066, D22): quien la acaba de instalar
+     * viene a escanear el QR de su mesa. Una vez por ViewModel: si cierra el escáner, se queda en
+     * «Escanea el QR de tu mesa» y no se le vuelve a abrir al girar el teléfono.
+     */
+    fun tomarEscanerInicial(): Boolean {
+        if (escanerInicialUsado || _estado.value != Entrada.SinBar) return false
+        escanerInicialUsado = true
+        return true
+    }
+
+    /**
+     * «Cambiar de bar» (RF-069): el teléfono olvida el bar y vuelve a la cámara para el QR del
+     * siguiente. Si se cierra sin escanear, queda «Escanea el QR de tu mesa». En el servidor no se
+     * borra nada: solo cambia el bar que recuerda el teléfono.
+     */
+    fun cambiarDeBar() {
+        trabajo?.cancel()
+        guardarSlug(null)
+        escanerInicialUsado = false
+        _estado.value = Entrada.SinBar
+    }
+
+    /** Solo en la simulación: entra al bar «demo» como si se hubiera escaneado su QR (D23). */
+    fun entrarALaDemostracion() {
+        barDeDemostracion?.let { abrir(Enlace.Bar(it)) }
+    }
+
     fun reintentar() {
         (_estado.value as? Entrada.Fallo)?.let { abrir(it.enlace) }
     }
@@ -135,11 +174,11 @@ class EntradaViewModel(
     /** Desde un aviso de QR: de vuelta al bar que se recordaba. */
     fun volver() {
         trabajo?.cancel()
-        val slug = leerSlug() ?: barPorDefecto
+        val slug = leerSlug()
         _estado.value = if (slug == null) Entrada.SinBar else Entrada.Lista(slug)
     }
 
-    private fun hayBar(): Boolean = (leerSlug() ?: barPorDefecto) != null
+    private fun hayBar(): Boolean = leerSlug() != null
 
     /**
      * Comprueba que el bar existe y solo entonces lo deja como el bar del teléfono. Nada cambia
@@ -167,7 +206,7 @@ class EntradaViewModel(
                     repositorio = Contenedor.repositorio,
                     leerSlug = { Contenedor.almacen.slug },
                     guardarSlug = { Contenedor.almacen.slug = it },
-                    barPorDefecto = Contenedor.barPorDefecto,
+                    barDeDemostracion = Contenedor.barDeDemostracion,
                 )
             }
         }

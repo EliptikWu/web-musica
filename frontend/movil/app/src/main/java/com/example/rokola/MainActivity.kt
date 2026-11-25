@@ -3,6 +3,7 @@ package com.example.rokola
 import com.example.rokola.dominio.TemaBar
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,7 +30,6 @@ import com.example.rokola.viewmodel.Enlace
 import com.example.rokola.viewmodel.EntradaViewModel
 import com.example.rokola.viewmodel.PantallasDelBar
 import com.example.rokola.viewmodel.leerEnlace
-import com.example.rokola.viewmodel.leerQrEscaneado
 import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
         escanerAbierto = false
         if (r.resultCode != RESULT_OK) return@registerForActivityResult
         r.data?.getStringExtra(EscanerActivity.EXTRA_QR)
-            ?.let { leerQrEscaneado(it, BuildConfig.ROCKOLA_DOMINIO, BuildConfig.ROCKOLA_API_URL) }
+            ?.let(Contenedor::leerQr)
             ?.let(entrada::abrir)
     }
 
@@ -62,7 +62,8 @@ class MainActivity : ComponentActivity() {
         // Al volver tras cerrarse la app, o desde Recientes, el enlace ya se usó: se abre el bar
         // recordado en vez de resolver otra vez un QR que pudo cambiar.
         val desdeRecientes = intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
-        entrada.iniciar(if (savedInstanceState == null && !desdeRecientes) enlaceDe(intent) else null)
+        val enlace = if (savedInstanceState == null && !desdeRecientes) enlaceDe(intent) ?: demoDePrueba(depuracion) else null
+        entrada.iniciar(enlace)
 
         setContent {
             RokolaTheme {
@@ -70,11 +71,23 @@ class MainActivity : ComponentActivity() {
                 when (val e = estado) {
                     // Otro bar, otras pantallas: los ViewModel del bar anterior se cierran.
                     is Entrada.Lista -> key(e.slug) {
-                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial, ::abrirEscaner) }
+                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial, entrada::cambiarDeBar) }
                     }
                     else -> {
                         LaunchedEffect(Unit) { pantallasDelBar.cerrar() }
-                        PantallaEntrada(e, onReintentar = entrada::reintentar, onVolver = entrada::volver, onEscanear = ::abrirEscaner)
+                        // Recién instalada y sin bar: directo a la cámara (RF-066, D22). Sin cámara
+                        // no se abre un escáner que solo diría que no la hay.
+                        LaunchedEffect(e) {
+                            val hayCamara = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+                            if (hayCamara && entrada.tomarEscanerInicial()) abrirEscaner()
+                        }
+                        PantallaEntrada(
+                            e,
+                            onReintentar = entrada::reintentar,
+                            onVolver = entrada::volver,
+                            onEscanear = ::abrirEscaner,
+                            onDemostracion = entrada.barDeDemostracion?.let { entrada::entrarALaDemostracion },
+                        )
                     }
                 }
             }
@@ -118,6 +131,15 @@ class MainActivity : ComponentActivity() {
         val id = intent.getStringExtra("escenario") ?: return
         val escenario = Escenario.entries.firstOrNull { it.id == id } ?: return
         runBlocking { repo.cambiarEscenario(escenario) }
+    }
+
+    /**
+     * Con `--es pantalla|escenario|tema` en depuración y la simulación, directo al bar «demo», sin
+     * pasar por el escáner (capturas y comprobaciones de frontend/movil/CLAUDE.md, D23).
+     */
+    private fun demoDePrueba(depuracion: Boolean): Enlace? {
+        if (!depuracion || listOf("pantalla", "escenario", "tema").none(intent::hasExtra)) return null
+        return entrada.barDeDemostracion?.let(Enlace::Bar)
     }
 
     /** `--es pantalla buscar|cola|politica`: abre directo en esa pantalla (capturas). */

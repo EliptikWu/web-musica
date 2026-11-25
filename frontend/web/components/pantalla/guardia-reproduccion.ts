@@ -43,15 +43,20 @@ export function decidirGuardia(g: Guardia, { estadoYT, debeSonar, ahora }: { est
 
 // ── Volver a probar con audio ──────────────────────────────────────────────
 
-/** Un corte de red también lleva a sonar en silencio: el bar no se queda mudo toda la noche. */
-export const PRIMERA_PRUEBA_MS = 30_000;
-export const PRUEBA_MAXIMA_MS = 300_000;
+/**
+ * Un corte de red también lleva a sonar en silencio: el bar no se queda mudo toda la noche. Se
+ * prueba pronto y seguido (el equipo vio la TV muda largos ratos con 30 s a 5 min, 2026-11-25).
+ */
+export const PRIMERA_PRUEBA_MS = 10_000;
+export const PRUEBA_MAXIMA_MS = 60_000;
 export const CONFIRMAR_AUDIO_MS = 3000;
 
 export type PruebaAudio = { siguiente: number; espera: number; probandoDesde: number | null };
 export type AccionAudio = 'nada' | 'probar' | 'confirmar' | 'volver';
 
 export const pruebaInicial = (ahora: number): PruebaAudio => ({ siguiente: ahora + PRIMERA_PRUEBA_MS, espera: PRIMERA_PRUEBA_MS, probandoDesde: null });
+/** Probar ya: la pestaña volvió a verse o el panel cambió el volumen. */
+export const pruebaYa = (ahora: number): PruebaAudio => ({ siguiente: ahora, espera: PRIMERA_PRUEBA_MS, probandoDesde: null });
 
 export function decidirAudio(p: PruebaAudio, { estadoYT, silenciado, ahora }: { estadoYT: number; silenciado: boolean; ahora: number }): { prueba: PruebaAudio; accion: AccionAudio } {
   if (p.probandoDesde === null) {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Ahora, Bar, ItemCola, VinculoPantalla } from '@rockola/contrato';
+import type { Ahora, Bar, ItemCola, Reproduccion, VinculoPantalla } from '@rockola/contrato';
 import { Arco, Avance, DiasSemana, Icono, LuzEstado, TarjetaTitulo, Tecla } from '@rockola/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
@@ -18,7 +18,7 @@ import { claveDe } from '@/lib/idempotencia';
 import { useConexionCaida } from '@/lib/tiempo-real/estado';
 import { conexion, luzServicio, servicioCerrado } from '@/lib/textos/cliente';
 import { TV } from '@/lib/textos/pantalla';
-import { Reproductor } from './Reproductor';
+import { esIdSimulado, Reproductor } from './Reproductor';
 import { useVinculoPantalla } from './vinculo';
 
 const VISIBLES = 5;
@@ -37,6 +37,11 @@ export function PantallaBar({ slug }: { slug: string }) {
   const { caida } = useConexionCaida();
   const [encendida, setEncendida] = useState(false);
   const [sinSonido, setSinSonido] = useState(false);
+  // La última canción de YouTube que sonó: el reproductor no se desmonta entre canciones (ADR-35).
+  const [ultima, setUltima] = useState<Reproduccion | null>(null);
+  const repFoto = ahora.data?.reproduccion ?? null;
+  if (repFoto && !esIdSimulado(repFoto.cancion.video_id) && repFoto.id !== ultima?.id) setUltima(repFoto);
+  if (ultima && ahora.data && ahora.data.servicio.estado !== 'abierto') setUltima(null);
   const consultas = useQueryClient();
   const reporte = useMutation({
     mutationFn: ({ tipo, id, posicion, codigo }: { tipo: 'reportarInicio' | 'reportarFin' | 'reportarError'; id: string; posicion: number; codigo: number | null }) =>
@@ -92,6 +97,9 @@ export function PantallaBar({ slug }: { slug: string }) {
   const rep = foto.reproduccion;
   const momento = instante || Date.parse(foto.servidor_ahora);
   const posicion = rep ? posicionActual(rep, foto.servidor_ahora, momento) : 0;
+  // Solo entre canciones de una noche abierta: cerrada o en mantenimiento, el reproductor se suelta.
+  const enEspera = !rep && encendida && ultima !== null && foto.servicio.estado === 'abierto';
+  const enReproductor = rep ?? (enEspera ? { ...ultima, estado: 'pausada' as const } : null);
   const avance = avanceDesdeFoto(rep, foto.servidor_ahora, momento);
   const estado = foto.servicio.estado;
   const apagada = estado !== 'abierto';
@@ -103,10 +111,11 @@ export function PantallaBar({ slug }: { slug: string }) {
         <section className="tv__izq" aria-label="Suena ahora">
           <Arco apagado={apagada}>
             <h1 className="placa placa-bar">{bar.data.nombre}</h1>
-            {rep ? (
+            {enReproductor ? (
               <Reproductor
-                reproduccion={rep}
-                posicionSeg={posicion}
+                reproduccion={enReproductor}
+                posicionSeg={rep ? posicion : enReproductor.cancion.duracion_seg}
+                enEspera={enEspera}
                 encendida={encendida}
                 volumen={foto.volumen}
                 onSinSonido={setSinSonido}

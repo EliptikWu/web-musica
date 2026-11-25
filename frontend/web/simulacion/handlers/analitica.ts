@@ -1,6 +1,6 @@
 import type { UmbralesAnalitica } from '@rockola/contrato';
 import { comparar, cubo, cuboVivo, diagnostico, pedidasEnEjemplo, type Filtro, nochesDeEjemplo, origenDatos, participacion, recomendaciones, resumen, seleccionar, UMBRALES_POR_DEFECTO } from '../analitica';
-import { categoriaDe, corregirCategoria, GENEROS_CATALOGO, listarCatalogo } from '../categorias';
+import { categoriaDe, corregirCategoria, GENEROS_CATALOGO, listarCatalogo, reclasificar } from '../categorias';
 import { anotar } from '../gestion';
 import { error, manejar, ok, type Peticion } from './comun';
 
@@ -74,6 +74,9 @@ export const manejadoresAnalitica = [
       limite: Number.isFinite(limite) ? limite : 50,
     }));
   }),
+  manejar('reclasificarCanciones', (p) =>
+    reclasificar(p.estado, pedidasEnEjemplo(p.estado), p.ahora, { id: p.personal!.id, nombre: p.personal!.nombre }, Number(p.consulta.get('limite') ?? '10'), Number(p.consulta.get('despuesDe') ?? '0')),
+  ),
   manejar('corregirCategoria', (p) =>
     corregirCategoria(p.estado, pedidasEnEjemplo(p.estado), p.ahora, { id: p.personal!.id, nombre: p.personal!.nombre }, p.parametros.id ?? '', (p.cuerpo as { categoria?: unknown } | null)?.categoria),
   ),

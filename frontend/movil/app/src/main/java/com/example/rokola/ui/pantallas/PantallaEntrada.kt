@@ -41,12 +41,19 @@ import com.example.rokola.viewmodel.Entrada
  * apagado con el mensaje y, abajo, la única salida que tenga sentido.
  */
 @Composable
-fun PantallaEntrada(estado: Entrada, onReintentar: () -> Unit, onVolver: () -> Unit, onEscanear: () -> Unit) {
+fun PantallaEntrada(
+    estado: Entrada,
+    onReintentar: () -> Unit,
+    onVolver: () -> Unit,
+    onEscanear: () -> Unit,
+    onDemostracion: (() -> Unit)? = null,
+) {
     val escanear = TextosEscaner.ESCANEAR to onEscanear
     when (estado) {
         is Entrada.Lista -> Unit
         Entrada.Abriendo -> Abriendo()
-        Entrada.SinBar -> PantallaAviso(TextosEntrada.sinBar, escanear)
+        // Solo en la simulación: sin QR a mano, al bar de ejemplo (D23).
+        Entrada.SinBar -> PantallaAviso(TextosEntrada.sinBar, escanear, onDemostracion?.let { TextosEntrada.DEMOSTRACION to it })
         is Entrada.QrReemplazado -> PantallaAviso(TextosEntrada.reemplazado, escanear, volverSi(estado.puedeVolver, onVolver))
         is Entrada.BarNoEncontrado -> PantallaAviso(TextosEntrada.noEncontrado, escanear, volverSi(estado.puedeVolver, onVolver))
         is Entrada.Fallo -> PantallaAviso(TextosEntrada.fallo, T.REINTENTAR to onReintentar, volverSi(estado.puedeVolver, onVolver) ?: escanear)

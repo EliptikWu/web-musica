@@ -64,10 +64,10 @@ export function useSalir() {
     onError: () => {
       salida.enCurso = false;
     },
-    // Carga completa a propósito: al salir no queda nada del panel en memoria.
-    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     onSuccess: () => {
       olvidarTemaPanel();
+      // Carga completa a propósito: al salir no queda nada del panel en memoria.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign('/panel/entrar');
     },
   });

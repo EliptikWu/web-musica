@@ -73,6 +73,25 @@ class LectorQrTest {
     }
 
     @Test
+    fun `en la simulacion acepta el QR de la web local, pero solo con su ruta`() {
+        val sim = { t: String -> leerQrEscaneado(t, "rockola.invalid", "", simulacion = true) }
+        assertEquals(Enlace.Qr("demo-qr-1"), sim("http://192.168.1.5:3200/q/demo-qr-1"))
+        assertEquals(Enlace.Qr("demo-qr-2"), sim("https://localhost:3200/q/demo-qr-2/"))
+        assertEquals(Enlace.Bar("demo"), sim("http://192.168.1.5:3200/b/demo"))
+        listOf(
+            "http://192.168.1.5:3200/panel",
+            "http://192.168.1.5:3200/q/a/b",
+            "http://192.168.1.5:3200/q/..%2Fpanel",
+            "http://usuario@192.168.1.5:3200/q/demo-qr-1",
+            "ftp://192.168.1.5/q/demo-qr-1",
+            "intent://q/demo-qr-1",
+            "demo-qr-1",
+        ).forEach { assertNull(it, sim(it)) }
+        // Con la API real, igual que siempre: nada de http.
+        assertNull(leer("http://192.168.1.5:3200/q/demo-qr-1"))
+    }
+
+    @Test
     fun `rechaza lo que no es de Rockola`() {
         listOf(
             "http://$dominio/q/abc",

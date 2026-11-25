@@ -14,7 +14,9 @@ async function entrar(page: Page, correo = 'admin@rockola.demo') {
 test('canciones: la que no tiene género se corrige y queda puesta a mano', async ({ page }) => {
   const errores = vigilarConsola(page);
   await entrar(page);
-  await page.getByRole('link', { name: 'Canciones' }).click();
+  // El menú va por grupos (punto 3): Canciones está en Música, junto al tablero.
+  await page.getByRole('link', { name: 'Música' }).click();
+  await page.getByRole('group', { name: 'Secciones de Música' }).getByRole('link', { name: 'Canciones' }).click();
   await expect(page.getByRole('heading', { name: 'Canciones', level: 1 })).toBeVisible();
 
   const lista = page.getByRole('region', { name: 'Canciones sin género' }).getByRole('listitem');

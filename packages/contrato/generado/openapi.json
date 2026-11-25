@@ -2791,6 +2791,71 @@
           "destino"
         ]
       },
+      "Reclasificacion": {
+        "type": "object",
+        "properties": {
+          "consultadas": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "clasificadas": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "clasificadas_por_origen": {
+            "type": "object",
+            "properties": {
+              "ETIQUETAS": {
+                "type": "integer"
+              },
+              "TITULO": {
+                "type": "integer"
+              },
+              "DESCRIPCION": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "ETIQUETAS",
+              "TITULO",
+              "DESCRIPCION"
+            ]
+          },
+          "sin_coincidencia": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "no_disponibles": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "siguiente_desde_id": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hay_mas": {
+            "type": "boolean"
+          },
+          "interrumpida": {
+            "nullable": true,
+            "type": "string",
+            "enum": [
+              "cuota_agotada",
+              "youtube_no_disponible"
+            ]
+          }
+        },
+        "required": [
+          "consultadas",
+          "clasificadas",
+          "clasificadas_por_origen",
+          "sin_coincidencia",
+          "no_disponibles",
+          "siguiente_desde_id",
+          "hay_mas",
+          "interrumpida"
+        ]
+      },
       "Recomendacion": {
         "type": "object",
         "properties": {
@@ -8873,6 +8938,81 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RespuestaCancionesPanel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "no_autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "sin_permiso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/panel/canciones/reclasificar": {
+      "post": {
+        "operationId": "reclasificarCanciones",
+        "summary": "Volver a clasificar hasta 10 canciones del bar sin género",
+        "tags": [
+          "panel"
+        ],
+        "description": "Requisitos: RF-068. Rol mínimo: administrador.",
+        "security": [
+          {
+            "sesionPanel": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "despuesDe",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Correcto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reclasificacion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "datos_invalidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
                 }
               }
             }

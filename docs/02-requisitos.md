@@ -141,7 +141,9 @@ prototipos del equipo: **Rockola** (Tema #2, la de siempre), **Vidrio** (Tema #1
 suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 - De 0 a 100 %, en pasos de 10 con las teclas o directo con la barra. 0 es silencio.
 - La TV lo aplica en 3 s o menos (RNF-009) y lo recuerda: al recargar vuelve al último.
-- Queda en la bitácora con el valor. El teléfono no lo muestra: la música la controla el bar.
+- No va a la bitácora (cambio del equipo, 2026-11-25: subir y bajar la llenaba y tapaba lo
+  importante). El teléfono no lo muestra: la música la controla el bar.
+- Un toque basta: el valor no vuelve atrás mientras el servidor responde.
 
 ### Módulo 8. Datos y analítica
 
@@ -162,15 +164,35 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-066 | Escanear el QR del bar desde la app Android (nuevo, 2026-11-21) | Should | — | 29 | F |
 | RF-067 | Cubo en vivo, con la noche abierta (nuevo, 2026-11-24) | Should | PB-45 | 31 | F+B |
 | RF-068 | Catálogo de canciones: corregir el género a mano (nuevo, 2026-11-24) | Should | PB-47 | 31 | F+B |
+| RF-069 | Cambiar de bar desde la app Android (nuevo, 2026-11-24) | Should | — | 32 | F |
+| RF-070 | Aviso antes del cierre por horario (nuevo, 2026-11-25) | Should | — | 34 | F |
 
 **RF-066 — Escanear el QR desde la app.** Añadido el 2026-11-21 (D20). La app Android abre la cámara
-con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Criterios:
-- El permiso de cámara se pide solo al tocar «Escanear QR». Si se niega, la app explica para qué
+con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Desde el 2026-11-24
+(D22), si se abre sin enlace y sin bar recordado (recién instalada), abre el escáner sola. Criterios:
+- El permiso de cámara se pide solo al entrar al escáner: al tocar «Escanear QR» o cuando la app lo
+  abre sola sin bar, una vez por apertura; si se cierra, queda la tecla. Si se niega, la app explica para qué
   sirve y cómo activarlo, y sigue funcionando sin cámara.
 - La imagen se analiza en el teléfono: no se guarda, no se envía y su contenido no va a los logs.
 - Solo abre enlaces `https` de la web de Rockola (`/q/<token>`, `/b/<slug>`) o un `/q/<token>`
   impreso con la dirección del backend. Cualquier otro QR se rechaza con un aviso y no se abre.
+  En la simulación (D23, ADR-34) vale también el QR de la web local, de cualquier host y con
+  `http`, pero solo con esas rutas; sin QR a mano, «Entrar al bar de demostración».
 - Un QR válido entra por el mismo camino que un enlace, con sus avisos de QR viejo o sin bar.
+
+**RF-069 — Cambiar de bar desde la app.** Añadido el 2026-11-24 (D22). La app recuerda el bar aunque
+se cierre; quien se va a otro bar esa misma noche necesita salirse. Criterios:
+- «Cambiar de bar», bajo la tecla principal de la bienvenida (abierta o cerrada), reemplaza a
+  «Escanear otro QR».
+- Al tocarlo, el teléfono olvida el bar y se abre el escáner. Si se cierra sin escanear, queda
+  «Escanea el QR de tu mesa» y, al volver a abrir la app, no regresa al bar anterior.
+- No borra nada en el servidor: solo cambia el bar que recuerda el teléfono.
+
+**RF-070 — Aviso antes del cierre por horario.** Añadido el 2026-11-25 (punto 6 del equipo). En los
+últimos 15 minutos *(propuesto)* antes de que el horario cierre las solicitudes, el teléfono muestra
+arriba «Los pedidos se cierran en N min» y el panel dice a qué hora cierran y que lo que quede en la
+cola se descarta. No sale con la apertura forzada. Sale de `servicio.hasta` de la foto: no necesita
+nada nuevo del backend. Al cambiar el horario, el teléfono y la TV lo ven sin recargar.
 
 **RF-065 — Destino del QR.** Añadido el 2026-11-21 (D18). El Administrador elige con un interruptor si
 el QR de su bar abre la web o ofrece descargar la app. Cambia sin reimprimir: el código es el mismo.
@@ -184,7 +206,8 @@ agrega cuentas de Operador o Administrador a un bar, y da una clave nueva a una 
 perdió. Cada cuenta nace con una clave temporal, que se
 muestra una sola vez y obliga a cambiarla. No hay registro público. La plataforma no opera ningún
 bar ni ve datos de sus clientes, y una sesión del panel de un bar no entra en ella. La lista muestra
-cada bar plegado, con nombre, dirección web, dirección y horario; sus cuentas se despliegan.
+cada bar plegado, con nombre, dirección web, dirección y horario; sus cuentas se despliegan. Con
+varios bares, «Ir a un bar» deja solo el elegido, con sus cuentas abiertas (punto 15, 2026-11-25).
 
 **RF-063 — Cubo de participación.** Añadido el 2026-11-20 (D15) para el Entregable 6 de la guía
 del seminario. El Administrador explora en un cubo 3D **los KPI del entregable** por género,
@@ -221,6 +244,9 @@ que usó su bar (pedidas, en listas, bloqueadas o que sonaron) con su género y 
   confirma. El backend la marca `MANUAL` y la clasificación automática ya no la cambia.
 - El cubo en vivo la cuenta de inmediato; el histórico, cuando vuelva a correr el pipeline.
 - Queda en la bitácora. Solo el Administrador; el Operador no la ve.
+- Los géneros van en orden alfabético. «Clasificar las que faltan» vuelve a pasar por el
+  clasificador las que no tienen género (de 10 en 10, hasta 100 por vez) y dice cuántas encontró
+  y cuántas hay que poner a mano; nunca toca las `MANUAL` (punto 18, 2026-11-25).
 
 ### Módulo 9. Funcionalidades opcionales
 
@@ -252,7 +278,7 @@ Should) y PB-49 en Should (RF-054 dice Could). Aquí manda el requisito.
 | RNF-013 | Mantenibilidad | Capas y paquetes del doc 03 | Revisión de código |
 | RNF-014 | Trazabilidad | Las acciones del panel quedan en la bitácora | e2e del panel |
 | RNF-015 | Calidad de datos analíticos | Mostrar origen y fecha de los datos; rotular los de ejemplo | Revisión |
-| RNF-016 | Manual de uso | Manual ilustrado dentro del panel, por rol | Iteración 4 |
+| RNF-016 | Manual de uso | Manual ilustrado dentro del panel, por rol. Desde el 2026-11-25 (punto 20): empieza con «Configurar el bar paso a paso», todos los temas tienen captura con anillo y flecha donde se toca, y cada tema lleva su etiqueta de color («Para empezar», «En la noche», «Solo el Administrador») | Iteración 4 |
 
 ## Reglas de negocio
 
@@ -268,7 +294,7 @@ La regla vive en el servidor; el frontend la **explica** y la anticipa en la int
 | RN-05 | Orden por votos desc.; en empate, la pedida antes | Cola, TV, panel; nota de desempate |
 | RN-06 | No se aceptan bloqueadas, no disponibles, no embebibles ni de más de 10 min; el cliente ve el motivo | Texto en lugar de «Pedir» |
 | RN-07 | Una canción ya sonada no se repite en 60 min (configurable) | «Sonó hace poco» con la hora en que se podrá pedir |
-| RN-08 | Sin pendientes suena la lista de la casa; al llegar una solicitud se termina la canción en curso | Etiqueta de origen en TV y cliente |
+| RN-08 | Sin pendientes suena la lista de la casa; al llegar una solicitud se termina la canción en curso. Suena con la noche abierta, también con las solicitudes en pausa; sin noche (fuera de horario) o en mantenimiento no suena nada (D24) | Etiqueta de origen en TV y cliente |
 | RN-09 | El QR sigue el horario salvo pausa o activación forzada | Barra de estado del panel |
 | RN-10 | El mantenimiento cierra la sesión y expira lo pendiente | Confirmación en el panel; «expirada» en «Tus pedidos» |
 | RN-11 | Toda acción del personal queda registrada | Registro de acciones y bitácora |

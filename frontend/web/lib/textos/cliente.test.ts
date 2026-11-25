@@ -13,7 +13,7 @@ describe('textos del cliente', () => {
   it('fuera de horario dice cuándo abren, sin doble punto', () => {
     const ahora = Date.parse('2026-10-22T18:30:00-05:00');
     const t = servicioCerrado('fuera_de_horario', '2026-10-22T20:00:00-05:00', 'America/Bogota', ahora);
-    expect(normal(t.detalle)).toBe('Los pedidos abren hoy a las 8:00 p. m. Mientras tanto suena la lista de la casa.');
+    expect(normal(t.detalle)).toBe('Los pedidos abren hoy a las 8:00 p. m.');
   });
 
   it('hoy, mañana o el día de la semana, en la zona del bar', () => {

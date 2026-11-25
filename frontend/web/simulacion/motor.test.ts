@@ -4,7 +4,7 @@ import { crearEstado } from './datos/semilla';
 import { recortar } from './almacen';
 import {
   abrirSesionManual, activarMantenimiento, ahoraSim, avanzar, bloquear, buscar, cambiarModoQr, cambiarVolumen, cerrarSesionManual, construirAhora,
-  construirDestacadas, construirNoche, construirYo, desbloquear, pedirCancion, quitarVoto, reportarPantalla, retirar, retirarPedido, saltar, votar,
+  construirDestacadas, construirNoche, construirYo, desbloquear, detalleErroresYoutube, pedirCancion, quitarVoto, reportarPantalla, retirar, retirarPedido, saltar, votar,
 } from './motor';
 
 const PERSONA = 'persona-0000';
@@ -192,6 +192,13 @@ describe('la noche avanza sola (RF-019, RF-020, RN-08)', () => {
     reportarPantalla(estado, estado.reproduccion!.id, 'error', ahora, 150);
     expect(construirYo(estado, PERSONA).solicitudes.find((s) => s.solicitud_id === 's-rebelion')?.estado).toBe('no_disponible');
     expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'error_youtube', detalle: 'El reproductor dio el error 150' });
+    // El aviso del panel dice cuál fue, no solo cuántas.
+    expect(Noche.parse(construirNoche(estado, ahora)).alertas).toContainEqual({ tipo: 'errores_youtube', detalle: '«Rebelión» (1 en la última media hora)' });
+  });
+
+  it('el aviso de YouTube nombra hasta tres canciones y cuenta las demás', () => {
+    expect(detalleErroresYoutube(['A', 'B', 'C', 'D', null])).toBe('«A», «B», «C» y 2 más (5 en la última media hora)');
+    expect(detalleErroresYoutube([null])).toBe('algunas canciones (1 en la última media hora)');
   });
 });
 
@@ -337,18 +344,15 @@ describe('quitar mi voto y retirar mi pedido (RF-060, RF-061)', () => {
 });
 
 describe('volumen de la pantalla (RF-062)', () => {
-  it('empieza en 80, cambia desde el panel, va a la bitácora y llega al teléfono y la TV', () => {
+  it('empieza en 80, cambia desde el panel, no va a la bitácora y llega al teléfono y la TV', () => {
     const { estado, ahora } = escena();
     expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(80);
-    expect(cambiarVolumen(estado, 35, ADMIN, ahora)).toMatchObject({ ok: true });
+    expect(cambiarVolumen(estado, 35)).toMatchObject({ ok: true });
     expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(35);
     expect(Noche.parse(construirNoche(estado, ahora)).volumen).toBe(35);
-    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'cambiar_volumen', detalle: '35 %' });
-    // El mismo valor no deja otra línea; fuera de rango se rechaza.
-    const lineas = estado.acciones.length;
-    cambiarVolumen(estado, 35, ADMIN, ahora);
-    expect(estado.acciones.length).toBe(lineas);
-    expect(cambiarVolumen(estado, 101, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
-    expect(cambiarVolumen(estado, 2.5, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(estado.acciones.some((a) => a.tipo === 'cambiar_volumen')).toBe(false);
+    // Fuera de rango se rechaza.
+    expect(cambiarVolumen(estado, 101)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(cambiarVolumen(estado, 2.5)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
   });
 });

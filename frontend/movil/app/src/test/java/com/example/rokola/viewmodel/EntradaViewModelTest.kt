@@ -47,7 +47,7 @@ class EntradaViewModelTest {
         repositorio = repo ?: Repo(RepositorioSimulado(slugPedido = { guardado })),
         leerSlug = { guardado },
         guardarSlug = { guardado = it },
-        barPorDefecto = porDefecto,
+        barDeDemostracion = porDefecto,
     )
 
     @Test
@@ -108,8 +108,49 @@ class EntradaViewModelTest {
         crear().also { it.iniciar(null) }.let { assertEquals(Entrada.Lista("demo"), it.estado.value) }
         guardado = null
         crear().also { it.iniciar(null) }.let { assertEquals(Entrada.SinBar, it.estado.value) }
-        // En la simulación no hace falta QR.
-        crear(porDefecto = "demo").also { it.iniciar(null) }.let { assertEquals(Entrada.Lista("demo"), it.estado.value) }
+        // La simulación también pide el QR (D23); el bar de demostración es una opción.
+        crear(porDefecto = "demo").also { it.iniciar(null) }.let { assertEquals(Entrada.SinBar, it.estado.value) }
+    }
+
+    @Test
+    fun `sin bar abre el escáner una sola vez, y con bar nunca`() {
+        guardado = null
+        val vm = crear().also { it.iniciar(null) }
+        assertEquals(true, vm.tomarEscanerInicial())
+        // Cerró el escáner o giró el teléfono: se queda en el aviso con su tecla.
+        assertEquals(false, vm.tomarEscanerInicial())
+        guardado = "demo"
+        assertEquals(false, crear().also { it.iniciar(null) }.tomarEscanerInicial())
+        guardado = null
+        assertEquals(true, crear(porDefecto = "demo").also { it.iniciar(null) }.tomarEscanerInicial())
+    }
+
+    @Test
+    fun `cambiar de bar olvida el bar y vuelve a abrir el escáner`() {
+        guardado = "demo"
+        val vm = crear().also { it.iniciar(null) }
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+        vm.cambiarDeBar()
+        assertEquals(Entrada.SinBar, vm.estado.value)
+        assertNull(guardado)
+        assertEquals(true, vm.tomarEscanerInicial())
+        // Cerró la cámara: al abrir otra vez la app ya no hay bar al que volver.
+        assertEquals(Entrada.SinBar, crear().also { it.iniciar(null) }.estado.value)
+        // Con un QR nuevo entra al otro bar.
+        vm.abrir(Enlace.Bar("demo"))
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+    }
+
+    @Test
+    fun `en la simulación se entra al bar de demostración y se queda recordado`() {
+        guardado = null
+        val vm = crear(porDefecto = "demo").also { it.iniciar(null) }
+        vm.entrarALaDemostracion()
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+        assertEquals("demo", guardado)
+        // Con la API real no hay bar de demostración: no pasa nada.
+        guardado = null
+        crear().also { it.iniciar(null) }.also { it.entrarALaDemostracion() }.let { assertEquals(Entrada.SinBar, it.estado.value) }
     }
 
     @Test

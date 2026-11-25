@@ -12,7 +12,8 @@ import { pedir } from '@/lib/api/cliente';
 import { useAccionGestion } from '@/lib/api/hooks-panel';
 import { capitalizar } from '@/lib/formato';
 import { CAUSAS, fechaCorta, fechaNoche, Filtros, numero, OrigenDeLosDatos, useAnalitica, useFiltroAnalitica } from './Comun';
-import { Columnas, Medidor, TablaDatos } from './Graficos';
+import { contarPorCausa } from './agrupar';
+import { Barras, Columnas, Medidor, TablaDatos } from './Graficos';
 
 /**
  * Analítica diagnóstica (RF-052, PB-46): las muy votadas que no sonaron y por qué, si pocos
@@ -83,6 +84,13 @@ export function Diagnostico() {
                         </tbody>
                       </table>
                     )}
+                    {/* Punto 19: la tabla dice cuáles; la gráfica, por qué en conjunto. */}
+                    {x.no_sonaron.length > 1 ? (
+                      <div className="mt-4">
+                        <h3 className="titulo-seccion text-[17px]">Por qué no sonaron</h3>
+                        <Barras titulo="Canciones muy votadas que no sonaron, por causa" filas={contarPorCausa(x.no_sonaron, CAUSAS)} formato={numero} />
+                      </div>
+                    ) : null}
                   </section>
 
                   <div className="gestion-rejilla gestion-rejilla--dos">
@@ -147,6 +155,22 @@ export function Diagnostico() {
                       />
                     </section>
                   </div>
+                  {variasNoches ? (
+                    <section className="caja" aria-labelledby="t-solicitudes-noche">
+                      <div className="caja__cabeza">
+                        <h2 id="t-solicitudes-noche">Solicitudes por noche</h2>
+                        <p>Cuánto se pidió cada noche</p>
+                      </div>
+                      {/* Punto 19: aparte de los teléfonos, no en otro eje (una gráfica, una medida). */}
+                      <Columnas
+                        titulo="Solicitudes por noche"
+                        filas={x.noches.map((n) => ({ clave: n.noche_id, etiqueta: fechaCorta(n.inicio, zona), valor: n.solicitudes }))}
+                        formato={numero}
+                        // Se rotula la noche con más solicitudes; las demás, al pasar el puntero y en la tabla.
+                        enfasis={new Set(x.noches.reduce<typeof x.noches>((max, n) => (max.length === 0 || n.solicitudes > max[0]!.solicitudes ? [n] : max), []).map((n) => n.noche_id))}
+                      />
+                    </section>
+                  ) : null}
                 </div>
               )}
             </div>

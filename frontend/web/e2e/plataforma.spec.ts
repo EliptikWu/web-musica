@@ -58,6 +58,14 @@ test('crear un bar y una cuenta, con la clave temporal una sola vez', async ({ p
   await page.getByRole('button', { name: 'Dar una clave nueva a Luis, de Café La Nota' }).click();
   await page.getByRole('dialog', { name: '¿Dar una clave nueva a Luis?' }).getByRole('button', { name: 'Clave nueva' }).click();
   await page.getByRole('dialog', { name: 'Clave temporal de Luis' }).getByRole('button', { name: 'Listo' }).click();
+
+  // Con varios bares, se elige uno de la lista y queda solo ese, con sus cuentas (punto 15).
+  await page.getByLabel('Ir a un bar').selectOption({ label: 'Café La Nota' });
+  await expect(page.getByRole('region', { name: 'Café La Nota' })).toContainText('luis@lanota.test');
+  await expect(page.getByRole('region').filter({ hasText: '/b/' })).toHaveCount(1);
+  await page.getByLabel('Ir a un bar').selectOption({ index: 0 });
+  await expect(page.getByRole('region').filter({ hasText: '/b/' })).not.toHaveCount(1);
+  await sinViolaciones(page, 'elegir un bar');
   expect(errores).toEqual([]);
 });
 

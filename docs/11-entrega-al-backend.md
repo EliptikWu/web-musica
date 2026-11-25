@@ -98,6 +98,13 @@ desplegar. Para repetir la prueba: cargar el esquema, poner las claves demo con
 `ROKOLA_DEVICE_HMAC_SECRET` apuntando a esa base. En una base vacía la V2 falla: Flyway solo
 hace la línea base sobre una base que ya tiene tablas.
 
+Con esas variables puestas, `./gradlew test` también corre `RokolaBackendApplicationTests`, que
+arranca la aplicación con Flyway; sin `DB_URL` esa prueba se salta. Hecho el 2026-11-25 contra
+Postgres 16: Flyway llegó a V14, el ingreso al panel guarda `ultimo_acceso` y `GET /panel/usuarios`
+lo devuelve, `PUT /panel/volumen` no escribe en `accion_admin`, `POST /panel/canciones/reclasificar`
+responde con la forma de `Reclasificacion` (sin canciones: todo en 0) y `PUT /panel/horario` responde
+200. Sin YouTube ni base real.
+
 | Fecha | Qué | Archivos | Para revisar |
 |---|---|---|---|
 | 2026-11-12 | `tema` del bar (RF-059) y edición del establecimiento (RF-034) | `db/migration/V2__tema_establecimiento.sql`, `compat/ContratoEstablecimientoService.kt`, `compat/ContratoPanelController.kt`, `compat/ContratoQrBarController.kt` | Que `accion_admin.tipo` admita `editar_establecimiento` y que `detalle` sea JSONB; que la base real no tenga ya otra V2 de Flyway. Los teléfonos y la TV abiertos no reciben aviso del cambio: lo toman al recargar |
@@ -124,6 +131,10 @@ base local (las variables de entorno ganan al `.env`).
 | 2026-11-21 | QR del panel y destino web o app (RF-035, RF-065, ADR-30) | `db/migration/V11__destino_qr.sql`, `compat/ContratoQrPanel.kt`, `compat/ContratoQrBarController.kt`, `compat/ContratoPantallaService.kt` | Publicar el APK y definir `ROKOLA_APK_URL` (https) y `ROKOLA_WEB_URL` (la web, sin ruta). `ROKOLA_QR_BASE_URL` debería ser también la web |
 | 2026-11-21 | Dirección y horario de cada bar en la lista de la plataforma (RF-064) | `compat/ContratoPlataformaService.kt` | Sin migración y solo lectura. Compilado, sin probar contra una base. Lee las columnas que ya usan `ContratoEstablecimientoService` y `ContratoHorarioService` |
 | 2026-11-24 | Errores con forma de contrato otra vez en la analítica, la plataforma y el QR del panel (D21) | `compat/ContratoError.kt` | Los PR #11 a #14 cambiaron la lista de `ContratoErrorAdvice` y sacaron `ContratoAnaliticaController`, `ContratoPlataformaController` y `ContratoQrPanelController`: sus 400, 401 y 403 salían sin `{ codigo, mensaje }` y el panel no sabía que la sesión había vencido. Se devolvieron a la lista junto a `ContratoGenerosController`. Compilado, sin probar contra una base. Doc 04, pendiente 26 |
+| 2026-11-25 | El volumen ya no va a la bitácora; el error de YouTube nombra la canción (RF-062, RF-019) | `compat/ContratoVolumenService.kt`, `compat/ContratoBitacora.kt`, `compat/ContratoPantallaService.kt`, `compat/ContratoNocheService.kt` | Sin migración. El volumen no escribe `accion_admin` y la bitácora oculta `cambiar_volumen` sin filtro. El reporte `error` de la TV anota `error_youtube` con la canción, y la alerta `errores_youtube` del panel trae hasta tres títulos en `detalle`. Prueba `ErroresYoutubeTest` |
+| 2026-11-25 | La música sigue con las solicitudes en pausa (D24, RN-08) | `reproduccion/ReproduccionAutomaticaService.kt` | La reproducción automática corre con `estado_manual` `disponible` o `pausado` (antes solo `disponible`): pausar solicitudes ya no callaba la cola ni la lista de la casa. Mantenimiento y fuera de horario siguen sin música |
+| 2026-11-25 | Guardar el horario avisa al teléfono y a la TV aunque no haya noche abierta (RF-036) | `compat/ContratoHorarioService.kt` | Usa `ContratoServicioService.avisarHorario`, como los eventos: sin noche manda `CambioServicioEvent`. Antes solo publicaba con la noche abierta y «Los pedidos abren…» quedaba viejo. La apertura o el cierre según el horario nuevo siguen esperando el ciclo de 15 s |
+| 2026-11-25 | Último ingreso del personal y géneros (RF-046, RF-068) | `db/migration/V14__ultimo_acceso_usuario.sql`, `compat/ContratoPanelAcceso.kt`, `compat/ContratoUsuariosService.kt`, `cancion/ClasificadorGeneroService.kt` | V14 agrega `usuario.ultimo_acceso`; el ingreso al panel lo pone y `GET /panel/usuarios` lo devuelve (antes siempre null). El clasificador reconoce plurales y nombres de uso común en Colombia (vallenatos, cumbias, merengues, baladas, champeta criolla, despecho, música de cantina…), con su prueba. `POST /panel/canciones/reclasificar` entra al contrato como `Reclasificacion` |
 
 ## Lo que el frontend no hace
 

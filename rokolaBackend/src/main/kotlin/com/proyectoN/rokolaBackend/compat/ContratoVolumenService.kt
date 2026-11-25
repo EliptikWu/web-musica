@@ -33,17 +33,14 @@ class ContratoVolumenService(
       "UPDATE public.configuracion_servicio SET volumen = ?, fecha_modificacion = CURRENT_TIMESTAMP WHERE id_establecimiento = ?",
       volumen, p.barId,
     )
-    jdbc.update(
-      """INSERT INTO public.accion_admin (id_establecimiento, id_usuario, tipo, objetivo_tipo, objetivo_id, detalle)
-         VALUES (?, ?, 'cambiar_volumen', NULL, NULL, jsonb_build_object('texto', ?::text))""",
-      p.barId, p.id, "$volumen %",
-    )
+    // Sin línea en la bitácora: subir y bajar el volumen la llenaba y tapaba lo importante
+    // (pedido del equipo, 2026-11-25; RF-062).
     // Sin noche abierta no hay TV sonando: el valor queda guardado y sale en la próxima foto.
     jdbc.query(
       "SELECT id_sesion FROM public.sesion WHERE id_establecimiento = ? AND estado = 'abierta'",
       { rs, _ -> rs.getLong(1) }, p.barId,
     ).forEach { cola.publicar(it, "volumen") }
-    panel.publicar(p.barSlug, setOf("noche", "bitacora"))
+    panel.publicar(p.barSlug, setOf("noche"))
   }
 
   companion object {

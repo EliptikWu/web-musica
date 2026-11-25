@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { duracionCola, ejemploDesempate, ordenarCola, puestosSubidos, renumerar } from './cola';
 import { avanceDesdeFoto, esperaDe, posicionActual } from './espera';
-import { abiertoPorHorario, cierreDeFranja, diasQueAbren, momentoLocal, proximaApertura, validarFranjas, type FranjaHorario } from './horario';
+import { abiertoPorHorario, cierreDeFranja, diasQueAbren, minutosParaCerrar, momentoLocal, proximaApertura, validarFranjas, type FranjaHorario } from './horario';
 import { aceptaPedidos, estadoTecla } from './pedidos';
 import { formatoEspera, formatoResumenCola, minutosEnteros } from '../formato';
 
@@ -135,6 +135,21 @@ describe('horario que cruza medianoche (RF-036, RN-09)', () => {
 
   it('dice qué días abren', () => {
     expect([...diasQueAbren(franjas)]).toEqual([4, 5, 6]);
+  });
+});
+
+describe('aviso antes del cierre por horario (punto 6)', () => {
+  const cierre = '2026-11-28T07:00:00.000Z';
+  const t = Date.parse(cierre);
+  it('avisa en los últimos 15 minutos, redondeando hacia arriba', () => {
+    expect(minutosParaCerrar(cierre, t - 15 * 60_000)).toBe(15);
+    expect(minutosParaCerrar(cierre, t - 30_000)).toBe(1);
+    expect(minutosParaCerrar(cierre, t - 15 * 60_000 - 1)).toBeNull();
+  });
+  it('sin cierre, ya cerrado o sin reloj, no avisa', () => {
+    expect(minutosParaCerrar(null, t)).toBeNull();
+    expect(minutosParaCerrar(cierre, t)).toBeNull();
+    expect(minutosParaCerrar(cierre, 0)).toBeNull();
   });
 });
 

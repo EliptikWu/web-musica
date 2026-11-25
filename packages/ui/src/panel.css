@@ -116,7 +116,8 @@
   .metrica dd small { font-stretch: 100%; font-size: 16px; font-weight: 500; color: var(--crema-2); }
 
   .caja .dias .dia { height: 40px; }
-  .horas { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  /* Centrado (punto 13 del equipo, 2026-11-25): antes iban a los dos bordes. */
+  .horas { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; margin-top: 12px; text-align: center; }
   .horas b { font-size: 16px; font-weight: 700; }
 
   .casa { display: flex; align-items: center; gap: 12px; }
@@ -212,17 +213,22 @@
   @media (min-width: 768px) { .panel-subnav { flex-wrap: wrap; overflow: visible; } }
   .panel-subnav a svg { width: 18px; height: 18px; }
   .panel-subnav a:hover { color: var(--crema); }
-  .panel-subnav a[aria-current="page"] {
+  .panel-subnav a[aria-current] {
     color: var(--tinta); background: var(--tecla-cara);
     box-shadow: 0 3px 0 var(--tecla-canto), inset 0 1px 0 rgba(255, 255, 255, .8);
     transform: translateY(-2px);
   }
 
+  /* AÑADIDO (punto 3): las secciones del grupo elegido, más sobrias que los grupos. */
+  .panel-subnav--secciones { margin-top: 4px; padding-top: 2px; }
+  .panel-subnav--secciones a { height: 44px; padding: 0 12px; font-size: 13px; background: none; box-shadow: inset 0 0 0 1px var(--borde); }
+
   .gestion-cabeza { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-top: 18px; }
   .gestion-cabeza h1 { font-size: 24px; }
   .gestion-cabeza p { margin-top: 4px; font-size: 15px; color: var(--crema-2); max-width: 60ch; }
   .gestion-rejilla { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
-  @media (min-width: 1100px) { .gestion-rejilla--dos { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; } }
+  /* Cada caja con su alto (punto 17): estiradas a la fila, la más corta quedaba con un hueco vacío. */
+  @media (min-width: 1100px) { .gestion-rejilla--dos { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; } }
 
   /* Filas de gestión: texto a la izquierda, teclas a la derecha, separadas por guiones. */
   .lista-gestion { list-style: none; margin: 0; padding: 0; }
@@ -231,6 +237,11 @@
   /* Catálogo de canciones (RF-068): filtro y búsqueda en una fila; el género se cambia en la fila. */
   .catalogo-filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px; }
   .catalogo-filtros > .campo { flex: 1 1 16rem; max-width: 26rem; }
+  /* AÑADIDO (punto 18): «Clasificar las que faltan» con su explicación al lado. */
+  /* AÑADIDO (punto 15): la lista para ir a un bar en /plataforma. */
+  .plataforma-elegir { max-width: 26rem; }
+  .catalogo-reclasificar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+  .catalogo-reclasificar p { flex: 1 1 18rem; max-width: 40rem; }
   .catalogo-accion { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-left: auto; }
   .catalogo-accion > .campo { min-width: 12rem; }
   .lista-gestion__info { flex: 1 1 220px; min-width: 0; }
@@ -245,6 +256,8 @@
   .etiqueta { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--radio-insignia); font-size: 12px; font-weight: 700; background: var(--hueco); color: var(--crema-2); vertical-align: 2px; margin-left: 6px; }
   .etiqueta--luz { background: var(--ambar); color: var(--tinta); }
   .etiqueta--cereza { background: var(--cereza); color: var(--crema); }
+  /* AÑADIDO (punto 20): «En la noche» en el manual, en crema para distinguirse de «Solo el Administrador». */
+  .etiqueta--noche { background: var(--crema); color: var(--tinta); }
 
   .formulario-fila { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
   .formulario-fila > .campo { min-width: 0; }
@@ -290,16 +303,17 @@
   }
 
   /* QR del bar, grande, en papel. */
-  .qr-grande { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  /* El QR va centrado, con su dirección debajo (punto 17). */
+  .qr-grande { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; }
   .qr-grande__codigo { flex: none; width: 196px; height: 196px; padding: 12px; background: var(--qr-fondo); border-radius: var(--radio-tecla); box-shadow: 0 0 0 4px rgba(0, 0, 0, .25); }
   .qr-grande__codigo svg { width: 100%; height: 100%; display: block; }
-  .qr-grande__info { flex: 1 1 11rem; min-width: 0; }
+  .qr-grande__info { width: 100%; min-width: 0; }
   .qr-grande__url { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
   .qr-destino { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--radio-tecla); background: var(--hueco); }
   .qr-destino .grupo-teclas label { flex: 1 1 8rem; }
   .qr-destino .grupo-teclas .tecla { width: 100%; }
   .qr-destino__nota { font-size: 14px; color: var(--crema-2); }
-  .qr-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: auto; }
+  .qr-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .qr-acciones > * { width: 100%; padding-inline: 8px; }
   .qr-acciones svg { flex: none; }
   .qr-acciones > :last-child { grid-column: 1 / -1; }
@@ -329,6 +343,7 @@
     .manual-indice { position: sticky; top: 16px; max-height: calc(100dvh - 32px); overflow-y: auto; }
   }
   .manual-indice h2 { font-size: 14px; font-weight: 700; color: var(--crema-2); margin: 12px 0 4px; }
+  .manual-indice h2 .etiqueta, .manual-seccion .caja__cabeza .etiqueta { margin-left: 0; height: 26px; font-size: 13px; }
   .manual-indice h2:first-child { margin-top: 0; }
   .manual-indice ul { list-style: none; margin: 0; padding: 0; }
   .manual-indice a { display: flex; align-items: center; min-height: 44px; padding: 6px 10px; border-radius: var(--radio-dia); font-size: 15px; font-weight: 600; line-height: 1.25; color: var(--crema); text-decoration: none; }

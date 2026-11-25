@@ -67,7 +67,7 @@ class ReproduccionAutomaticaService(
                 """SELECT s.id_sesion FROM public.sesion s
                    JOIN public.establecimiento e ON e.id_establecimiento = s.id_establecimiento
                    JOIN public.configuracion_servicio cfg ON cfg.id_establecimiento = e.id_establecimiento
-                   WHERE s.estado = 'abierta' AND e.activo = TRUE AND cfg.estado_manual = 'disponible'
+                   WHERE s.estado = 'abierta' AND e.activo = TRUE AND cfg.estado_manual IN ('disponible', 'pausado')
                      AND NOT EXISTS (
                        SELECT 1 FROM public.reproduccion r
                        WHERE r.id_sesion = s.id_sesion AND r.resultado = 'iniciada'
@@ -103,7 +103,9 @@ class ReproduccionAutomaticaService(
                JOIN public.establecimiento e ON e.id_establecimiento = s.id_establecimiento
                JOIN public.configuracion_servicio cfg ON cfg.id_establecimiento = e.id_establecimiento
                WHERE s.id_sesion = ? AND s.estado = 'abierta' AND e.activo = TRUE
-                 AND cfg.estado_manual = 'disponible'
+                 -- Con las solicitudes en pausa la cola y la lista de la casa siguen sonando
+                 -- (RF-039, decisión D24): solo el mantenimiento la calla.
+                 AND cfg.estado_manual IN ('disponible', 'pausado')
                  AND NOT EXISTS (
                    SELECT 1 FROM public.reproduccion r
                    WHERE r.id_sesion = s.id_sesion AND r.resultado = 'iniciada'

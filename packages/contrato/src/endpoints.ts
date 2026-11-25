@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CancionCatalogo, CategoriaCorregida, ComparacionAnalitica, CuboAnalitica, CuerpoCategoria, FuenteCubo, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
+import { CancionCatalogo, CategoriaCorregida, ComparacionAnalitica, CuboAnalitica, CuerpoCategoria, FuenteCubo, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, Reclasificacion, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
 import { Bar } from './bar.ts';
 import { Busqueda } from './busqueda.ts';
 import { Ahora, Destacada } from './cola.ts';
@@ -145,6 +145,7 @@ export const endpoints = {
   cuboAnalitica: definir({ metodo: 'GET', ruta: '/panel/analitica/cubo', resumen: 'Cubo de KPI por género, franja y día o tipo de evento', superficie: 'panel', rf: ['RF-063', 'RF-067'], consulta: z.object({ eje: z.enum(['dia', 'evento']).optional(), fuente: FuenteCubo.optional().describe('Sin ella, `vivo`') }), respuesta: CuboAnalitica, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   generos: definir({ metodo: 'GET', ruta: '/panel/generos', resumen: 'Géneros que se pueden asignar a una canción', superficie: 'panel', rf: ['RF-068'], respuesta: z.array(z.string()), estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
   cancionesPanel: definir({ metodo: 'GET', ruta: '/panel/canciones', resumen: 'Canciones del bar con su género (sin paginar)', superficie: 'panel', rf: ['RF-068'], consulta: z.object({ soloSinCategoria: z.enum(['true', 'false']).optional().describe('camelCase: así lo nombra el backend. Sin él, `true`'), q: z.string().optional().describe('Busca en título y artista'), limite: z.string().optional().describe('1 a 100; sin él, 50') }), respuesta: z.array(CancionCatalogo), estado: 200, rol: 'administrador', errores: [...PANEL_ERR] }),
+  reclasificarCanciones: definir({ metodo: 'POST', ruta: '/panel/canciones/reclasificar', resumen: 'Volver a clasificar hasta 10 canciones del bar sin género', superficie: 'panel', rf: ['RF-068'], consulta: z.object({ limite: z.string().optional(), despuesDe: z.string().optional() }), respuesta: Reclasificacion, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos'] }),
   corregirCategoria: definir({ metodo: 'PATCH', ruta: '/panel/canciones/{id}/categoria', resumen: 'Corregir a mano el género de una canción', superficie: 'panel', rf: ['RF-068'], cuerpo: CuerpoCategoria, respuesta: CategoriaCorregida, estado: 200, rol: 'administrador', errores: [...PANEL_ERR, 'datos_invalidos', 'no_encontrado'] }),
 
   // Plataforma (RF-064, ADR-29): su propia cookie `rockola_plataforma`; el rol del panel no aplica.

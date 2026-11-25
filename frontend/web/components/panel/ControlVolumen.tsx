@@ -21,11 +21,19 @@ export function ControlVolumen({ volumen, onCambiar }: { volumen: number; onCamb
   const enviar = useRef(onCambiar);
   const id = useId();
 
+  // `onCambiar` llega nuevo en cada render del panel (que se repinta cada segundo con el reloj):
+  // se guarda aparte para que el efecto de abajo solo corra cuando el servidor cambia el volumen.
+  useEffect(() => {
+    enviar.current = onCambiar;
+  });
+
+  // Solo con un valor nuevo del servidor (otro panel, o la confirmación del propio envío). Si
+  // dependiera de cada render, devolvería la tecla al valor viejo entre el envío y la respuesta, y
+  // el siguiente toque mandaría otra vez el mismo número: parecía que el primero no hacía nada.
   useEffect(() => {
     delServidor.current = volumen;
-    enviar.current = onCambiar;
     if (pendiente.current === null) setValor(volumen);
-  }, [volumen, onCambiar]);
+  }, [volumen]);
 
   // Lo pendiente se manda aunque se salga de la pantalla antes de los 300 ms.
   useEffect(

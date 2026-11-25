@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   type AccionGuardia, CONFIRMAR_AUDIO_MS, decidirAudio, decidirGuardia, ENTRE_INTENTOS_MS, ESTABLE_MS, GRACIA_MS, GUARDIA_INICIAL, type Guardia, PRIMERA_PRUEBA_MS,
-  PRUEBA_MAXIMA_MS, pruebaInicial, YT_CARGANDO, YT_LISTO, YT_PAUSADO, YT_SIN_EMPEZAR, YT_SONANDO, YT_TERMINADO,
+  PRUEBA_MAXIMA_MS, pruebaInicial, pruebaYa, YT_CARGANDO, YT_LISTO, YT_PAUSADO, YT_SIN_EMPEZAR, YT_SONANDO, YT_TERMINADO,
 } from './guardia-reproduccion';
 
 /** Revisa cada segundo, como el reproductor, y devuelve las acciones que no son «nada». */
@@ -55,6 +55,10 @@ describe('decidirGuardia', () => {
 });
 
 describe('decidirAudio', () => {
+  it('al volver a la pestaña o con un volumen nuevo, prueba el audio enseguida', () => {
+    expect(decidirAudio(pruebaYa(5000), { estadoYT: YT_SONANDO, silenciado: true, ahora: 5000 }).accion).toBe('probar');
+  });
+
   it('prueba con audio y, si sigue sonando, lo da por recuperado', () => {
     const inicial = pruebaInicial(0);
     expect(decidirAudio(inicial, { estadoYT: YT_SONANDO, silenciado: true, ahora: PRIMERA_PRUEBA_MS - 1 }).accion).toBe('nada');

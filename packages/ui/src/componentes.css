@@ -288,6 +288,8 @@
   /* AÑADIDO (RF-059): la conexión caída arriba del teléfono; con clase propia para que cada tema le dé su color. */
   .banner-conexion { background: var(--cereza); color: var(--crema); }
   .banner-conexion__punto { background: var(--crema); opacity: .7; }
+  /* AÑADIDO (punto 6): el horario está por cerrar los pedidos. Crema, para no confundirse con la caída (cereza) ni gastar el ámbar. */
+  .banner-cierre { background: var(--crema); color: var(--tinta); }
 
   /* ── Días del horario ──────────────────────────────────────────────────────── */
   .dias { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; list-style: none; margin: 0; padding: 0; }
