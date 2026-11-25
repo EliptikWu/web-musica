@@ -337,7 +337,7 @@ export function construirAhora(estado: EstadoSim, ahora: number): Ahora {
 export const VOLUMEN_INICIAL = 80;
 
 /** RF-062: el volumen de la pantalla del bar, desde el panel. No va a la bitácora: la llenaba (2026-11-25). */
-export function cambiarVolumen(estado: EstadoSim, volumen: number, quien: Personal, ahora: number): Resultado<null> {
+export function cambiarVolumen(estado: EstadoSim, volumen: number): Resultado<null> {
   if (!Number.isInteger(volumen) || volumen < 0 || volumen > 100) return mal(400, 'datos_invalidos', 'El volumen va de 0 a 100');
   if ((estado.volumen ?? VOLUMEN_INICIAL) === volumen) return bien(null, 204);
   estado.volumen = volumen;

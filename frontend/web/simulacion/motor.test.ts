@@ -347,12 +347,12 @@ describe('volumen de la pantalla (RF-062)', () => {
   it('empieza en 80, cambia desde el panel, no va a la bitácora y llega al teléfono y la TV', () => {
     const { estado, ahora } = escena();
     expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(80);
-    expect(cambiarVolumen(estado, 35, ADMIN, ahora)).toMatchObject({ ok: true });
+    expect(cambiarVolumen(estado, 35)).toMatchObject({ ok: true });
     expect(Ahora.parse(construirAhora(estado, ahora)).volumen).toBe(35);
     expect(Noche.parse(construirNoche(estado, ahora)).volumen).toBe(35);
     expect(estado.acciones.some((a) => a.tipo === 'cambiar_volumen')).toBe(false);
     // Fuera de rango se rechaza.
-    expect(cambiarVolumen(estado, 101, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
-    expect(cambiarVolumen(estado, 2.5, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(cambiarVolumen(estado, 101)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    expect(cambiarVolumen(estado, 2.5)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
   });
 });
