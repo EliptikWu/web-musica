@@ -45,6 +45,7 @@ Android Studio abre `frontend/movil` como proyecto; Gradle se corre desde esa ca
   (sin él, Android pregunta si abrir con la app o el navegador).
 - Escáner (`escaner/`, `ui/pantallas/PantallaEscaner.kt`; RF-066): CameraX y ZXing en una actividad no
   exportada. Todo QR pasa por `leerQrEscaneado`; su contenido y las imágenes no van a logs ni a disco.
+  Sin bar recordado se abre solo al arrancar (D22); «Cambiar de bar» olvida el bar y lo abre (RF-069).
 - Identificador del teléfono (`datos/local/AlmacenTelefono.kt`): UUID guardado en el
   teléfono, fuera de las copias de seguridad, solo en la cabecera `X-Rockola-Dispositivo`.
   Nunca va a un log ni a la pantalla.

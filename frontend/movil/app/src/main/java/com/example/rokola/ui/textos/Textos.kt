@@ -208,7 +208,8 @@ object TextosEntrada {
 /** El escáner del QR (RF-066). */
 object TextosEscaner {
     const val ESCANEAR = "Escanear QR"
-    const val ESCANEAR_OTRO = "Escanear otro QR"
+    /** Olvida el bar del teléfono y abre la cámara para el QR del siguiente (RF-069). */
+    const val CAMBIAR_BAR = "Cambiar de bar"
     const val TITULO = "Escanea el QR"
     const val INSTRUCCION = "Apunta la cámara al QR de tu mesa. Se abre solo."
     const val PRIVACIDAD = "La cámara solo lee el QR. No toma fotos ni guarda imágenes."

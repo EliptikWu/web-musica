@@ -128,6 +128,31 @@ class EntradaViewModel(
         }
     }
 
+    private var escanerInicialUsado = false
+
+    /**
+     * Sin bar recordado, la app abre la cámara sola (RF-066, D22): quien la acaba de instalar
+     * viene a escanear el QR de su mesa. Una vez por ViewModel: si cierra el escáner, se queda en
+     * «Escanea el QR de tu mesa» y no se le vuelve a abrir al girar el teléfono.
+     */
+    fun tomarEscanerInicial(): Boolean {
+        if (escanerInicialUsado || _estado.value != Entrada.SinBar) return false
+        escanerInicialUsado = true
+        return true
+    }
+
+    /**
+     * «Cambiar de bar» (RF-069): el teléfono olvida el bar y vuelve a la cámara para el QR del
+     * siguiente. Si se cierra sin escanear, queda «Escanea el QR de tu mesa». En el servidor no se
+     * borra nada: solo cambia el bar que recuerda el teléfono.
+     */
+    fun cambiarDeBar() {
+        trabajo?.cancel()
+        guardarSlug(null)
+        escanerInicialUsado = false
+        _estado.value = Entrada.SinBar
+    }
+
     fun reintentar() {
         (_estado.value as? Entrada.Fallo)?.let { abrir(it.enlace) }
     }

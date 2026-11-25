@@ -3,6 +3,7 @@ package com.example.rokola
 import com.example.rokola.dominio.TemaBar
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -70,10 +71,16 @@ class MainActivity : ComponentActivity() {
                 when (val e = estado) {
                     // Otro bar, otras pantallas: los ViewModel del bar anterior se cierran.
                     is Entrada.Lista -> key(e.slug) {
-                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial, ::abrirEscaner) }
+                        CompositionLocalProvider(LocalViewModelStoreOwner provides pantallasDelBar.de(e.slug)) { AppRockola(inicial, entrada::cambiarDeBar) }
                     }
                     else -> {
                         LaunchedEffect(Unit) { pantallasDelBar.cerrar() }
+                        // Recién instalada y sin bar: directo a la cámara (RF-066, D22). Sin cámara
+                        // no se abre un escáner que solo diría que no la hay.
+                        LaunchedEffect(e) {
+                            val hayCamara = packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+                            if (hayCamara && entrada.tomarEscanerInicial()) abrirEscaner()
+                        }
                         PantallaEntrada(e, onReintentar = entrada::reintentar, onVolver = entrada::volver, onEscanear = ::abrirEscaner)
                     }
                 }

@@ -113,6 +113,35 @@ class EntradaViewModelTest {
     }
 
     @Test
+    fun `sin bar abre el escáner una sola vez, y con bar nunca`() {
+        guardado = null
+        val vm = crear().also { it.iniciar(null) }
+        assertEquals(true, vm.tomarEscanerInicial())
+        // Cerró el escáner o giró el teléfono: se queda en el aviso con su tecla.
+        assertEquals(false, vm.tomarEscanerInicial())
+        guardado = "demo"
+        assertEquals(false, crear().also { it.iniciar(null) }.tomarEscanerInicial())
+        guardado = null
+        assertEquals(false, crear(porDefecto = "demo").also { it.iniciar(null) }.tomarEscanerInicial())
+    }
+
+    @Test
+    fun `cambiar de bar olvida el bar y vuelve a abrir el escáner`() {
+        guardado = "demo"
+        val vm = crear().also { it.iniciar(null) }
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+        vm.cambiarDeBar()
+        assertEquals(Entrada.SinBar, vm.estado.value)
+        assertNull(guardado)
+        assertEquals(true, vm.tomarEscanerInicial())
+        // Cerró la cámara: al abrir otra vez la app ya no hay bar al que volver.
+        assertEquals(Entrada.SinBar, crear().also { it.iniciar(null) }.estado.value)
+        // Con un QR nuevo entra al otro bar.
+        vm.abrir(Enlace.Bar("demo"))
+        assertEquals(Entrada.Lista("demo"), vm.estado.value)
+    }
+
+    @Test
     fun `un QR reemplazado lo dice y deja volver al bar que había`() {
         guardado = "demo"
         val repo = Repo(RepositorioSimulado(slugPedido = { guardado }), qr = Resultado.Fallo(ErrorRockola(CodigoError.QR_REEMPLAZADO, "")))

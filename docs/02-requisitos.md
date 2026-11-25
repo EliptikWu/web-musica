@@ -162,15 +162,26 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-066 | Escanear el QR del bar desde la app Android (nuevo, 2026-11-21) | Should | — | 29 | F |
 | RF-067 | Cubo en vivo, con la noche abierta (nuevo, 2026-11-24) | Should | PB-45 | 31 | F+B |
 | RF-068 | Catálogo de canciones: corregir el género a mano (nuevo, 2026-11-24) | Should | PB-47 | 31 | F+B |
+| RF-069 | Cambiar de bar desde la app Android (nuevo, 2026-11-24) | Should | — | 32 | F |
 
 **RF-066 — Escanear el QR desde la app.** Añadido el 2026-11-21 (D20). La app Android abre la cámara
-con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Criterios:
-- El permiso de cámara se pide solo al tocar «Escanear QR». Si se niega, la app explica para qué
+con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Desde el 2026-11-24
+(D22), si se abre sin enlace y sin bar recordado (recién instalada), abre el escáner sola. Criterios:
+- El permiso de cámara se pide solo al entrar al escáner: al tocar «Escanear QR» o cuando la app lo
+  abre sola sin bar, una vez por apertura; si se cierra, queda la tecla. Si se niega, la app explica para qué
   sirve y cómo activarlo, y sigue funcionando sin cámara.
 - La imagen se analiza en el teléfono: no se guarda, no se envía y su contenido no va a los logs.
 - Solo abre enlaces `https` de la web de Rockola (`/q/<token>`, `/b/<slug>`) o un `/q/<token>`
   impreso con la dirección del backend. Cualquier otro QR se rechaza con un aviso y no se abre.
 - Un QR válido entra por el mismo camino que un enlace, con sus avisos de QR viejo o sin bar.
+
+**RF-069 — Cambiar de bar desde la app.** Añadido el 2026-11-24 (D22). La app recuerda el bar aunque
+se cierre; quien se va a otro bar esa misma noche necesita salirse. Criterios:
+- «Cambiar de bar», bajo la tecla principal de la bienvenida (abierta o cerrada), reemplaza a
+  «Escanear otro QR».
+- Al tocarlo, el teléfono olvida el bar y se abre el escáner. Si se cierra sin escanear, queda
+  «Escanea el QR de tu mesa» y, al volver a abrir la app, no regresa al bar anterior.
+- No borra nada en el servidor: solo cambia el bar que recuerda el teléfono.
 
 **RF-065 — Destino del QR.** Añadido el 2026-11-21 (D18). El Administrador elige con un interruptor si
 el QR de su bar abre la web o ofrece descargar la app. Cambia sin reimprimir: el código es el mismo.
