@@ -120,13 +120,13 @@ test.describe('a 1280 × 720', () => {
     await expect(page.locator('.codigo-tv .tecla')).toHaveCount(6);
   });
 
-  test('fuera de horario: la luz se apaga, el horario y la lista de la casa sonando', async ({ page }) => {
+  test('fuera de horario: la luz se apaga, dice el horario y no suena nada (D24)', async ({ page }) => {
     await abrirTvVinculada(page, 'fuera-de-horario');
     await encender(page);
     await expect(page.getByText('Pedidos cerrados')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Por ahora no recibimos canciones' })).toBeVisible();
     await expect(page.getByText(/Los pedidos abren hoy a las 8:00/)).toBeVisible();
-    await expect(page.getByText('Suena ahora, de la lista de la casa')).toBeVisible();
+    await expect(page.getByText('No suena nada ahora')).toBeVisible();
     await sinViolaciones(page, 'TV fuera de horario');
   });
 

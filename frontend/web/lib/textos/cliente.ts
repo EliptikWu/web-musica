@@ -198,7 +198,8 @@ export function servicioCerrado(estado: Exclude<EstadoServicio, 'abierto'>, prox
         luz: luzServicio(estado),
         titulo: 'Por ahora no recibimos canciones',
         // La hora ya termina en punto («8:00 p. m.»): no se le pone otro.
-        detalle: cuando ? `${conPunto(`Los pedidos abren ${cuando}`)} Mientras tanto suena la lista de la casa.` : 'Mientras tanto suena la lista de la casa.',
+        // Fuera de horario no suena nada, ni la lista de la casa (D24).
+        detalle: cuando ? conPunto(`Los pedidos abren ${cuando}`) : 'Los pedidos se abren en el horario del bar.',
       };
     case 'en_pausa':
       return { luz: luzServicio(estado), titulo: 'Los pedidos están en pausa', detalle: 'El bar los pausó por un momento. La cola sigue sonando y puedes verla.' };

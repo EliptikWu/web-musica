@@ -207,6 +207,12 @@ function siguienteDeLista(estado: EstadoSim, en: number): string | null {
 }
 
 function iniciarSiguiente(estado: EstadoSim, en: number) {
+  // Como el backend (D24): suena con la noche abierta, también con las solicitudes en pausa;
+  // sin noche o en mantenimiento, nada, ni la lista de la casa.
+  if (!estado.sesion || estado.mantenimiento) {
+    estado.reproduccion = null;
+    return;
+  }
   const siguiente = pendientes(estado)[0];
   if (siguiente) {
     siguiente.estado = 'reproduciendo';
@@ -264,7 +270,7 @@ export function avanzar(estado: EstadoSim, ahora: number): boolean {
     estado.reproduccion.reanudada_en = ahora;
     estado.reproduccion.acumulado_seg = 0;
   }
-  if (!estado.reproduccion && (pendientes(estado).length > 0 || estado.listas.some((l) => l.activa && l.elementos.length > 0))) {
+  if (!estado.reproduccion && estado.sesion && !estado.mantenimiento && (pendientes(estado).length > 0 || estado.listas.some((l) => l.activa && l.elementos.length > 0))) {
     iniciarSiguiente(estado, ahora);
     if (estado.reproduccion) tocar(estado);
   }

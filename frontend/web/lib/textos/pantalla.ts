@@ -19,7 +19,7 @@ export const TV = {
     conLista: 'Escanea el QR y pide la primera canción. Mientras tanto suena la lista de la casa.',
     sinLista: 'Escanea el QR y pide la primera canción.',
   },
-  cerrado: { titulo: 'Por ahora no recibimos canciones', detalle: 'Los pedidos se abren en el horario del bar. Mientras tanto suena la lista de la casa.' },
+  cerrado: { titulo: 'Por ahora no recibimos canciones', detalle: 'Los pedidos se abren en el horario del bar.' },
   mantenimiento: { titulo: 'La rockola está en mantenimiento', detalle: 'El bar está preparando la próxima noche.' },
   escaneaYVota: 'Escanea y vota',
   sinDescargas: 'Sin descargas ni registro',

@@ -4,7 +4,7 @@ import type { Reproduccion } from '@rockola/contrato';
 import { Icono } from '@rockola/ui';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TV } from '@/lib/textos/pantalla';
-import { decidirAudio, decidirGuardia, GUARDIA_INICIAL, type PruebaAudio, pruebaInicial } from './guardia-reproduccion';
+import { decidirAudio, decidirGuardia, GUARDIA_INICIAL, type PruebaAudio, pruebaInicial, pruebaYa } from './guardia-reproduccion';
 
 /**
  * El reproductor de la pantalla del bar (RF-019, RNF-011). Con un ID de YouTube real usa el
@@ -25,6 +25,12 @@ export type PropsReproductor = {
   volumen: number;
   /** El navegador solo dejó sonar en silencio: hace falta un toque para el audio. */
   onSinSonido?: (sinSonido: boolean) => void;
+  /**
+   * Entre una canción y la siguiente el servidor queda un momento sin reproducción. El
+   * reproductor de YouTube sigue montado con la última (en pausa) y se tapa: uno nuevo nacería
+   * sin el permiso de sonar con audio y el navegador lo dejaría en silencio (punto 10, ADR-35).
+   */
+  enEspera?: boolean;
 };
 
 export const esIdSimulado = (videoId: string) => videoId.startsWith('sim-');
@@ -131,7 +137,7 @@ const REINTENTAR_FIN_MS = 12000;
  * - El desfase se revisa cada 5 s, no en cada render.
  * - Si YouTube o el navegador lo detienen sin que el panel lo pida, se retoma solo (guardia).
  */
-function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError, volumen, onSinSonido }: PropsReproductor) {
+function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, onFin, onError, volumen, onSinSonido, enEspera }: PropsReproductor) {
   const contenedor = useRef<HTMLDivElement>(null);
   const reproductor = useRef<ReproductorYT | null>(null);
   const listo = useRef(false);
@@ -153,10 +159,17 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
 
   const posicionReal = () => Math.floor(reproductor.current?.getCurrentTime() ?? 0);
 
-  /** Con el audio bloqueado, quitar el silencio volvería a detener el video. */
+  /**
+   * Con el audio bloqueado, quitar el silencio de golpe volvería a detener el video: se deja el
+   * valor puesto y se prueba el audio enseguida, por si el navegador ya lo deja (RF-062).
+   */
   const ponerVolumen = useCallback((r: ReproductorYT, valor: number) => {
-    if (silencioForzado.current) r.setVolume(Math.max(valor, 1));
-    else aplicarVolumen(r, valor);
+    if (!silencioForzado.current) {
+      aplicarVolumen(r, valor);
+      return;
+    }
+    r.setVolume(Math.max(valor, 1));
+    if (pruebaAudio.current && pruebaAudio.current.probandoDesde === null) pruebaAudio.current = pruebaYa(Date.now());
   }, []);
 
   const sonarEnSilencio = useCallback(() => {
@@ -315,6 +328,24 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
     };
   }, [encendida, recuperarAudio]);
 
+  // Al volver a la pestaña: el navegador pudo pausar el video o retrasar los temporizadores mientras
+  // no se veía. Se alinea con el servidor, se retoma y se prueba el audio ya (punto 11 del equipo).
+  useEffect(() => {
+    if (!encendida) return;
+    const alVerse = () => {
+      const r = reproductor.current;
+      if (document.visibilityState !== 'visible' || !r || !listo.current) return;
+      const { reproduccion: rep, posicionSeg: pos } = deseado.current;
+      if (idCargado.current !== rep.id || rep.estado !== 'sonando' || conError.current.has(rep.id)) return;
+      guardia.current = GUARDIA_INICIAL;
+      if (Math.abs(r.getCurrentTime() - pos) > DESFASE_MAXIMO_SEG) r.seekTo(pos, true);
+      r.playVideo();
+      if (silencioForzado.current && pruebaAudio.current?.probandoDesde === null) pruebaAudio.current = pruebaYa(Date.now());
+    };
+    document.addEventListener('visibilitychange', alVerse);
+    return () => document.removeEventListener('visibilitychange', alVerse);
+  }, [encendida]);
+
   // Otra canción: se carga desde donde vaya (por si la pantalla se une tarde).
   const { id, estado } = reproduccion;
   const videoId = reproduccion.cancion.video_id;
@@ -390,7 +421,12 @@ function ReproductorYouTube({ reproduccion, posicionSeg, encendida, onInicio, on
   }, []);
 
   return (
-    <div ref={contenedor} className="video" aria-label={`Video de ${reproduccion.cancion.titulo}`} role="region">
+    <div ref={contenedor} className="video" aria-label={enEspera ? TV.nadaSuena : `Video de ${reproduccion.cancion.titulo}`} role="region">
+      {enEspera ? (
+        <div className="video__espera">
+          <p className="placa text-[24px]">{TV.nadaSuena}</p>
+        </div>
+      ) : null}
       {!encendida ? (
         <span className="video__marca">
           <Icono nombre="youtube" />

@@ -91,7 +91,9 @@ for (const [escenario, titulo] of [
 
 test('fuera de horario dice cuándo abren', async ({ page }) => {
   await abrir(page, '/b/demo', 'fuera-de-horario');
-  await expect(page.getByText(/Los pedidos abren hoy a las 8:00.p\..m\. Mientras tanto/)).toBeVisible();
+  await expect(page.getByText(/Los pedidos abren hoy a las 8:00.p\..m\./)).toBeVisible();
+  // Fuera de horario no suena nada (D24).
+  await expect(page.getByText(/Mientras tanto suena la lista de la casa/)).toHaveCount(0);
   await expect(page.getByText('Jueves a sábado,')).toBeVisible();
 });
 

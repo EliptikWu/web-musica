@@ -179,7 +179,7 @@ export function crearEstado(escenario: Escenario, persona: string, ahoraReal: nu
 
   switch (escenario) {
     case 'fuera-de-horario': {
-      // Jueves 6:30 p. m.: aún no abre. Suena la lista de la casa.
+      // Jueves 6:30 p. m.: aún no abre. No suena nada hasta que abran (D24).
       const ahora = bogota(JUEVES, '18:30:00');
       estado.reloj.ancla_sim = ahora;
       estado.sesion = null;
@@ -187,8 +187,7 @@ export function crearEstado(escenario: Escenario, persona: string, ahoraReal: nu
       estado.historial = [];
       estado.acciones = [];
       estado.bloqueos = estado.bloqueos.filter((b) => b.id === 'b-despecha');
-      estado.reproduccion = { id: 'r-casa-1', video_id: 'sim-gotas-de-lluvia', origen: 'lista_casa', solicitud_id: null, inicio: ahora - 70_000, acumulado_seg: 0, reanudada_en: ahora - 70_000 };
-      estado.listas[0]!.indice = 4;
+      estado.reproduccion = null;
       estado.metricas = { solicitudes: 0, telefonos: 0, votos: 0, espera_seg_suma: 0, espera_n: 0 };
       break;
     }

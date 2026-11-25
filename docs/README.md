@@ -48,6 +48,7 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 | D21 | 2026-11-24 | El equipo de backend entrega el cubo en vivo y la corrección manual del género; el frontend los integra: cubo en vivo por defecto y vista «Canciones» (RF-067, RF-068, ADR-33). Se arregla en el backend el manejador de errores que dejó sin forma de contrato la analítica, la plataforma y el QR del panel (D14) | Usuario |
 | D22 | 2026-11-24 | Reemplaza la parte de D20 sobre cuándo se pide la cámara: recién instalada y sin bar recordado, la app abre el escáner sola, para escanear el QR y entrar al bar sin otro paso (RF-066). Y «Cambiar de bar» en la bienvenida olvida el bar recordado y vuelve a la cámara, para irse a otro bar la misma noche (RF-069). | Usuario |
 | D23 | 2026-11-24 | La simulación de Android ya no entra sola al bar «demo»: pide el QR como la real (se abre el escáner, que acepta el QR de la web en simulación, ADR-34) y ofrece «Entrar al bar de demostración». Así el APK de prueba muestra el mismo recorrido que el de producción (RF-066) | Usuario |
+| D24 | 2026-11-25 | Resuelve «Lista de la casa fuera de horario»: la cola y la lista de la casa suenan con la noche abierta, también con las solicitudes en pausa. Sin noche (fuera de horario) o en mantenimiento no suena nada, en el backend y en la simulación (RN-08) | Usuario |
 
 ## Decisiones abiertas
 
@@ -55,7 +56,6 @@ originales del equipo, con los que se entregó el curso, están en `fuente/`.
 |---|---|---|
 | Matriz del Operador | Confirmar D9 | Equipo |
 | Estado `retirada` | El modelo no lo tiene y RF-041/RF-013 lo necesitan (doc 04) | Equipo de backend |
-| Lista de la casa fuera de horario | ¿Suena aunque no haya sesión abierta? El prototipo dice que sí | Equipo |
 | Bloqueo de cuenta e inactividad | Número de intentos, minutos de bloqueo y de inactividad | Equipo |
 
 ## Pendiente de recibir
