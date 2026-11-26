@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 /** Cambió el servicio de un bar sin noche abierta: no hay sesión por la que avisar. */
 data class CambioServicioEvent(val slug: String)
@@ -37,6 +38,27 @@ class CambioPanelPublisher(private val publisher: ApplicationEventPublisher) {
 @EnableScheduling
 class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    /**
+     * Los avisos salen en un hilo aparte, de a uno y en orden. Los oyentes AFTER_COMMIT corren en
+     * el hilo de la petición, que todavía tiene su conexión: armar la foto ahí pedía una segunda,
+     * y con 10 votos a la vez (el tamaño del pool) los 10 hilos se quedaban esperando una que
+     * nadie soltaba, 30 s hasta que Hikari se rendía (prueba de carga del 2026-11-25, doc 07). Así,
+     * además, la respuesta del voto no espera a que se arme y se envíe la foto.
+     */
+    private val envios = Executors.newSingleThreadExecutor { trabajo ->
+        Thread(trabajo, "rokola-sse").apply { isDaemon = true }
+    }
+
+    private fun enOtroHilo(que: String, trabajo: () -> Unit) {
+        try {
+            envios.execute {
+                try { trabajo() } catch (e: Exception) { log.warn("No se pudo publicar {} por SSE, tipo={}", que, e.javaClass.simpleName) }
+            }
+        } catch (e: Exception) {
+            log.warn("No se pudo programar {} por SSE, tipo={}", que, e.javaClass.simpleName)
+        }
+    }
 
     private class Cliente(val emisor: SseEmitter) {
         var ultimaVersion: Long = -1L
@@ -72,11 +94,11 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
     /** Spring publica CambioColaEvent en la transacción de solicitud, voto o reproducción. */
     @Order(100) // ContratoVersionService (Order(-100)) aumenta la versión primero.
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun cambioCola(evento: CambioColaEvent) {
+    fun cambioCola(evento: CambioColaEvent) = enOtroHilo("la cola") {
         val slug = try { instantaneas.slugDeSesion(evento.sesionId) } catch (e: Exception) {
             log.warn("No se pudo identificar el establecimiento para SSE, tipo={}", e.javaClass.simpleName)
             null
-        } ?: return
+        } ?: return@enOtroHilo
         try {
             enviarFoto(slug)
         } catch (e: Exception) {
@@ -91,13 +113,7 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
 
     @Order(100)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun cambioServicio(evento: CambioServicioEvent) {
-        try {
-            enviarFoto(evento.slug)
-        } catch (e: Exception) {
-            log.warn("No se pudo publicar actualización SSE del servicio, tipo={}", e.javaClass.simpleName)
-        }
-    }
+    fun cambioServicio(evento: CambioServicioEvent) = enOtroHilo("el servicio") { enviarFoto(evento.slug) }
 
     private fun enviarFoto(slug: String) {
         val canal = canales[slug] ?: return
@@ -116,9 +132,7 @@ class ContratoSseService(private val instantaneas: ContratoSseInstantaneas) {
     /** Preparado para las operaciones del panel; ninguna acción pública lo emite. */
     @Order(100)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-    fun cambioPanel(evento: CambioPanelEvent) {
-        emitirPanel(evento.slug, evento.recursos)
-    }
+    fun cambioPanel(evento: CambioPanelEvent) = enOtroHilo("el panel") { emitirPanel(evento.slug, evento.recursos) }
 
     private fun emitirPanel(slug: String, recursosOriginales: Set<String>) {
         val recursos = recursosOriginales.intersect(recursosPermitidos).sorted()
