@@ -27,3 +27,20 @@ class VideoVerticalTest {
     assertFalse(YoutubeApiCliente.esVertical(player("{}")))
   }
 }
+
+/** Solo música (RN-06, lista del equipo 2026-11-25): un video de otra categoría no se pide ni suena. */
+class SoloMusicaTest {
+  private val json = JsonMapper.builder().build()
+
+  @Test
+  fun `un video de la categoría Música se acepta`() {
+    assertTrue(YoutubeApiCliente.esMusica(json.readTree("""{"categoryId": "10", "title": "Rebelión"}""")))
+  }
+
+  @Test
+  fun `un video de otra categoría o sin categoría no`() {
+    assertFalse(YoutubeApiCliente.esMusica(json.readTree("""{"categoryId": "24"}"""))) // Entretenimiento
+    assertFalse(YoutubeApiCliente.esMusica(json.readTree("""{"categoryId": "22"}"""))) // Personas y blogs
+    assertFalse(YoutubeApiCliente.esMusica(json.readTree("{}")))
+  }
+}

@@ -313,7 +313,7 @@ La regla vive en el servidor; el frontend la **explica** y la anticipa en la int
 | RN-03 | Quien pide da automáticamente el primer voto | Su canción aparece como «Tuya» |
 | RN-04 | Un voto activo por teléfono y solicitud | Tecla hundida «Votaste» |
 | RN-05 | Orden por votos desc.; en empate, la pedida antes | Cola, TV, panel; nota de desempate |
-| RN-06 | No se aceptan bloqueadas, no disponibles, no embebibles ni de más de 10 min; el cliente ve el motivo. Los shorts (videos verticales) no salen en la búsqueda ni suenan (2026-11-25) | Texto en lugar de «Pedir» |
+| RN-06 | No se aceptan bloqueadas, no disponibles, no embebibles ni de más de 10 min; el cliente ve el motivo. Los shorts (videos verticales) y los videos que no son de música (categoría de YouTube distinta de Música) no salen en la búsqueda ni suenan (2026-11-25) | Texto en lugar de «Pedir» |
 | RN-07 | Una canción ya sonada no se repite en 60 min (configurable) | «Sonó hace poco» con la hora en que se podrá pedir |
 | RN-08 | Sin pendientes suena la lista de la casa; al llegar una solicitud se termina la canción en curso. Suena con la noche abierta, también con las solicitudes en pausa; sin noche (fuera de horario) o en mantenimiento no suena nada (D24) | Etiqueta de origen en TV y cliente |
 | RN-09 | El QR sigue el horario salvo pausa o activación forzada. La activación forzada termina cuando empieza el horario (2026-11-25) | Barra de estado del panel |

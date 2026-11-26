@@ -239,6 +239,11 @@ referencia de `videos.list` lo da solo si la proporción del video se conoce). S
 embebible: no salen en la búsqueda y, si uno quedó en la caché de 6 h o en una lista de la casa, al
 pedirlo o al sonar se rechaza como `no_disponible`. La simulación no tiene shorts en su catálogo.
 
+Solo música (RN-06, 2026-11-25): la búsqueda le pide a YouTube `videoCategoryId=10` y `convertir` descarta
+el video cuyo `snippet.categoryId` no es Música, igual que un short. La categoría la pone quien sube el
+video, así que una canción subida como «Entretenimiento» tampoco entra. **`TBD`:** comprobar con
+`videoCategories.list` y la llave real que el 10 es Música (la referencia de la API no lo lista).
+
 ## Pendiente del backend (`TBD`)
 
 Desde D25 (2026-11-25) el backend también es de este equipo: lo que se abra aquí va al backlog

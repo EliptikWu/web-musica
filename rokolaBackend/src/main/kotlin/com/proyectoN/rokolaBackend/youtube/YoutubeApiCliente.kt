@@ -38,6 +38,8 @@ class   YoutubeApiCliente(
                     .queryParam("part", "snippet")
                     .queryParam("type", "video")
                     .queryParam("videoEmbeddable", "true")
+                    // Solo música (RN-06, lista del equipo 2026-11-25): YouTube filtra por categoría.
+                    .queryParam("videoCategoryId", CATEGORIA_MUSICA)
                     .queryParam("maxResults", 10)
                     .queryParam("regionCode", "CO")
                     .queryParam("relevanceLanguage", "es")
@@ -102,6 +104,9 @@ class   YoutubeApiCliente(
         if (snippet.path("liveBroadcastContent").asText() == "live") return null
         // Los shorts no se piden ni suenan (RN-06, lista del equipo 2026-11-25): son videos verticales.
         if (esVertical(nodo.path("player"))) return null
+        // Solo música: un video de otra categoría no se pide ni suena (RN-06, 2026-11-25). Pasa por
+        // aquí también lo que quedó en la caché de búsqueda y lo que se pide o suena después.
+        if (!esMusica(snippet)) return null
 
         val duracion = runCatching {
             Duration.parse(nodo.path("contentDetails").path("duration").asText()).seconds
@@ -155,6 +160,16 @@ class   YoutubeApiCliente(
          * la cuota (1 unidad por llamada).
          */
         internal const val ANCHO_REPRODUCTOR = 640
+
+        /**
+         * Categoría de YouTube «Music» (`snippet.categoryId`). Que el 10 sea Música lo dice el código
+         * existente y es lo conocido; la referencia de la API no lo lista: `TBD` comprobarlo con
+         * `videoCategories.list` y la llave real (doc 04).
+         */
+        internal const val CATEGORIA_MUSICA = "10"
+
+        /** Solo música: la categoría que puso quien subió el video tiene que ser Música. */
+        internal fun esMusica(snippet: JsonNode): Boolean = snippet.path("categoryId").asText() == CATEGORIA_MUSICA
 
         /**
          * YouTube no marca qué video es un short: se reconoce por ser más alto que ancho. Sin las
