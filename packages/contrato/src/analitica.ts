@@ -69,7 +69,23 @@ export const ParticipacionAnalitica = z
   .object({
     datos: OrigenDatos,
     generos: z.array(z.object({ genero: z.string().nullable().describe('`null`: sin clasificar'), solicitudes: z.int().nonnegative(), votos: z.int().nonnegative() })),
-    franjas: z.array(z.object({ hora: z.int().min(0).max(23), solicitudes: z.int().nonnegative(), votos: z.int().nonnegative(), telefonos: z.int().nonnegative() })),
+    franjas: z.array(
+      z.object({
+        hora: z.int().min(0).max(23),
+        solicitudes: z.int().nonnegative(),
+        votos: z.int().nonnegative(),
+        telefonos: z.int().nonnegative(),
+        espera_promedio_seg: Segundos.nullable().describe('Espera promedio de lo pedido a esa hora hasta que sonó; `null` si nada de esa hora sonó (2026-11-25)'),
+      }),
+    ),
+    mas_pedidas: z
+      .array(z.object({ cancion: Cancion, solicitudes: z.int().positive(), votos: z.int().nonnegative() }))
+      .max(10)
+      .describe('Las 10 canciones más pedidas, de más a menos; en empate, más votos (2026-11-25)'),
+    artistas: z
+      .array(z.object({ artista: z.string(), solicitudes: z.int().positive(), votos: z.int().nonnegative() }))
+      .max(10)
+      .describe('Los 10 artistas más pedidos, igual que `mas_pedidas` (2026-11-25)'),
   })
   .meta({ id: 'ParticipacionAnalitica' });
 export type ParticipacionAnalitica = z.infer<typeof ParticipacionAnalitica>;
@@ -100,7 +116,14 @@ export const DiagnosticoAnalitica = z
       })
       .describe('Se mide por noche; en un rango, el promedio por noche'),
     noches: z.array(
-      z.object({ noche_id: Id, inicio: Fecha, telefonos: z.int().nonnegative(), solicitudes: z.int().nonnegative(), pct_votos_del_10: z.int().min(0).max(100) }),
+      z.object({
+        noche_id: Id,
+        inicio: Fecha,
+        telefonos: z.int().nonnegative(),
+        solicitudes: z.int().nonnegative(),
+        pct_votos_del_10: z.int().min(0).max(100),
+        no_sonaron: z.int().nonnegative().describe('Pedidos de esa noche que no sonaron enteros: saltados, bloqueados, retirados, no disponibles o fuera de tiempo (2026-11-25)'),
+      }),
     ),
   })
   .meta({ id: 'DiagnosticoAnalitica' });

@@ -58,6 +58,16 @@ export function marcasEje(maximo: number): number[] {
   return Array.from({ length: Math.round(tope / paso) + 1 }, (_, i) => Math.round(i * paso * 100) / 100);
 }
 
+/**
+ * La etiqueta cabe en `ancho` px o se corta con «…» (con el mismo ancho por letra aproximado que
+ * las columnas): un título largo no se monta sobre la barra. El texto completo va en la
+ * descripción de la gráfica y en su tabla.
+ */
+function recortar(texto: string, ancho: number): string {
+  const caben = Math.max(4, Math.floor(ancho / 6.6));
+  return texto.length <= caben ? texto : `${texto.slice(0, caben - 1).trimEnd()}…`;
+}
+
 /** Barras horizontales con el valor en la punta (rankings y comparaciones). */
 export function Barras({ titulo, filas, formato, enfasis }: { titulo: string; filas: Fila[]; formato: (v: number) => string; enfasis?: ReadonlySet<string> }) {
   const [ref, ancho] = useAncho<HTMLDivElement>();
@@ -78,7 +88,7 @@ export function Barras({ titulo, filas, formato, enfasis }: { titulo: string; fi
             return (
               <g key={f.clave} className="g-marca">
                 <text x={0} y={y + grosor / 2} dominantBaseline="central">
-                  {f.etiqueta}
+                  {recortar(f.etiqueta, etiquetas - 8)}
                 </text>
                 <path d={barraH(etiquetas, y, w, grosor)} className={!enfasis || enfasis.has(f.clave) ? 'g-dato' : 'g-contexto'} />
                 <text x={etiquetas + w + 8} y={y + grosor / 2} dominantBaseline="central" className="g-valor">

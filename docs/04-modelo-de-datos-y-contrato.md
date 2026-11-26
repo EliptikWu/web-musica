@@ -179,8 +179,8 @@ códigos pide una misma IP por minuto*)*.
 | `GET/POST /panel/eventos` · `PATCH/DELETE /panel/eventos/{id}` | Calendario de eventos | 045 |
 | `GET /panel/analitica/noches` | Noches cerradas que tiene el tablero, con su evento del calendario | 049, 053 |
 | `GET /panel/analitica/resumen?noche\|desde&hasta` | Solicitudes, teléfonos únicos, votos, la más votada, esperas (promedio y máxima), tiempo de pedidos frente a lista de la casa, solicitudes que no sonaron; de una noche, el historial | 049, 050 |
-| `GET /panel/analitica/participacion?noche\|desde&hasta&dia_semana` | Géneros por solicitudes y votos (`null` = sin clasificar) y franjas horarias con solicitudes, votos y teléfonos | 051 |
-| `GET /panel/analitica/diagnostico?…` | Muy votadas que no sonaron con su causa probable, concentración de votos (por noche) y participación por noche, con los umbrales | 052 |
+| `GET /panel/analitica/participacion?noche\|desde&hasta&dia_semana` | Géneros por solicitudes y votos (`null` = sin clasificar), franjas horarias con solicitudes, votos, teléfonos y espera promedio (`espera_promedio_seg`, `null` si nada de esa hora sonó), y las 10 canciones y los 10 artistas más pedidos (`mas_pedidas`, `artistas`; 2026-11-25) | 051 |
+| `GET /panel/analitica/diagnostico?…` | Muy votadas que no sonaron con su causa probable, concentración de votos (por noche) y participación por noche (con `no_sonaron`: todos los pedidos de la noche que no sonaron enteros, 2026-11-25), con los umbrales | 052 |
 | `GET/PUT /panel/analitica/umbrales` | Umbrales del diagnóstico (`votos_minimos`, `concentracion_pct`, `participacion_minima`); el cambio queda en la bitácora (`editar_umbrales`) | 052 |
 | `GET /panel/analitica/comparacion?agrupar=noche\|dia\|evento&noches=…\|desde&hasta` | Indicadores en promedio por noche, por noche, día de la semana o tipo de evento; lo planeado (lista de la casa) frente a lo pedido | 053 |
 | `GET /panel/analitica/recomendaciones?…` | Sugerencias con el dato en que se basan y la sección donde se decide; **nunca se aplican solas** | 054 |

@@ -114,6 +114,19 @@ export function Diagnostico() {
                           Por encima del umbral: {concentradas.map((n) => `${fechaCorta(n.inicio, zona)} (${n.pct_votos_del_10} %)`).join(', ')}.
                         </p>
                       ) : null}
+                      {/* Noche a noche: el promedio esconde la noche en que pocos decidieron la cola (2026-11-25). */}
+                      {variasNoches ? (
+                        <div className="mt-4">
+                          <h3 className="titulo-seccion text-[17px]">Noche a noche</h3>
+                          <Columnas
+                            titulo="Concentración de votos por noche, en porcentaje"
+                            filas={x.noches.map((n) => ({ clave: n.noche_id, etiqueta: fechaCorta(n.inicio, zona), valor: n.pct_votos_del_10 }))}
+                            formato={(v) => `${v} %`}
+                            enfasis={new Set(concentradas.map((n) => n.noche_id))}
+                            umbral={{ valor: u.concentracion_pct, etiqueta: `Umbral ${u.concentracion_pct} %` }}
+                          />
+                        </div>
+                      ) : null}
                     </section>
 
                     <section className="caja" aria-labelledby="t-participacion">
@@ -146,11 +159,11 @@ export function Diagnostico() {
                       )}
                       <TablaDatos
                         titulo="Participación por noche"
-                        columnas={[{ titulo: 'Noche' }, { titulo: 'Teléfonos', num: true }, { titulo: 'Solicitudes', num: true }, { titulo: 'Concentración', num: true }]}
+                        columnas={[{ titulo: 'Noche' }, { titulo: 'Teléfonos', num: true }, { titulo: 'Solicitudes', num: true }, { titulo: 'Concentración', num: true }, { titulo: 'No sonaron', num: true }]}
                         filas={x.noches.map((n) => ({
                           clave: n.noche_id,
                           marcada: n.telefonos < u.participacion_minima || n.pct_votos_del_10 > u.concentracion_pct,
-                          celdas: [capitalizar(fechaNoche(n.inicio, zona)), numero(n.telefonos), numero(n.solicitudes), `${n.pct_votos_del_10} %`],
+                          celdas: [capitalizar(fechaNoche(n.inicio, zona)), numero(n.telefonos), numero(n.solicitudes), `${n.pct_votos_del_10} %`, numero(n.no_sonaron)],
                         }))}
                       />
                     </section>
@@ -168,6 +181,21 @@ export function Diagnostico() {
                         formato={numero}
                         // Se rotula la noche con más solicitudes; las demás, al pasar el puntero y en la tabla.
                         enfasis={new Set(x.noches.reduce<typeof x.noches>((max, n) => (max.length === 0 || n.solicitudes > max[0]!.solicitudes ? [n] : max), []).map((n) => n.noche_id))}
+                      />
+                    </section>
+                  ) : null}
+                  {variasNoches ? (
+                    <section className="caja" aria-labelledby="t-no-sonaron-noche">
+                      <div className="caja__cabeza">
+                        <h2 id="t-no-sonaron-noche">Pedidos que no sonaron, por noche</h2>
+                        <p>Saltados, bloqueados, retirados, no disponibles o sin tiempo al cierre</p>
+                      </div>
+                      {/* Todos los pedidos, no solo los muy votados de la tabla de arriba (2026-11-25). */}
+                      <Columnas
+                        titulo="Pedidos que no sonaron por noche"
+                        filas={x.noches.map((n) => ({ clave: n.noche_id, etiqueta: fechaCorta(n.inicio, zona), valor: n.no_sonaron }))}
+                        formato={numero}
+                        enfasis={new Set(x.noches.reduce<typeof x.noches>((max, n) => (n.no_sonaron > 0 && (max.length === 0 || n.no_sonaron > max[0]!.no_sonaron) ? [n] : max), []).map((n) => n.noche_id))}
                       />
                     </section>
                   ) : null}

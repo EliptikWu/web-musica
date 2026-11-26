@@ -347,11 +347,19 @@ export function resumen(todas: NocheA[], noches: NocheA[]): ResumenAnalitica {
 
 export function participacion(todas: NocheA[], noches: NocheA[]): ParticipacionAnalitica {
   const generos = new Map<string, { solicitudes: number; votos: number }>();
-  const franjas = new Map<number, { solicitudes: number; votos: number; telefonos: Set<string> }>();
+  const franjas = new Map<number, { solicitudes: number; votos: number; telefonos: Set<string>; esperas: number[] }>();
   const franja = (hora: number) => {
     let f = franjas.get(hora);
-    if (!f) franjas.set(hora, (f = { solicitudes: 0, votos: 0, telefonos: new Set() }));
+    if (!f) franjas.set(hora, (f = { solicitudes: 0, votos: 0, telefonos: new Set(), esperas: [] }));
     return f;
+  };
+  const canciones = new Map<string, { solicitudes: number; votos: number }>();
+  const artistas = new Map<string, { solicitudes: number; votos: number }>();
+  const sumarA = (mapa: Map<string, { solicitudes: number; votos: number }>, clave: string, votos: number) => {
+    const x = mapa.get(clave) ?? { solicitudes: 0, votos: 0 };
+    x.solicitudes += 1;
+    x.votos += votos;
+    mapa.set(clave, x);
   };
   for (const n of noches) {
     for (const s of n.solicitudes) {
@@ -363,6 +371,10 @@ export function participacion(todas: NocheA[], noches: NocheA[]): ParticipacionA
       const f = franja(horaLocal(s.pedida, n.zona));
       f.solicitudes += 1;
       f.telefonos.add(s.dispositivo);
+      if (s.inicio !== null) f.esperas.push(Math.round((s.inicio - s.pedida) / 1000));
+      sumarA(canciones, s.video_id, s.votos.length);
+      // Sin artista conocido no entra en el ranking de artistas (sí en el de canciones).
+      if (CATALOGO[s.video_id]!.artista) sumarA(artistas, CATALOGO[s.video_id]!.artista, s.votos.length);
       for (const v of s.votos) {
         if (v.en >= n.fin) continue;
         const fv = franja(horaLocal(v.en, n.zona));
@@ -379,9 +391,22 @@ export function participacion(todas: NocheA[], noches: NocheA[]): ParticipacionA
       .map(([g, x]) => ({ genero: g === 'sin_clasificar' ? null : g, ...x }))
       .sort((a, b) => (a.genero === null ? 1 : b.genero === null ? -1 : b.solicitudes - a.solicitudes)),
     franjas: [...franjas.entries()]
-      .map(([hora, f]) => ({ hora, solicitudes: f.solicitudes, votos: f.votos, telefonos: f.telefonos.size }))
+      .map(([hora, f]) => ({
+        hora,
+        solicitudes: f.solicitudes,
+        votos: f.votos,
+        telefonos: f.telefonos.size,
+        espera_promedio_seg: f.esperas.length > 0 ? Math.round(sumar(f.esperas) / f.esperas.length) : null,
+      }))
       .sort((a, b) => desdeMediodia(a.hora) - desdeMediodia(b.hora)),
+    mas_pedidas: masPedidos(canciones).map(([video, x]) => ({ cancion: contrato(video), ...x })),
+    artistas: masPedidos(artistas).map(([artista, x]) => ({ artista, ...x })),
   };
+}
+
+/** Los 10 primeros por solicitudes; en empate, por votos y luego por nombre (orden estable, como el backend). */
+function masPedidos(mapa: Map<string, { solicitudes: number; votos: number }>) {
+  return [...mapa.entries()].sort(([ca, a], [cb, b]) => b.solicitudes - a.solicitudes || b.votos - a.votos || ca.localeCompare(cb)).slice(0, 10);
 }
 
 // ── RF-052 ─────────────────────────────────────────────────────────────────
@@ -412,7 +437,14 @@ export function diagnostico(todas: NocheA[], noches: NocheA[], umbrales: Umbrale
       votos: sumar(porNoche.map((x) => x.c.votos)),
       pct_votos_del_10: porNoche.length > 0 ? Math.round(sumar(porNoche.map((x) => x.c.pct)) / porNoche.length) : 0,
     },
-    noches: porNoche.map(({ n, c }) => ({ noche_id: n.noche.id, inicio: n.noche.inicio, telefonos: telefonosDe([n]), solicitudes: n.solicitudes.length, pct_votos_del_10: c.pct })),
+    noches: porNoche.map(({ n, c }) => ({
+      noche_id: n.noche.id,
+      inicio: n.noche.inicio,
+      telefonos: telefonosDe([n]),
+      solicitudes: n.solicitudes.length,
+      pct_votos_del_10: c.pct,
+      no_sonaron: n.solicitudes.filter((s) => s.estado !== 'sono' && s.estado !== 'pendiente').length,
+    })),
   };
 }
 

@@ -1506,6 +1506,11 @@
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 100
+                },
+                "no_sonaron": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Pedidos de esa noche que no sonaron enteros: saltados, bloqueados, retirados, no disponibles o fuera de tiempo (2026-11-25)"
                 }
               },
               "required": [
@@ -1513,7 +1518,8 @@
                 "inicio",
                 "telefonos",
                 "solicitudes",
-                "pct_votos_del_10"
+                "pct_votos_del_10",
+                "no_sonaron"
               ]
             }
           }
@@ -2711,21 +2717,87 @@
                 "telefonos": {
                   "type": "integer",
                   "minimum": 0
+                },
+                "espera_promedio_seg": {
+                  "nullable": true,
+                  "description": "Espera promedio de lo pedido a esa hora hasta que sonó; `null` si nada de esa hora sonó (2026-11-25)",
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Segundos"
+                    }
+                  ]
                 }
               },
               "required": [
                 "hora",
                 "solicitudes",
                 "votos",
-                "telefonos"
+                "telefonos",
+                "espera_promedio_seg"
               ]
             }
+          },
+          "mas_pedidas": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cancion": {
+                  "$ref": "#/components/schemas/Cancion"
+                },
+                "solicitudes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "cancion",
+                "solicitudes",
+                "votos"
+              ]
+            },
+            "description": "Las 10 canciones más pedidas, de más a menos; en empate, más votos (2026-11-25)"
+          },
+          "artistas": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "artista": {
+                  "type": "string"
+                },
+                "solicitudes": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "exclusiveMinimum": true
+                },
+                "votos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "artista",
+                "solicitudes",
+                "votos"
+              ]
+            },
+            "description": "Los 10 artistas más pedidos, igual que `mas_pedidas` (2026-11-25)"
           }
         },
         "required": [
           "datos",
           "generos",
-          "franjas"
+          "franjas",
+          "mas_pedidas",
+          "artistas"
         ]
       },
       "QrEstablecimiento": {

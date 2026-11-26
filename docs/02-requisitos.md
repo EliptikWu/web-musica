@@ -176,6 +176,18 @@ suben y bajan el volumen de la pantalla del bar desde el panel, sin tocar la TV.
 | RF-069 | Cambiar de bar desde la app Android (nuevo, 2026-11-24) | Should | — | 32 | F |
 | RF-070 | Aviso antes del cierre por horario (nuevo, 2026-11-25) | Should | — | 34 | F |
 
+**RF-051 y RF-052, gráficas nuevas (lista del equipo, 2026-11-25: «más gráficos, pero sin graficar
+cosas innecesarias»).** Cada una responde una pregunta del Administrador que antes no tenía gráfica:
+- **Lo más pedido** (Participación, RF-051): las 10 canciones o los 10 artistas con más solicitudes del
+  filtro, una cosa a la vez. ¿Qué meto en la lista de la casa?
+- **Espera por hora** (Participación, RF-051): espera promedio de lo pedido a cada hora, solo en horas
+  seguidas con 10 pedidos o más *(propuesto)*. ¿A qué hora la cola se vuelve lenta?
+- **Concentración noche a noche** (Diagnóstico, RF-052): el porcentaje de cada noche contra el umbral;
+  el medidor solo daba el promedio. ¿Qué noche decidieron pocos?
+- **Pedidos que no sonaron, por noche** (Diagnóstico, RF-052): todos, no solo los muy votados. ¿Qué
+  noche se perdieron más pedidos?
+Las cuatro usan las formas y colores de siempre, tienen «Ver como tabla» y dicen si son datos de ejemplo.
+
 **RF-066 — Escanear el QR desde la app.** Añadido el 2026-11-21 (D20). La app Android abre la cámara
 con «Escanear QR», desde la pantalla sin bar, los avisos de QR y la bienvenida. Desde el 2026-11-24
 (D22), si se abre sin enlace y sin bar recordado (recién instalada), abre el escáner sola. Criterios:

@@ -69,6 +69,20 @@ describe('participación (RF-051)', () => {
     expect(p.generos.reduce((s, g) => s + g.solicitudes, 0)).toBe(resumen(todas, todas).solicitudes);
   });
 
+  it('lo más pedido y la espera por hora cuadran con los pedidos (2026-11-25)', () => {
+    const p = ParticipacionAnalitica.parse(participacion(todas, todas));
+    const pedidos = todas.flatMap((n) => n.solicitudes);
+    expect(p.mas_pedidas).toHaveLength(10);
+    expect(p.artistas.length).toBeGreaterThan(0);
+    // De más a menos, y el primero es de verdad el más pedido.
+    expect(p.mas_pedidas.map((c) => c.solicitudes)).toEqual([...p.mas_pedidas.map((c) => c.solicitudes)].sort((a, b) => b - a));
+    const veces = (video: string) => pedidos.filter((s) => s.video_id === video).length;
+    expect(p.mas_pedidas[0]!.solicitudes).toBe(Math.max(...new Set(pedidos.map((s) => veces(s.video_id)))));
+    // La espera de cada hora sale de lo que sonó; sin nada que sonara, no hay dato (no es cero).
+    for (const f of p.franjas) if (f.espera_promedio_seg !== null) expect(f.espera_promedio_seg).toBeGreaterThanOrEqual(0);
+    expect(p.franjas.some((f) => f.espera_promedio_seg !== null)).toBe(true);
+  });
+
   it('filtra por día de la semana', () => {
     const viernes = seleccionar(todas, { dia_semana: '5' })!;
     expect(viernes.length).toBeGreaterThan(3);
@@ -82,6 +96,8 @@ describe('diagnóstico (RF-052)', () => {
     const floja = d.noches.find((n) => n.noche_id === 'n-2026-10-01')!;
     expect(floja.telefonos).toBeLessThan(UMBRALES_POR_DEFECTO.participacion_minima);
     expect(d.no_sonaron.every((x) => x.votos >= UMBRALES_POR_DEFECTO.votos_minimos)).toBe(true);
+    // Lo que no sonó, noche a noche: todos los pedidos sin sonar, no solo los muy votados (2026-11-25).
+    for (const n of d.noches) expect(n.no_sonaron).toBe(todas.find((x) => x.noche.id === n.noche_id)!.solicitudes.filter((s) => s.estado !== 'sono').length);
     const barra = diagnostico(todas, una('2026-10-10'), UMBRALES_POR_DEFECTO);
     expect(barra.concentracion.pct_votos_del_10).toBeGreaterThan(UMBRALES_POR_DEFECTO.concentracion_pct);
   });

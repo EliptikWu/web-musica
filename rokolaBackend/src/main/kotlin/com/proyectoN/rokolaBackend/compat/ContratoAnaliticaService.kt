@@ -31,7 +31,7 @@ class ContratoAnaliticaService(
     val eventoId: Long?, val eventoNombre: String?, val tipo: String,
   )
 
-  private data class PorNoche(val solicitudes: Int, val votos: Int, val telefonos: Int, val pedidosSeg: Long, val casaSeg: Long, val esperaSuma: Long, val esperaN: Int)
+  private data class PorNoche(val solicitudes: Int, val votos: Int, val telefonos: Int, val pedidosSeg: Long, val casaSeg: Long, val esperaSuma: Long, val esperaN: Int, val noSonaron: Int = 0)
 
   // ── Noches y origen de los datos (RNF-015) ─────────────────────────────────
 
@@ -173,7 +173,33 @@ class ContratoAnaliticaService(
          ) t GROUP BY hora_local ORDER BY (hora_local + 12) % 24""",
       { rs, _ -> mapOf("hora" to rs.getInt("hora_local"), "solicitudes" to rs.getInt("solicitudes"), "votos" to rs.getInt("votos"), "telefonos" to rs.getInt("telefonos")) },
     )
-    return mapOf("datos" to origen(p.barId, elegidas), "generos" to generos, "franjas" to franjas)
+    // Espera promedio de lo pedido a cada hora, hasta que sonó (2026-11-25).
+    val esperaPorHora = jdbc.query(
+      "SELECT hora_local, ROUND(AVG(espera_seg)) FROM analitica.hecho_solicitud WHERE id_sesion IN ($ids) AND espera_seg IS NOT NULL GROUP BY hora_local",
+      { rs, _ -> rs.getInt(1) to rs.getInt(2) },
+    ).toMap()
+    // Los 10 más pedidos; en empate, más votos y luego por nombre, como la simulación.
+    val masPedidas = jdbc.query(
+      """SELECT $CANCION, COUNT(*) AS solicitudes, COALESCE(SUM(h.votos), 0) AS votos
+         FROM analitica.hecho_solicitud h JOIN analitica.dim_cancion c ON c.id_cancion = h.id_cancion
+         WHERE h.id_sesion IN ($ids) GROUP BY $CANCION
+         ORDER BY solicitudes DESC, votos DESC, c.video_id LIMIT 10""",
+      { rs, _ -> mapOf("cancion" to cancion(rs), "solicitudes" to rs.getInt("solicitudes"), "votos" to rs.getInt("votos")) },
+    )
+    val artistas = jdbc.query(
+      """SELECT c.artista, COUNT(*) AS solicitudes, COALESCE(SUM(h.votos), 0) AS votos
+         FROM analitica.hecho_solicitud h JOIN analitica.dim_cancion c ON c.id_cancion = h.id_cancion
+         WHERE h.id_sesion IN ($ids) AND c.artista <> '' GROUP BY c.artista
+         ORDER BY solicitudes DESC, votos DESC, c.artista LIMIT 10""",
+      { rs, _ -> mapOf("artista" to rs.getString("artista"), "solicitudes" to rs.getInt("solicitudes"), "votos" to rs.getInt("votos")) },
+    )
+    return mapOf(
+      "datos" to origen(p.barId, elegidas),
+      "generos" to generos,
+      "franjas" to franjas.map { it + ("espera_promedio_seg" to esperaPorHora[it["hora"] as Int]) },
+      "mas_pedidas" to masPedidas,
+      "artistas" to artistas,
+    )
   }
 
   // ── RF-052 ─────────────────────────────────────────────────────────────────
@@ -253,6 +279,7 @@ class ContratoAnaliticaService(
         mapOf(
           "noche_id" to it.id.toString(), "inicio" to iso(it.inicio), "telefonos" to (x?.telefonos ?: 0),
           "solicitudes" to (x?.solicitudes ?: 0), "pct_votos_del_10" to concentraciones.getValue(it.id),
+          "no_sonaron" to (x?.noSonaron ?: 0),
         )
       },
     )
@@ -260,9 +287,10 @@ class ContratoAnaliticaService(
 
   private fun porNoche(ids: String): Map<Long, PorNoche> {
     val solicitudes = jdbc.query(
-      """SELECT id_sesion, COUNT(*), COALESCE(SUM(votos), 0), COALESCE(SUM(espera_seg), 0), COUNT(espera_seg)
+      """SELECT id_sesion, COUNT(*), COALESCE(SUM(votos), 0), COALESCE(SUM(espera_seg), 0), COUNT(espera_seg),
+                COUNT(*) FILTER (WHERE causa_no_sono IS NOT NULL)
          FROM analitica.hecho_solicitud WHERE id_sesion IN ($ids) GROUP BY id_sesion""",
-      { rs, _ -> rs.getLong(1) to listOf(rs.getLong(2), rs.getLong(3), rs.getLong(4), rs.getLong(5)) },
+      { rs, _ -> rs.getLong(1) to listOf(rs.getLong(2), rs.getLong(3), rs.getLong(4), rs.getLong(5), rs.getLong(6)) },
     ).toMap()
     val telefonos = jdbc.query(
       """SELECT id_sesion, COUNT(DISTINCT dispositivo_seud) FROM (
@@ -277,9 +305,9 @@ class ContratoAnaliticaService(
       { rs, _ -> rs.getLong(1) to (rs.getLong(2) to rs.getLong(3)) },
     ).toMap()
     return (solicitudes.keys + telefonos.keys + tiempos.keys).associateWith { id ->
-      val s = solicitudes[id] ?: listOf(0L, 0L, 0L, 0L)
+      val s = solicitudes[id] ?: listOf(0L, 0L, 0L, 0L, 0L)
       val t = tiempos[id] ?: (0L to 0L)
-      PorNoche(s[0].toInt(), s[1].toInt(), telefonos[id] ?: 0, t.first, t.second, s[2], s[3].toInt())
+      PorNoche(s[0].toInt(), s[1].toInt(), telefonos[id] ?: 0, t.first, t.second, s[2], s[3].toInt(), s[4].toInt())
     }
   }
 
