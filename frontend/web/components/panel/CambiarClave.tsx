@@ -1,6 +1,6 @@
 'use client';
 
-import { Campo, LuzEstado, Tecla } from '@rockola/ui';
+import { CampoClave, LuzEstado, Tecla } from '@rockola/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
@@ -58,9 +58,9 @@ export function CambiarClave() {
           <h1 className="titulo-seccion text-[20px]">{entrada.cambiarTitulo}</h1>
           <p className="secundario text-[15px]">{entrada.cambiarTexto}</p>
           {error ? <Aviso tipo="error" titulo={error} /> : null}
-          <Campo etiqueta={entrada.actual} type="password" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} />
-          <Campo etiqueta={entrada.nueva} ayuda={entrada.nuevaAyuda} type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} error={errorNueva} />
-          <Campo etiqueta={entrada.repetir} type="password" autoComplete="new-password" value={repetir} onChange={(e) => setRepetir(e.target.value)} error={errorRepetir} />
+          <CampoClave etiqueta={entrada.actual} autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} />
+          <CampoClave etiqueta={entrada.nueva} ayuda={entrada.nuevaAyuda} autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} error={errorNueva} />
+          <CampoClave etiqueta={entrada.repetir} autoComplete="new-password" value={repetir} onChange={(e) => setRepetir(e.target.value)} error={errorRepetir} />
           <Tecla type="submit" variante="cereza" tamano="grande" ocupada={cambiar.isPending}>
             {entrada.guardar}
           </Tecla>

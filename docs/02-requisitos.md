@@ -118,9 +118,18 @@ Administrador vinculó puede mover la cola; si no, cualquiera que abra
 | RF-042 | Bloqueo temporal de contenido inapropiado | Must | PB-33 | 3 | F+B |
 | RF-043 | Gestión de contenido bloqueado | Must | PB-34 | 3, 4 | F+B |
 | RF-044 | Bitácora de acciones administrativas | Must | PB-40 | 3, 4 | F+B |
-| RF-045 | Gestión del calendario de eventos del establecimiento | Should | PB-41 | 4 | F+B |
+| RF-045 | Gestión del calendario de eventos del establecimiento (criterio cambiado el 2026-11-25; abajo) | Should | PB-41 | 4 | F+B |
 | RF-059 | Diseño de la rockola del establecimiento (nuevo, 2026-11-11; criterio abajo) | Should | — | 8–10 | F+B |
 | RF-062 | Volumen de la música desde el panel (nuevo, 2026-11-12; criterio abajo) | Should | — | 13 | F+B |
+
+**RF-045, criterio cambiado (lista del equipo, 2026-11-25).** La fuente dice «uno ya realizado
+solo se puede editar su descripción»; el equipo pidió que un evento se pueda editar en todo
+(nombre, tipo, inicio, fin y descripción), también el que ya pasó, para corregir lo que se anotó
+mal. Criterios:
+- Cualquier evento se edita entero; sigue terminando después de empezar y durando menos de 24 h.
+- Eliminar sigue siendo solo para el que no ha empezado: lo que ya pasó se corrige, no se borra.
+- Al editar uno pasado, el diálogo avisa que la analítica de esa noche cambia (tipo y horas).
+- El cambio queda en la bitácora (`editar_evento`, RNF-014), como hasta ahora.
 
 **RF-059 (nuevo, no está en las fuentes del equipo).** El Administrador elige con qué
 dirección visual ven los clientes la rockola de su bar, entre las tres del documento de

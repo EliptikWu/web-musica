@@ -345,8 +345,12 @@ export function bitacora(estado: EstadoSim, filtros: { desde?: string | null; ha
 
 // ── Calendario de eventos (RF-045) ───────────────────────────────────────────
 
+/** Igual que `ContratoEventosService.aTabla` del backend: termina después de empezar y dura menos de 24 h. */
 function validarEvento(datos: Partial<CuerpoEvento>): string | null {
-  if (datos.inicio && datos.fin && Date.parse(datos.fin) <= Date.parse(datos.inicio)) return 'El evento tiene que terminar después de empezar';
+  if (!datos.inicio || !datos.fin) return null;
+  const dura = Date.parse(datos.fin) - Date.parse(datos.inicio);
+  if (dura <= 0) return 'El evento tiene que terminar después de empezar';
+  if (dura >= 24 * 3600_000) return 'Un evento dura menos de 24 horas';
   return null;
 }
 
@@ -362,9 +366,7 @@ export function crearEvento(estado: EstadoSim, datos: CuerpoEvento, quien: Perso
 export function editarEvento(estado: EstadoSim, id: string, cambios: Partial<CuerpoEvento>, quien: Personal, ahora: number) {
   const e = estado.eventos.find((x) => x.id === id);
   if (!e) return mal(404, 'no_encontrado', 'Ese evento no existe');
-  // RF-045: de un evento pasado solo se corrige la descripción.
-  const pasado = Date.parse(e.fin) < ahora;
-  if (pasado && Object.keys(cambios).some((k) => k !== 'descripcion')) return mal(409, 'conflicto', 'De un evento pasado solo se puede cambiar la descripción');
+  // RF-045 (criterio del 2026-11-25): cualquier evento se edita entero, también uno pasado.
   const nuevo = { ...e, ...cambios };
   const problema = validarEvento(nuevo);
   if (problema) return mal(400, 'datos_invalidos', problema);

@@ -1,6 +1,6 @@
 'use client';
 
-import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useEffect, useId, useRef } from 'react';
+import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useEffect, useId, useRef, useState } from 'react';
 import { Icono } from './Icono';
 
 /** Campo con etiqueta visible, ayuda y error unidos por `aria-describedby` (doc 05). */
@@ -11,6 +11,7 @@ export function Campo({
   multilinea = false,
   claseEntrada,
   invalido = false,
+  adorno,
   ...resto
 }: {
   etiqueta: string;
@@ -21,6 +22,8 @@ export function Campo({
   claseEntrada?: string;
   /** Marca la entrada como inválida aunque el mensaje esté en otro lado (p. ej. un tramo del horario). */
   invalido?: boolean;
+  /** Un control pegado a la entrada, dentro de ella (p. ej. «Mostrar» de `CampoClave`). */
+  adorno?: ReactNode;
 } & InputHTMLAttributes<HTMLInputElement> &
   TextareaHTMLAttributes<HTMLTextAreaElement>) {
   const id = useId();
@@ -36,7 +39,16 @@ export function Campo({
           {ayuda}
         </p>
       ) : null}
-      {multilinea ? <textarea {...(resto as TextareaHTMLAttributes<HTMLTextAreaElement>)} {...comunes} /> : <input {...(resto as InputHTMLAttributes<HTMLInputElement>)} {...comunes} />}
+      {adorno ? (
+        <div className="campo__envoltura">
+          <input {...(resto as InputHTMLAttributes<HTMLInputElement>)} {...comunes} />
+          {adorno}
+        </div>
+      ) : multilinea ? (
+        <textarea {...(resto as TextareaHTMLAttributes<HTMLTextAreaElement>)} {...comunes} />
+      ) : (
+        <input {...(resto as InputHTMLAttributes<HTMLInputElement>)} {...comunes} />
+      )}
       {error ? (
         <p id={`${id}-error`} className="campo__error">
           <Icono nombre="alerta" />
@@ -44,6 +56,31 @@ export function Campo({
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Campo de clave con «Mostrar» / «Ocultar» dentro de la entrada (lista del equipo, 2026-11-25:
+ * el login de superadmin no lo tenía). El nombre del botón dice lo que hará, sin `aria-pressed`
+ * (las dos cosas juntas se anunciarían como «Ocultar clave, presionado»). La clave nunca sale
+ * del campo: solo cambia el tipo de la entrada.
+ */
+export function CampoClave({ claseEntrada, ...props }: Omit<Parameters<typeof Campo>[0], 'type' | 'multilinea' | 'adorno'>) {
+  const [ver, setVer] = useState(false);
+  return (
+    <Campo
+      {...props}
+      type={ver ? 'text' : 'password'}
+      claseEntrada={claseEntrada ? `campo__entrada--clave ${claseEntrada}` : 'campo__entrada--clave'}
+      autoCapitalize="none"
+      spellCheck={false}
+      adorno={
+        <button type="button" className="campo__ver" onClick={() => setVer((v) => !v)}>
+          {ver ? 'Ocultar' : 'Mostrar'}
+          <span className="solo-lector"> clave</span>
+        </button>
+      }
+    />
   );
 }
 

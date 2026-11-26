@@ -119,18 +119,22 @@ describe('bitácora (RF-044)', () => {
 });
 
 describe('eventos (RF-045)', () => {
-  it('de un evento pasado solo se cambia la descripción; uno que ya empezó no se elimina', () => {
+  it('un evento pasado se edita entero (criterio del 2026-11-25); uno que ya empezó no se elimina', () => {
     const { estado, ahora } = escena();
-    expect(editarEvento(estado, 'ev-2', { nombre: 'Otro' }, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'conflicto' });
+    const pasado = estado.eventos.find((e) => e.id === 'ev-2')!;
+    const inicio = new Date(Date.parse(pasado.inicio) - 3600_000).toISOString();
+    expect(editarEvento(estado, 'ev-2', { nombre: 'Otro', tipo_evento: 'karaoke', inicio }, ADMIN, ahora)).toMatchObject({ ok: true, cuerpo: { nombre: 'Otro', tipo_evento: 'karaoke', inicio } });
     expect(editarEvento(estado, 'ev-2', { descripcion: 'Se vio en la pantalla grande' }, ADMIN, ahora)).toMatchObject({ ok: true });
     expect(eliminarEvento(estado, 'ev-2', ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'conflicto' });
     expect(eliminarEvento(estado, 'ev-3', ADMIN, ahora)).toMatchObject({ ok: true });
   });
 
-  it('el fin va después del inicio', () => {
+  it('el fin va después del inicio y antes de 24 h', () => {
     const { estado, ahora } = escena();
     const malo = { nombre: 'X', tipo_evento: 'otro' as const, inicio: '2026-11-01T22:00:00-05:00', fin: '2026-11-01T21:00:00-05:00', descripcion: null };
     expect(crearEvento(estado, malo, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
+    // Como el backend: dura menos de 24 h.
+    expect(crearEvento(estado, { ...malo, fin: '2026-11-02T22:00:00-05:00' }, ADMIN, ahora)).toMatchObject({ ok: false, codigo: 'datos_invalidos' });
     const bueno = crearEvento(estado, { ...malo, fin: '2026-11-02T01:00:00-05:00' }, ADMIN, ahora);
     if (!bueno.ok) throw new Error(bueno.mensaje);
     EventoBar.parse(bueno.cuerpo);

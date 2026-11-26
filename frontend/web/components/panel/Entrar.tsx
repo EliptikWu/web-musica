@@ -1,6 +1,6 @@
 'use client';
 
-import { Campo, LuzEstado, Tecla } from '@rockola/ui';
+import { Campo, CampoClave, LuzEstado, Tecla } from '@rockola/ui';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -25,7 +25,6 @@ export function Entrar() {
   const entrar = useEntrar();
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
-  const [verClave, setVerClave] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function enviar(e: FormEvent) {
@@ -63,25 +62,7 @@ export function Entrar() {
           <h1 className="titulo-seccion text-[20px]">{entrada.titulo}</h1>
           {error ? <Aviso tipo="error" titulo={error} /> : null}
           <Campo etiqueta={entrada.correo} type="email" autoComplete="username" inputMode="email" required value={correo} onChange={(e) => setCorreo(e.target.value)} />
-          <div className="relative">
-            <Campo
-              etiqueta={entrada.clave}
-              type={verClave ? 'text' : 'password'}
-              autoComplete="current-password"
-              required
-              value={clave}
-              onChange={(e) => setClave(e.target.value)}
-            />
-            <button
-              type="button"
-              className="absolute right-1 bottom-0 grid h-12 min-w-11 place-items-center px-2 text-[13px] font-semibold text-tinta-2 underline underline-offset-2"
-              onClick={() => setVerClave((v) => !v)}
-              aria-pressed={verClave}
-            >
-              {verClave ? 'Ocultar' : 'Mostrar'}
-              <span className="solo-lector"> clave</span>
-            </button>
-          </div>
+          <CampoClave etiqueta={entrada.clave} autoComplete="current-password" required value={clave} onChange={(e) => setClave(e.target.value)} />
           <Tecla type="submit" variante="cereza" tamano="grande" ocupada={entrar.isPending}>
             {P.entrar}
           </Tecla>

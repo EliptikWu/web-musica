@@ -131,8 +131,6 @@ export const entrada = {
   titulo: 'Entrar al panel',
   correo: 'Correo',
   clave: 'Clave',
-  mostrar: 'Mostrar clave',
-  ocultar: 'Ocultar clave',
   credenciales: 'Correo o clave incorrectos.',
   bloqueada: (hora: string) => `Demasiados intentos. Vuelve a intentarlo a las ${hora}.`,
   caducada: 'Tu sesión terminó. Entra de nuevo.',

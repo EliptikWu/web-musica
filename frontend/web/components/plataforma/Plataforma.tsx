@@ -1,7 +1,7 @@
 'use client';
 
 import { type BarPlataforma, type CuentaBar, CuerpoCuentaBar, type Rol, type YoPlataforma } from '@rockola/contrato';
-import { Campo, Dialogo, GrupoTeclas, Icono, LuzEstado, Selector, Tecla } from '@rockola/ui';
+import { Campo, CampoClave, Dialogo, GrupoTeclas, Icono, LuzEstado, Selector, Tecla } from '@rockola/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { Aviso } from '@/components/comun/Aviso';
@@ -95,7 +95,7 @@ function Entrar() {
     <Puerta titulo={T.entrar} onEnviar={enviar}>
       {error ? <Aviso tipo="error" titulo={error} /> : null}
       <Campo etiqueta="Correo" type="email" autoComplete="username" inputMode="email" required value={correo} onChange={(e) => setCorreo(e.target.value)} />
-      <Campo etiqueta="Clave" type="password" autoComplete="current-password" required value={clave} onChange={(e) => setClave(e.target.value)} />
+      <CampoClave etiqueta="Clave" autoComplete="current-password" required value={clave} onChange={(e) => setClave(e.target.value)} />
       <Tecla type="submit" variante="cereza" tamano="grande" ocupada={entrar.isPending}>Entrar</Tecla>
     </Puerta>
   );
@@ -123,9 +123,9 @@ function CambiarClave() {
     <Puerta titulo={T.cambiarClave} onEnviar={enviar}>
       <p className="secundario text-[15px]">{T.cambiarClaveNota}</p>
       {error ? <Aviso tipo="error" titulo={error} /> : null}
-      <Campo etiqueta="Clave actual" type="password" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} />
-      <Campo etiqueta="Clave nueva" type="password" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} />
-      <Campo etiqueta="Repite la clave nueva" type="password" autoComplete="new-password" value={repetir} onChange={(e) => setRepetir(e.target.value)} />
+      <CampoClave etiqueta="Clave actual" autoComplete="current-password" value={actual} onChange={(e) => setActual(e.target.value)} />
+      <CampoClave etiqueta="Clave nueva" autoComplete="new-password" value={nueva} onChange={(e) => setNueva(e.target.value)} />
+      <CampoClave etiqueta="Repite la clave nueva" autoComplete="new-password" value={repetir} onChange={(e) => setRepetir(e.target.value)} />
       <Tecla type="submit" variante="cereza" tamano="grande" ocupada={cambiar.isPending}>Guardar clave</Tecla>
     </Puerta>
   );

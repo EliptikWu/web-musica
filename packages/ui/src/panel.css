@@ -281,6 +281,16 @@
     .formulario-fila > .campo > .campo__error { grid-row: 4; margin-top: 6px; }
   }
   .campo__entrada--hora { max-width: 9rem; }
+  /* AÑADIDO (lista del equipo, 2026-11-25): «Mostrar» la clave, dentro de la entrada y de 44 px. */
+  .campo__envoltura { position: relative; }
+  .campo__entrada--clave { padding-right: 92px; }
+  .campo__ver {
+    position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+    min-width: 44px; min-height: 44px; padding: 0 10px;
+    background: transparent; border: 0; border-radius: var(--radio-tecla); cursor: pointer;
+    color: var(--tinta-2); font: 600 13px var(--fuente); text-decoration: underline; text-underline-offset: 2px;
+  }
+  .campo__ver:focus-visible { outline: 3px solid var(--ambar); outline-offset: 0; }
   /* AÑADIDO (RF-058): el código que muestra la TV, con el mismo ancho condensado de sus teclas. */
   .campo__entrada--codigo { max-width: 12rem; font-stretch: 75%; font-weight: 800; font-size: 24px; letter-spacing: .18em; text-transform: uppercase; }
   /* El navegador suma unos 4 px dentro del select: así su texto alinea con el de los demás campos. */

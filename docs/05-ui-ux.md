@@ -137,6 +137,7 @@ Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 | `Aviso` | Ámbar (confirmación), cereza (error), madera (información) | `role="status"` o `alert` según urgencia |
 | `Dialogo` | Confirmación, formulario | `<dialog>` nativo, foco atrapado, Escape cierra |
 | `Campo`, `Selector`, `GrupoTeclas` | Texto, selección, opciones como teclas | Etiqueta visible, error con `aria-describedby` |
+| `CampoClave` | Clave oculta o visible con «Mostrar» / «Ocultar» dentro de la entrada (2026-11-25) | El nombre del botón dice lo que hará («Mostrar clave»), sin `aria-pressed`; 44 px. En todos los campos de clave: entrar al panel, plataforma y cambiar la clave |
 | `EstadoVacio`, `Esqueleto`, `Reintentar` | Vacío, cargando, error | El esqueleto no se anuncia; el error sí |
 | `PlacaQr` | Placa cromada con el QR | El QR lleva texto alternativo con el enlace |
 | `Icono` | Dibujados a mano, 24 × 24, trazo 1,9, puntas redondas | Decorativos con `aria-hidden`; con función, con nombre |

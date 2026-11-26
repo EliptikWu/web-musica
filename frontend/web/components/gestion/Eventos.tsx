@@ -23,7 +23,7 @@ function fecha(iso: string, zona: string) {
 
 /**
  * Calendario de eventos (RF-045, PB-41): las noches especiales, para comparar después en la
- * analítica. De un evento pasado solo se corrige la descripción; uno que ya empezó no se borra.
+ * analítica. Cualquier evento se edita entero, también uno pasado (RF-045, 2026-11-25); uno que ya empezó no se borra.
  */
 export function Eventos() {
   const yo = useYoDelPanel();
@@ -43,7 +43,7 @@ export function Eventos() {
   const proximos = lista.filter((e) => Date.parse(e.fin) >= ahora);
   const pasados = lista.filter((e) => Date.parse(e.fin) < ahora).reverse();
 
-  const fila = (e: EventoBar, pasado: boolean) => (
+  const fila = (e: EventoBar) => (
     <li key={e.id}>
       <div className="lista-gestion__info">
         <p className="lista-gestion__titulo">
@@ -57,7 +57,7 @@ export function Eventos() {
       </div>
       <div className="lista-gestion__acciones">
         <Tecla tamano="chica" aria-label={`Editar ${e.nombre}`} onClick={() => setEdicion({ evento: e })}>
-          {pasado ? 'Editar descripción' : 'Editar'}
+          Editar
         </Tecla>
         {Date.parse(e.inicio) > ahora ? (
           <Tecla tamano="chica" aria-label={`Eliminar ${e.nombre}`} onClick={() => setAEliminar(e)}>
@@ -86,13 +86,13 @@ export function Eventos() {
               <div className="caja__cabeza">
                 <h2 id="t-proximos">Próximos</h2>
               </div>
-              {proximos.length === 0 ? <p className="secundario">No hay eventos próximos.</p> : <ul className="lista-gestion">{proximos.map((e) => fila(e, false))}</ul>}
+              {proximos.length === 0 ? <p className="secundario">No hay eventos próximos.</p> : <ul className="lista-gestion">{proximos.map((e) => fila(e))}</ul>}
             </section>
             <section className="caja" aria-labelledby="t-pasados">
               <div className="caja__cabeza">
                 <h2 id="t-pasados">Pasados</h2>
               </div>
-              {pasados.length === 0 ? <p className="secundario">Todavía no hay eventos pasados.</p> : <ul className="lista-gestion">{pasados.map((e) => fila(e, true))}</ul>}
+              {pasados.length === 0 ? <p className="secundario">Todavía no hay eventos pasados.</p> : <ul className="lista-gestion">{pasados.map((e) => fila(e))}</ul>}
             </section>
           </div>
         )}
@@ -102,12 +102,12 @@ export function Eventos() {
         key={edicion ? (edicion.evento?.id ?? 'nuevo') : 'cerrado'}
         abierto={edicion !== null}
         evento={edicion?.evento ?? null}
-        soloDescripcion={edicion?.evento ? Date.parse(edicion.evento.fin) < ahora : false}
+        pasado={edicion?.evento ? Date.parse(edicion.evento.fin) < ahora : false}
         zona={zona}
         ocupado={crear.isPending || editar.isPending}
         onCerrar={() => setEdicion(null)}
         onGuardar={(datos) => {
-          const fin = { onError: (e: unknown) => setAviso({ tipo: 'error', texto: mensajeDeError(e, { conflicto: 'De un evento pasado solo se cambia la descripción.', datos_invalidos: 'El evento tiene que terminar después de empezar.' }) }), onSettled: () => setEdicion(null) };
+          const fin = { onError: (e: unknown) => setAviso({ tipo: 'error', texto: mensajeDeError(e, { datos_invalidos: 'El evento tiene que terminar después de empezar y durar menos de 24 horas.' }) }), onSettled: () => setEdicion(null) };
           if (edicion?.evento) editar.mutate({ parametros: { id: edicion.evento.id }, cuerpo: datos }, { ...fin, onSuccess: () => setAviso({ tipo: 'luz', texto: 'Evento guardado.' }) });
           else crear.mutate({ cuerpo: datos as Omit<EventoBar, 'id'> }, { ...fin, onSuccess: () => setAviso({ tipo: 'luz', texto: 'Evento agregado.' }) });
         }}
@@ -131,7 +131,7 @@ export function Eventos() {
 function DialogoEvento({
   abierto,
   evento,
-  soloDescripcion,
+  pasado,
   zona,
   ocupado,
   onCerrar,
@@ -139,7 +139,7 @@ function DialogoEvento({
 }: {
   abierto: boolean;
   evento: EventoBar | null;
-  soloDescripcion: boolean;
+  pasado: boolean;
   zona: string;
   ocupado: boolean;
   onCerrar: () => void;
@@ -151,7 +151,9 @@ function DialogoEvento({
   const [fin, setFin] = useState(evento ? isoALocal(evento.fin, zona) : '');
   const [descripcion, setDescripcion] = useState(evento?.descripcion ?? '');
   const [intento, setIntento] = useState(false);
-  const errorFin = intento && inicio && fin && fin <= inicio ? 'Tiene que terminar después de empezar.' : null;
+  // Igual que el backend: termina después de empezar y dura menos de 24 h (RF-045).
+  const duracionMs = inicio && fin ? Date.parse(localAIso(fin, zona)) - Date.parse(localAIso(inicio, zona)) : 0;
+  const errorFin = !intento || !inicio || !fin ? null : duracionMs <= 0 ? 'Tiene que terminar después de empezar.' : duracionMs >= 24 * 3600_000 ? 'Un evento dura menos de 24 horas.' : null;
   return (
     <Dialogo abierto={abierto} titulo={evento ? `Editar «${evento.nombre}»` : 'Agregar evento'} onCerrar={onCerrar}>
       <form
@@ -160,28 +162,23 @@ function DialogoEvento({
         onSubmit={(e) => {
           e.preventDefault();
           setIntento(true);
-          if (soloDescripcion) return onGuardar({ descripcion: descripcion.trim() || null });
-          if (!nombre.trim() || !inicio || !fin || fin <= inicio) return;
+          if (!nombre.trim() || !inicio || !fin || duracionMs <= 0 || duracionMs >= 24 * 3600_000) return;
           onGuardar({ nombre: nombre.trim(), tipo_evento: tipo, inicio: localAIso(inicio, zona), fin: localAIso(fin, zona), descripcion: descripcion.trim() || null });
         }}
       >
-        {soloDescripcion ? <p className="dialogo__texto">Este evento ya pasó: solo se puede corregir la descripción.</p> : null}
-        {!soloDescripcion ? (
-          <>
-            <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} error={intento && !nombre.trim() ? 'Escribe el nombre.' : null} autoFocus />
-            <Selector etiqueta="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
-              {Object.entries(TIPOS).map(([v, t]) => (
-                <option key={v} value={v}>
-                  {t}
-                </option>
-              ))}
-            </Selector>
-            <div className="formulario-fila">
-              <Campo etiqueta="Empieza" type="datetime-local" value={inicio} onChange={(e) => setInicio(e.target.value)} error={intento && !inicio ? 'Elige cuándo empieza.' : null} />
-              <Campo etiqueta="Termina" type="datetime-local" value={fin} onChange={(e) => setFin(e.target.value)} error={errorFin ?? (intento && !fin ? 'Elige cuándo termina.' : null)} />
-            </div>
-          </>
-        ) : null}
+        {pasado ? <p className="dialogo__texto">Este evento ya pasó. Si cambias el tipo o las horas, cambia también la analítica de esa noche.</p> : null}
+        <Campo etiqueta="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} error={intento && !nombre.trim() ? 'Escribe el nombre.' : null} autoFocus />
+        <Selector etiqueta="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value as Tipo)}>
+          {Object.entries(TIPOS).map(([v, t]) => (
+            <option key={v} value={v}>
+              {t}
+            </option>
+          ))}
+        </Selector>
+        <div className="formulario-fila">
+          <Campo etiqueta="Empieza" type="datetime-local" value={inicio} onChange={(e) => setInicio(e.target.value)} error={intento && !inicio ? 'Elige cuándo empieza.' : null} />
+          <Campo etiqueta="Termina" type="datetime-local" value={fin} onChange={(e) => setFin(e.target.value)} error={errorFin ?? (intento && !fin ? 'Elige cuándo termina.' : null)} />
+        </div>
         <Campo etiqueta="Descripción (opcional)" multilinea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} maxLength={300} />
         <div className="dialogo__acciones">
           <Tecla type="button" onClick={onCerrar}>

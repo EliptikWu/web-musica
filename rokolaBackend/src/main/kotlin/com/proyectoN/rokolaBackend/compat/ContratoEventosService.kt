@@ -71,10 +71,8 @@ class ContratoEventosService(
     val datos = cuerpo ?: emptyMap()
     ContratoCuerpo.exigirCampos(datos, CAMPOS)
     val e = existente(p, idTexto, bloquear = true)
-    // RF-045: de un evento que ya terminó solo se corrige la descripción.
-    if (e.fin.isBefore(OffsetDateTime.now()) && datos.keys.any { it != "descripcion" }) {
-      ContratoCuerpo.conflicto("De un evento pasado solo se puede cambiar la descripción")
-    }
+    // RF-045 (criterio del 2026-11-25, lista del equipo): cualquier evento se edita entero,
+    // también uno que ya terminó; solo eliminar se reserva para el que no ha empezado.
     val nombre = ContratoCuerpo.texto(datos, "nombre", max = 150) ?: e.nombre
     val tipo = tipo(datos) ?: e.tipo
     val inicio = instante(datos, "inicio") ?: e.inicio
