@@ -15,3 +15,5 @@
 | 2026-11-25 | T6: el ícono de la app Android con el logo (la R en el arco de luz) | `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`; doc 05 |
 | 2026-11-25 | Prueba de carga con k6 y el arreglo del pool de conexiones de los avisos SSE (parte de T8 y T10) | `scripts/carga/`, `ContratoSseService.kt`; doc 07 |
 | 2026-11-25 | T9: migración V15 de `api_idempotencia` | Doc 11 |
+| 2026-11-25 | T10: al saltar, el pedido recién validado suena sin otra consulta a YouTube | Doc 11 |
+| 2026-11-25 | T11 cerrada sin cambios: la app Android es solo el cliente del teléfono; su simulación no tiene panel, nunca queda forzada ni tiene eventos, así que RN-09 y RF-045 no aplican allí | — |

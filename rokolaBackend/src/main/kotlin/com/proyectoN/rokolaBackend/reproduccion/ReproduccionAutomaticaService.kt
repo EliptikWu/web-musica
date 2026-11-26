@@ -4,6 +4,7 @@ import com.proyectoN.rokolaBackend.acceso.HorarioActivoService
 import com.proyectoN.rokolaBackend.cola.ColaRepository
 import com.proyectoN.rokolaBackend.tiemporeal.CambioColaEvent
 import com.proyectoN.rokolaBackend.youtube.YoutubeApiCliente
+import com.proyectoN.rokolaBackend.youtube.YoutubeVideoResponse
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
@@ -96,6 +97,35 @@ class ReproduccionAutomaticaService(
         } catch (e: Exception) { bandera.set(false); throw e }
     }
 
+    /**
+     * El video de un pedido, listo para sonar. Pedir ya lo validó con YouTube; si fue hace poco,
+     * salen los datos guardados y no se espera otra consulta: al saltar, la siguiente arranca sin la
+     * ida y vuelta a YouTube y no gasta cuota (doc 04, punto 27; T10, 2026-11-25). Si no, se consulta
+     * YouTube como siempre. Solo para la cola: `iniciar` vuelve a marcar la validación al sonar, y en
+     * una lista de la casa corta eso encadenaría reproducciones sin preguntar nunca a YouTube.
+     */
+    private fun videoVerificado(videoId: String): YoutubeVideoResponse? =
+        jdbc.query(
+            """SELECT youtube_video_id, titulo, artista, canal, duracion_seg, miniatura_url FROM public.cancion
+               WHERE youtube_video_id = ? AND embebible AND disponibilidad = 'disponible' AND duracion_seg > 0
+                 AND ultima_validacion > CURRENT_TIMESTAMP - make_interval(mins => ?)""",
+            { rs, _ ->
+                val id = rs.getString("youtube_video_id")
+                YoutubeVideoResponse(
+                    youtubeVideoId = id,
+                    titulo = rs.getString("titulo"),
+                    artista = rs.getString("artista"),
+                    artistaEstimado = false,
+                    canal = rs.getString("canal").orEmpty(),
+                    duracionSeg = rs.getInt("duracion_seg"),
+                    miniaturaUrl = rs.getString("miniatura_url"),
+                    embebible = true,
+                    url = "https://www.youtube.com/watch?v=$id",
+                )
+            },
+            videoId, VALIDEZ_MIN,
+        ).firstOrNull() ?: youtube.obtenerVideoPorId(videoId)
+
     private fun asignar(idSesion: Long) {
         val sesion = jdbc.query(
             """SELECT s.id_sesion, e.id_establecimiento, e.zona_horaria, cfg.duracion_max_seg
@@ -118,7 +148,7 @@ class ReproduccionAutomaticaService(
         // Primero solicitudes por votos; desempate por antigüedad ya fijado en ColaRepository.
         val primera = cola.listarPendientes(idSesion).firstOrNull()
         if (primera != null) {
-            val video = youtube.obtenerVideoPorId(primera.youtubeVideoId)
+            val video = videoVerificado(primera.youtubeVideoId)
             if (video == null) {
                 // Una canción no incrustable no debe bloquear indefinidamente la cola.
                 runCatching { gestion.marcarNoDisponible(idSesion, primera.solicitudId) }
@@ -189,5 +219,10 @@ class ReproduccionAutomaticaService(
     fun detener() {
         tareas.shutdown()
         if (!tareas.awaitTermination(1, TimeUnit.SECONDS)) tareas.shutdownNow()
+    }
+
+    companion object {
+        /** Cuánto vale una validación de YouTube para poner la canción sin volver a preguntar *(propuesto)*. */
+        internal const val VALIDEZ_MIN = 30
     }
 }

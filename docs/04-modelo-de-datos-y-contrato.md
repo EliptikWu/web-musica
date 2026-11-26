@@ -241,8 +241,8 @@ pedirlo o al sonar se rechaza como `no_disponible`. La simulación no tiene shor
 
 ## Pendiente del backend (`TBD`)
 
-Desde D25 (2026-11-25) el backend también es de este equipo: lo abierto de esta lista está en el
-backlog técnico del README (T10 es el punto 27).
+Desde D25 (2026-11-25) el backend también es de este equipo: lo que se abra aquí va al backlog
+técnico del README.
 
 1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
 2. Cuota de YouTube: `search.list` cuesta 100 unidades de 10 000 diarias; el
@@ -305,4 +305,4 @@ backlog técnico del README (T10 es el punto 27).
 24. Plataforma (RF-064), 2026-11-21: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p24).
 25. QR del panel y su destino (RF-035, RF-065), 2026-11-21: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p25).
 26. Cubo en vivo y géneros (RF-067, RF-068), del equipo de backend, 2026-11-24: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p26).
-27. Rapidez de los botones de operación (lista del equipo, 2026-11-25). ~~Los oyentes SSE de `ContratoSseService` arman la foto y escriben a cada cliente dentro de la misma petición, antes del 204~~ Resuelto el 2026-11-25: salen en su propio hilo (la prueba de carga mostró que además trababan el pool). Queda *(propuesto, sin medir contra el backend real)*: al saltar, `ReproduccionAutomaticaService` consulta YouTube (`obtenerVideoPorId`, sin caché) antes de poner la siguiente. La web ya muestra pausar y reanudar al pulsar (optimista). Decidir si el envío pasa a un hilo aparte sin desordenar las versiones, y si la verificación del video se adelanta a cuando la canción queda primera en la cola. Ver doc 07, «Análisis 2026-11-25».
+27. Rapidez de los botones de operación (lista del equipo, 2026-11-25): resuelto. Los avisos SSE salen en su propio hilo (la prueba de carga mostró que además trababan el pool) y, al saltar, un pedido validado con YouTube hace menos de 30 min *(propuesto)* suena con los datos guardados, sin otra consulta. La lista de la casa sigue consultando a YouTube al sonar. Ver doc 07, «Análisis del 2026-11-25», y doc 11.
