@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Bar } from './bar.ts';
-import { endpoints, rutaDe } from './endpoints.ts';
+import { rutaDe } from './endpoint-base.ts';
+import { endpoints } from './endpoints.ts';
 import { readFileSync } from 'node:fs';
 import { CambioEstablecimiento, PaginaBitacora, TipoAccion } from './panel.ts';
 

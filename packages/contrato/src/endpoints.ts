@@ -1,72 +1,22 @@
 import { z } from 'zod';
 import { CancionCatalogo, CategoriaCorregida, ComparacionAnalitica, CuboAnalitica, CuerpoCategoria, FuenteCubo, DiagnosticoAnalitica, FiltroAnalitica, ListaNoches, ListaRecomendaciones, ParticipacionAnalitica, Reclasificacion, ResumenAnalitica, UmbralesAnalitica } from './analitica.ts';
-import { Bar } from './bar.ts';
-import { Busqueda } from './busqueda.ts';
-import { Ahora, Destacada } from './cola.ts';
-import { type CodigoError, SinContenido } from './comunes.ts';
-import { CuerpoDispositivo, Yo } from './dispositivo.ts';
-import {
-  BusquedaPanel, CambioBloqueo, CambioEstablecimiento, CambioUsuario, ClaveTemporal, CuerpoActivacion, CuerpoBloqueo,
-  CuerpoCambioClave, CuerpoCancionLista, CuerpoDestinoQr, CuerpoEntrar, CuerpoEvento, CuerpoHorario, CuerpoLista, CuerpoOrden, CuerpoRetiro,
-  CuerpoServicio, CuerpoSesion, CuerpoVolumen, CuerpoUsuario, Establecimiento, EventoBar, Horario, ListaBloqueos, ListaCasaDetalle,
-  ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, type Rol, UsuarioCreado, UsuarioPanel,
-  YoPanel, Bloqueo,
-} from './panel.ts';
+import { SinContenido } from './comunes.ts';
+import { BusquedaPanel, CambioBloqueo, CambioEstablecimiento, CambioUsuario, ClaveTemporal, CuerpoActivacion, CuerpoBloqueo, CuerpoCambioClave, CuerpoCancionLista, CuerpoDestinoQr, CuerpoEntrar, CuerpoEvento, CuerpoHorario, CuerpoLista, CuerpoOrden, CuerpoRetiro, CuerpoServicio, CuerpoSesion, CuerpoVolumen, CuerpoUsuario, Establecimiento, EventoBar, Horario, ListaBloqueos, ListaCasaDetalle, ListaEventos, ListasCasa, ListaUsuarios, Noche, PaginaBitacora, QrEstablecimiento, UsuarioCreado, UsuarioPanel, YoPanel, Bloqueo } from './panel.ts';
 import { BarCreado, ClaveCuentaBar, CuentaCreada, CuerpoBarNuevo, CuerpoClavePlataforma, CuerpoCuentaBar, ListaBaresPlataforma, YoPlataforma } from './plataforma.ts';
 import { CuerpoVincularPantalla, ListaPantallas, PantallaVinculada, ReportePantalla, VinculoPantalla } from './pantalla.ts';
-import { CuerpoCambioVoto, CuerpoSolicitud, QrPublico, ResolucionQr, RespuestaRetiroPedido, RespuestaSolicitud, RespuestaVoto } from './solicitudes.ts';
-
-export type Metodo = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-export type Superficie = 'cliente' | 'pantalla' | 'panel' | 'plataforma';
-
-/**
- * Un endpoint del contrato. Es la única definición: de aquí salen el cliente de la app, los
- * manejadores de la simulación y la documentación para el backend (doc 04).
- */
-export type Endpoint = {
-  metodo: Metodo;
-  /** Ruta relativa a la base de la API, con parámetros entre llaves: `/bares/{slug}/ahora`. */
-  ruta: string;
-  resumen: string;
-  superficie: Superficie;
-  rf: readonly string[];
-  consulta?: z.ZodObject;
-  cuerpo?: z.ZodType;
-  respuesta: z.ZodType;
-  /** Código HTTP de éxito. */
-  estado: 200 | 201 | 204;
-  /** Lleva `Idempotency-Key`: la misma clave devuelve la misma respuesta (RNF-008). */
-  idempotente?: boolean;
-  /** Rol mínimo en el panel. Sin él, la ruta es pública. */
-  rol?: Rol;
-  /** Pide una pantalla vinculada (cookie `rockola_pantalla`, RF-058). */
-  pantalla?: true;
-  errores: readonly CodigoError[];
-};
-
-function definir<const E extends Endpoint>(endpoint: E): E {
-  return endpoint;
-}
+import { QrPublico } from './solicitudes.ts';
+import { definir, type Endpoint } from './endpoint-base.ts';
+import { endpointsCliente } from './endpoints-cliente.ts';
 
 const PANEL_ERR = ['no_autenticado', 'sin_permiso'] as const;
 
+/**
+ * El registro completo: los del teléfono (`endpoints-cliente.ts`, aparte para que su ruta no
+ * descargue el resto) y los de la pantalla, el panel y la plataforma. De aquí salen el cliente del
+ * panel y la TV, los manejadores de la simulación y el OpenAPI (doc 04).
+ */
 export const endpoints = {
-  // ── Cliente ────────────────────────────────────────────────────────────────
-  resolverQr: definir({ metodo: 'GET', ruta: '/qr/{token}', resumen: 'Resolver el QR al bar', superficie: 'cliente', rf: ['RF-001', 'RF-035'], respuesta: ResolucionQr, estado: 200, errores: ['qr_reemplazado', 'no_encontrado'] }),
-  bar: definir({ metodo: 'GET', ruta: '/bares/{slug}', resumen: 'Datos públicos del bar y su horario', superficie: 'cliente', rf: ['RF-001', 'RF-003'], respuesta: Bar, estado: 200, errores: ['no_encontrado'] }),
-  ahora: definir({ metodo: 'GET', ruta: '/bares/{slug}/ahora', resumen: 'Foto actual: servicio, lo que suena y la cola', superficie: 'cliente', rf: ['RF-003', 'RF-015', 'RF-016', 'RF-017', 'RF-018'], respuesta: Ahora, estado: 200, errores: ['no_encontrado'] }),
-  destacadas: definir({ metodo: 'GET', ruta: '/bares/{slug}/destacadas', resumen: 'Lo más votado de la noche: las tres primeras', superficie: 'cliente', rf: ['RF-015'], respuesta: z.object({ destacadas: z.array(Destacada).describe('Hasta 3, de más a menos votos') }), estado: 200, errores: ['no_encontrado'] }),
-  registrarDispositivo: definir({ metodo: 'POST', ruta: '/bares/{slug}/dispositivo', resumen: 'Registrar el teléfono y devolver lo suyo', superficie: 'cliente', rf: ['RF-002'], cuerpo: CuerpoDispositivo, respuesta: Yo, estado: 200, errores: ['datos_invalidos', 'no_encontrado'] }),
-  yo: definir({ metodo: 'GET', ruta: '/bares/{slug}/dispositivo', resumen: 'Cupo, solicitudes y votos de este teléfono', superficie: 'cliente', rf: ['RF-011', 'RF-013'], respuesta: Yo, estado: 200, errores: ['no_encontrado'] }),
-  avisoVisto: definir({ metodo: 'POST', ruta: '/bares/{slug}/dispositivo/aviso', resumen: 'Registrar que vio el aviso de datos', superficie: 'cliente', rf: ['RF-004'], respuesta: SinContenido, estado: 204, errores: ['no_encontrado'] }),
-  buscar: definir({ metodo: 'GET', ruta: '/bares/{slug}/busqueda', resumen: 'Buscar en YouTube y en la cola', superficie: 'cliente', rf: ['RF-005', 'RF-006', 'RF-007', 'RF-008'], consulta: z.object({ q: z.string().min(2) }), respuesta: Busqueda, estado: 200, errores: ['datos_invalidos', 'youtube_no_disponible', 'cuota_agotada'] }),
-  pedir: definir({ metodo: 'POST', ruta: '/bares/{slug}/solicitudes', resumen: 'Pedir una canción (si ya está, cuenta como voto)', superficie: 'cliente', rf: ['RF-009', 'RF-007'], cuerpo: CuerpoSolicitud, respuesta: RespuestaSolicitud, estado: 201, idempotente: true, errores: ['limite_pedidos', 'ya_votaste', 'bloqueada', 'no_disponible', 'no_embebible', 'muy_larga', 'reproducida_hace_poco', 'servicio_no_disponible'] }),
-  votar: definir({ metodo: 'POST', ruta: '/bares/{slug}/solicitudes/{id}/votos', resumen: 'Votar por una solicitud', superficie: 'cliente', rf: ['RF-010', 'RF-011', 'RF-012'], respuesta: RespuestaVoto, estado: 201, idempotente: true, errores: ['ya_votaste', 'no_pendiente', 'servicio_no_disponible'] }),
-  cambiarVoto: definir({ metodo: 'PUT', ruta: '/bares/{slug}/dispositivo/voto', resumen: 'Mover un voto a otra solicitud', superficie: 'cliente', rf: ['RF-014'], cuerpo: CuerpoCambioVoto, respuesta: RespuestaVoto, estado: 200, idempotente: true, errores: ['no_pendiente', 'ya_votaste', 'servicio_no_disponible'] }),
-  // RF-060: sin el voto, la canción baja; el voto de tu propio pedido no se quita (RF-061).
-  quitarVoto: definir({ metodo: 'DELETE', ruta: '/bares/{slug}/solicitudes/{id}/votos', resumen: 'Quitar mi voto de una solicitud', superficie: 'cliente', rf: ['RF-060'], respuesta: RespuestaVoto, estado: 200, idempotente: true, errores: ['no_pendiente', 'datos_invalidos', 'servicio_no_disponible'] }),
-  // RF-061: solo quien la pidió y solo si no suena todavía; queda `retirada`.
-  retirarPedido: definir({ metodo: 'DELETE', ruta: '/bares/{slug}/solicitudes/{id}', resumen: 'Retirar mi pedido de la cola', superficie: 'cliente', rf: ['RF-061'], respuesta: RespuestaRetiroPedido, estado: 200, idempotente: true, errores: ['no_pendiente', 'sin_permiso', 'servicio_no_disponible'] }),
+  ...endpointsCliente,
 
   // ── Pantalla del bar ───────────────────────────────────────────────────────
   qrPublico: definir({ metodo: 'GET', ruta: '/bares/{slug}/qr-publico', resumen: 'URL que codifica el QR de la placa', superficie: 'pantalla', rf: ['RF-035'], respuesta: QrPublico, estado: 200, errores: ['no_encontrado'] }),
@@ -168,12 +118,3 @@ export type Parametros<N extends NombreEndpoint> = ParametrosDe<Endpoints[N]['ru
 export type Respuesta<N extends NombreEndpoint> = z.infer<Endpoints[N]['respuesta']>;
 export type Cuerpo<N extends NombreEndpoint> = Endpoints[N] extends { cuerpo: infer C extends z.ZodType } ? z.infer<C> : never;
 export type Consulta<N extends NombreEndpoint> = Endpoints[N] extends { consulta: infer C extends z.ZodType } ? z.input<C> : never;
-
-/** Arma la ruta concreta: `rutaDe('/bares/{slug}/ahora', { slug: 'demo' })` → `/bares/demo/ahora`. */
-export function rutaDe(ruta: string, parametros: Record<string, string>): string {
-  return ruta.replace(/\{(\w+)\}/g, (_, nombre: string) => {
-    const valor = parametros[nombre];
-    if (valor === undefined) throw new Error(`Falta el parámetro «${nombre}» para ${ruta}`);
-    return encodeURIComponent(valor);
-  });
-}

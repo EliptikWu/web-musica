@@ -11,7 +11,7 @@ import { conectarSse } from '../tiempo-real/fuente';
 import { anotarConexion, useConexion } from '../tiempo-real/estado';
 import { limitar } from '../tiempo-real/limitador';
 import { claves } from './claves';
-import { pedir } from './cliente';
+import { pedir } from './telefono';
 import { ErrorRed } from './errores';
 
 /**

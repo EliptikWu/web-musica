@@ -10,4 +10,6 @@ export * from './tiempo-real.ts';
 export * from './panel.ts';
 export * from './analitica.ts';
 export * from './plataforma.ts';
+export * from './endpoint-base.ts';
+export * from './endpoints-cliente.ts';
 export * from './endpoints.ts';

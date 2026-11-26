@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "description": "Contrato propuesto entre el frontend y la API de Rockola: esquemas zod, endpoints y su exportación a OpenAPI (doc 04).",
   "exports": {
     ".": "./src/index.ts"

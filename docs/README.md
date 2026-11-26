@@ -97,7 +97,7 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 
 | Tanda | Qué (IDs) | Depende de | Apetito | Estado |
 |---|---|---|---|---|
-| T7 | Bajar el JS del teléfono hacia 180 kB *(propuesto)*: partir `endpoints` del contrato por superficie y, si no alcanza, `zod/mini` (doc 07, análisis del 2026-11-25, #3) | — | Mediano | Abierta |
+| T7 | Bajar el JS del teléfono de 201 kB hacia 180 *(propuesto)*: el registro ya está partido (ADR-36); falta pasar el contrato a `zod/mini` (doc 07, análisis del 2026-11-25, #3) | — | Mediano | Abierta |
 | T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#4, #5, #6) y repetir allá la prueba de carga de `scripts/carga/` (en local ya se hizo: doc 07) | El backend desplegado (persona #1) | Mediano | Abierta |
 
 ## Reglas de estos documentos

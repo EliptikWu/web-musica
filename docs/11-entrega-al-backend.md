@@ -11,7 +11,7 @@ el registro de lo que cambia en `rokolaBackend/` (archivos, migración y prueba 
 
 | Pieza | Dónde | Para qué |
 |---|---|---|
-| Contrato propuesto (fuente) | `packages/contrato/src/*.ts` | Esquemas zod de cada cuerpo y respuesta, y el registro de las 88 operaciones (`endpoints.ts`) |
+| Contrato propuesto (fuente) | `packages/contrato/src/*.ts` | Esquemas zod de cada cuerpo y respuesta, y el registro de las 89 operaciones (`endpoints.ts`, que junta `endpoints-cliente.ts` con las demás; ADR-36) |
 | OpenAPI generado | `packages/contrato/generado/openapi.json` | Lo mismo en formato estándar, para generar servidor, clientes o pruebas |
 | Resumen legible | `packages/contrato/generado/endpoints.md` | Una tabla por superficie: método, ruta, rol y errores |
 | Reglas y decisiones | Doc 04 (entidades, estados, permisos, eventos, errores) y doc 03 (ADR) | Por qué el contrato es así |

@@ -9,7 +9,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { ErrorApi } from '../src/comunes.ts';
-import { type Endpoint, endpoints } from '../src/endpoints.ts';
+import type { Endpoint } from '../src/endpoint-base.ts';
+import { endpoints } from '../src/endpoints.ts';
 import '../src/index.ts';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');

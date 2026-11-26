@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { AvisoPantalla } from '@/components/comun/AvisoPantalla';
-import { pedir } from '@/lib/api/cliente';
+import { pedir } from '@/lib/api/telefono';
 import { codigoDe } from '@/lib/api/errores';
 import { qr } from '@/lib/textos/cliente';
 import { BarNoEncontrado } from './Estados';

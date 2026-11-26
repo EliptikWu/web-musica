@@ -1,5 +1,5 @@
 import { EventoTiempoReal } from '@rockola/contrato';
-import { BASE_API } from '../api/cliente';
+import { BASE_API } from '../api/pedido';
 import { esperarSimulacion } from '../modo';
 
 export type EstadoConexion = 'conectando' | 'conectado' | 'reconectando' | 'desconectado';
