@@ -90,7 +90,6 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 
 | Qué | Quién lo aplazó |
 |---|---|
-| Dominio real de la web y huella del APK firmado para `assetlinks.json` (`TBD`) | Equipo, hasta tener hosting |
 | Lo de «Pendiente de recibir», abajo | Equipo |
 
 ### Lo técnico, por tandas

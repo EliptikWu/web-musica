@@ -43,8 +43,10 @@ Android Studio abre `frontend/movil` como proyecto; Gradle se corre desde esa ca
   todas las pantallas; los reintentos y el sondeo cada 3 s están en `viewmodel/EnVivo.kt`.
 - Entrada por QR: `https://<rockola.dominio>/q/<token>` o `/b/<slug>` abre la app
   (`EntradaViewModel`). El bar se recuerda; un QR viejo o un bar inexistente no lo borran.
-  TBD: el dominio real y el `/.well-known/assetlinks.json` de la web con la huella de la firma
-  (sin él, Android pregunta si abrir con la app o el navegador).
+  Dominio real: `resilient-optimism-production-2fafe284.up.railway.app` (la web en Railway). La web
+  publica `/.well-known/assetlinks.json` con la huella de `ROCKOLA_ANDROID_SHA256`; con ella
+  Android abre el QR en la app sin preguntar (verificado el 2026-11-25: `pm get-app-links` dice
+  `verified`). Si cambia el dominio, se recompila con `-Prockola.dominio` y se actualiza la huella.
 - Escáner (`escaner/`, `ui/pantallas/PantallaEscaner.kt`; RF-066): CameraX y ZXing en una actividad no
   exportada. Todo QR pasa por `leerQrEscaneado`; su contenido y las imágenes no van a logs ni a disco.
   Sin bar recordado se abre solo al arrancar (D22); «Cambiar de bar» olvida el bar y lo abre (RF-069).
