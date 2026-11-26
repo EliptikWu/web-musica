@@ -242,7 +242,7 @@ pedirlo o al sonar se rechaza como `no_disponible`. La simulación no tiene shor
 ## Pendiente del backend (`TBD`)
 
 Desde D25 (2026-11-25) el backend también es de este equipo: lo abierto de esta lista está en el
-backlog técnico del README (T9 es el punto 12; T10, el 27).
+backlog técnico del README (T10 es el punto 27).
 
 1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
 2. Cuota de YouTube: `search.list` cuesta 100 unidades de 10 000 diarias; el
@@ -266,7 +266,7 @@ backlog técnico del README (T9 es el punto 12; T10, el 27).
     cambiar una vez impreso, así que tiene que ser estable y con HTTPS. Lo publica el equipo
     de frontend junto con `/.well-known/assetlinks.json` (paquete y huella SHA-256 de la firma
     de la app), que sirve Next, no el backend (ADR-19).
-12. Migración de `api_idempotencia`. El código del backend (pedir, votar, mover el voto y los
+12. ~~Migración de `api_idempotencia`~~ Resuelto el 2026-11-25 con `V15__api_idempotencia.sql` (`IF NOT EXISTS`, por la tabla hecha a mano en Railway); cuánto se guardan las claves sigue `TBD`. Lo de antes: el código del backend (pedir, votar, mover el voto y los
     reportes de la pantalla) usa esta tabla, pero no estaba en la base ni en ninguna migración,
     y esas operaciones respondían 500. El 2026-11-10 el equipo de frontend la creó a mano en la
     base de Railway con la forma que pide el código, para poder integrar. Falta que el backend

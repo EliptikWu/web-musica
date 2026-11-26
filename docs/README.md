@@ -99,7 +99,6 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 |---|---|---|---|---|
 | T7 | Bajar el JS del teléfono hacia 180 kB *(propuesto)*: partir `endpoints` del contrato por superficie y, si no alcanza, `zod/mini` (doc 07, análisis del 2026-11-25, #3) | — | Mediano | Abierta |
 | T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#4, #5, #6) y repetir allá la prueba de carga de `scripts/carga/` (en local ya se hizo: doc 07) | El backend desplegado (persona #1) | Mediano | Abierta |
-| T9 | Migración de Flyway para `api_idempotencia` (doc 04, punto 12): hoy solo existe en la base de Railway, creada a mano, y en el esquema reconstruido de las pruebas | — | Pequeño | Abierta |
 | T10 | Saltar más rápido en el backend (doc 04, punto 27): verificar el video cuando queda primero en la cola, no al saltar (los avisos SSE ya salen en su propio hilo). Medir antes y después | — | Pequeño | Abierta |
 | T11 | La simulación de Android (`MotorSimulado.kt`) al día con la web: eventos en el horario y la apertura forzada que termina al empezar el horario (RN-09, RF-045) | — | Pequeño | Abierta |
 

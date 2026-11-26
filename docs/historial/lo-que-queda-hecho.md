@@ -14,3 +14,4 @@
 | 2026-11-25 | Segunda lista del equipo (12 puntos) | Commits `f9a6b0b` a `d8f6ba2`; doc 08, iteración 35 |
 | 2026-11-25 | T6: el ícono de la app Android con el logo (la R en el arco de luz) | `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`; doc 05 |
 | 2026-11-25 | Prueba de carga con k6 y el arreglo del pool de conexiones de los avisos SSE (parte de T8 y T10) | `scripts/carga/`, `ContratoSseService.kt`; doc 07 |
+| 2026-11-25 | T9: migración V15 de `api_idempotencia` | Doc 11 |
