@@ -25,6 +25,16 @@ val verificarDominio = tasks.register("verificarDominioRelease") {
 }
 tasks.matching { it.name == "preReleaseBuild" }.configureEach { dependsOn(verificarDominio) }
 
+/*
+ * Firma del APK de release (el que se reparte). El almacén y su clave viven fuera del
+ * repositorio: en ~/.gradle/gradle.properties o en variables de entorno. Sin ellos, el release
+ * sale sin firmar (`-unsigned`) y Android no lo instala.
+ */
+fun propiedad(nombre: String, entorno: String) = (findProperty(nombre) as String?) ?: System.getenv(entorno)
+val almacenFirma = propiedad("rockola.firma.almacen", "ROCKOLA_FIRMA_ALMACEN")
+
+base { archivesName = "rockola" }
+
 android {
     namespace = "com.example.rokola"
     compileSdk {
@@ -45,8 +55,21 @@ android {
         buildConfigField("String", "ROCKOLA_DOMINIO", "\"$dominio\"")
     }
 
+    signingConfigs {
+        if (almacenFirma != null) {
+            create("release") {
+                storeFile = file(almacenFirma)
+                // PKCS12: la llave usa la misma clave que el almacén.
+                storePassword = propiedad("rockola.firma.clave", "ROCKOLA_FIRMA_CLAVE")
+                keyPassword = storePassword
+                keyAlias = propiedad("rockola.firma.alias", "ROCKOLA_FIRMA_ALIAS") ?: "rockola"
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("release")
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")

@@ -91,4 +91,13 @@ Android Studio abre `frontend/movil` como proyecto; Gradle se corre desde esa ca
 - Tableta: `adb shell wm size 1600x2560` y `wm density 320` (horizontal: `2560x1600`); la
   columna del cliente se queda en 480 dp, centrada, como en la web.
 - `./gradlew testDebugUnitTest lintDebug` en verde antes de cada commit.
+
+## APK para repartir
+- `./gradlew assembleRelease` → `app/build/outputs/apk/release/rockola-release.apk`, firmado e
+  instalable en cualquier Android 8+. Sin `rockola.apiUrl` corre en simulación.
+- La firma sale de `rockola.firma.almacen`, `rockola.firma.clave` y `rockola.firma.alias` en
+  `~/.gradle/gradle.properties` (o `ROCKOLA_FIRMA_ALMACEN|CLAVE|ALIAS`), nunca del repositorio.
+  Sin ellas sale `rockola-release-unsigned.apk`, que Android no instala.
+- Sin el mismo almacén no se puede publicar una actualización encima de la instalada: se guarda
+  copia fuera del equipo. Su huella SHA-256 es la de `ROCKOLA_ANDROID_SHA256`.
 - Comentarios, textos de interfaz y commits en español (Colombia).
