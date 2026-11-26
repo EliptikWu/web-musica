@@ -33,9 +33,9 @@ export function useNoche() {
  * es la del servidor. Sin reintentos automáticos: el personal ve el error y decide.
  *
  * `optimista` (pausar y reanudar la música) cambia la noche en pantalla al pulsar, sin esperar
- * la ida y vuelta, y la devuelve como estaba si el servidor dice que no. La tecla sigue ocupada
- * hasta que llega la noche nueva: así no reaparece un instante el botón de antes (lista del
- * equipo, 2026-11-25).
+ * la ida y vuelta, y la devuelve como estaba si el servidor dice que no. `isPending` dura hasta
+ * que llega la noche nueva: así no reaparece un instante el botón de antes (lista del equipo,
+ * 2026-11-25). Si la acción cambia qué tecla se ve, quien la usa marca ocupada también la nueva.
  */
 export function useAccionPanel<N extends NombreEndpoint>(nombre: N, optimista?: (noche: Noche) => Noche) {
   const qc = useQueryClient();

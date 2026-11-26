@@ -45,6 +45,9 @@ export function Operacion() {
   // Pausar y reanudar se ven al pulsar; si el servidor dice que no, vuelve lo de antes.
   const pausar = useAccionPanel('pausarReproduccion', (n) => conMusica(n, 'pausada', ahoraServidor()));
   const reanudar = useAccionPanel('reanudarReproduccion', (n) => conMusica(n, 'sonando', ahoraServidor()));
+  // Una sola marca para las dos teclas: al pulsar «Pausar» aparece «Reanudar» al instante, y un
+  // segundo toque no debe mandar la contraria antes de que el servidor confirme la primera.
+  const musicaOcupada = pausar.isPending || reanudar.isPending;
   const volumen = useAccionPanel('cambiarVolumen');
   const retirar = useAccionPanel('retirar');
   const bloquear = useAccionPanel('bloquear');
@@ -158,11 +161,11 @@ export function Operacion() {
                   ) : null}
                   {puede(rol, 'pausarMusica') ? (
                     n.reproduccion.estado === 'sonando' ? (
-                      <Tecla ocupada={pausar.isPending} onClick={() => pausar.mutate({ parametros: { id: n.reproduccion!.id } }, alTerminar)}>
+                      <Tecla ocupada={musicaOcupada} onClick={() => pausar.mutate({ parametros: { id: n.reproduccion!.id } }, alTerminar)}>
                         {P.pausarMusica}
                       </Tecla>
                     ) : (
-                      <Tecla variante="cereza" ocupada={reanudar.isPending} onClick={() => reanudar.mutate({ parametros: { id: n.reproduccion!.id } }, alTerminar)}>
+                      <Tecla variante="cereza" ocupada={musicaOcupada} onClick={() => reanudar.mutate({ parametros: { id: n.reproduccion!.id } }, alTerminar)}>
                         {P.reanudarMusica}
                       </Tecla>
                     )

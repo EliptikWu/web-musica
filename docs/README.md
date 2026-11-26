@@ -98,6 +98,8 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 | Tanda | Qué (IDs) | Depende de | Apetito | Estado |
 |---|---|---|---|---|
 | T6 | Ícono de la app Android con un logo de verdad (pedido del equipo, 2026-11-25). Hoy es el arco de luz dibujado del doc 05 (fila 2026-11-21) | El logo del equipo, o diseñarlo en el sistema antes (doc 05, `frontend-design`) | Pequeño | Abierta |
+| T7 | Bajar el JS del teléfono hacia 180 kB *(propuesto)*: partir `endpoints` del contrato por superficie y, si no alcanza, `zod/mini` (doc 07, análisis del 2026-11-25, #3) | — | Mediano | Abierta |
+| T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#2, #4, #5, #6) y la prueba de carga (#7, pide permiso para instalar la herramienta) | El backend desplegado (persona #1) | Mediano | Abierta |
 
 ## Reglas de estos documentos
 
