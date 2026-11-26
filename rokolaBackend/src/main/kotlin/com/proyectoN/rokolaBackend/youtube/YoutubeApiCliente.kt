@@ -60,7 +60,8 @@ class   YoutubeApiCliente(
         val detalles = solicitar {
             http.get().uri { url ->
                 url.path("/videos")
-                    .queryParam("part", "snippet,contentDetails,status")
+                    .queryParam("part", "snippet,contentDetails,status,player")
+                    .queryParam("maxWidth", ANCHO_REPRODUCTOR)
                     .queryParam("id", "{ids}")
                     .queryParam("key", claveApi)
                     .build(ids.joinToString(","))
@@ -81,7 +82,8 @@ class   YoutubeApiCliente(
         val detalles = solicitar {
             http.get().uri { url ->
                 url.path("/videos")
-                    .queryParam("part", "snippet,contentDetails,status")
+                    .queryParam("part", "snippet,contentDetails,status,player")
+                    .queryParam("maxWidth", ANCHO_REPRODUCTOR)
                     .queryParam("id", videoId)
                     .queryParam("key", claveApi)
                     .build()
@@ -98,6 +100,8 @@ class   YoutubeApiCliente(
         if (id.isBlank() || !estado.path("embeddable").asBoolean(false)) return null
         if (estado.path("privacyStatus").asText() != "public") return null
         if (snippet.path("liveBroadcastContent").asText() == "live") return null
+        // Los shorts no se piden ni suenan (RN-06, lista del equipo 2026-11-25): son videos verticales.
+        if (esVertical(nodo.path("player"))) return null
 
         val duracion = runCatching {
             Duration.parse(nodo.path("contentDetails").path("duration").asText()).seconds
@@ -142,5 +146,24 @@ class   YoutubeApiCliente(
         )
     } catch (_: ResourceAccessException) {
         throw ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "YouTube no respondió a tiempo")
+    }
+
+    companion object {
+        /**
+         * Ancho pedido para el reproductor (`maxWidth`, 72 a 8192): con él, `videos.list` devuelve
+         * `player.embedWidth` y `embedHeight`, si YouTube conoce la proporción del video. No cambia
+         * la cuota (1 unidad por llamada).
+         */
+        internal const val ANCHO_REPRODUCTOR = 640
+
+        /**
+         * YouTube no marca qué video es un short: se reconoce por ser más alto que ancho. Sin las
+         * medidas (proporción desconocida) se acepta, como antes.
+         */
+        internal fun esVertical(player: JsonNode): Boolean {
+            val ancho = player.path("embedWidth").asLong(0)
+            val alto = player.path("embedHeight").asLong(0)
+            return ancho > 0 && alto > ancho
+        }
     }
 }

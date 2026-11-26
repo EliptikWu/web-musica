@@ -233,6 +233,12 @@ resincroniza al reconectar.
 | `youtube_no_disponible` · `cuota_agotada` | 503 | La búsqueda falló (RF-008) |
 | `error_interno` | 500 | Cualquier otro |
 
+Los shorts (RN-06, 2026-11-25) no tienen motivo propio: YouTube no marca qué video es un short, y el
+backend lo reconoce por ser vertical (`player.embedHeight > embedWidth`, pedido con `maxWidth`; la
+referencia de `videos.list` lo da solo si la proporción del video se conoce). Se tratan como un video no
+embebible: no salen en la búsqueda y, si uno quedó en la caché de 6 h o en una lista de la casa, al
+pedirlo o al sonar se rechaza como `no_disponible`. La simulación no tiene shorts en su catálogo.
+
 ## Pendiente del backend (`TBD`)
 
 1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
