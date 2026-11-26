@@ -241,6 +241,9 @@ pedirlo o al sonar se rechaza como `no_disponible`. La simulación no tiene shor
 
 ## Pendiente del backend (`TBD`)
 
+Desde D25 (2026-11-25) el backend también es de este equipo: lo abierto de esta lista está en el
+backlog técnico del README (T9 es el punto 12; T10, el 27).
+
 1. ~~Transporte de tiempo real~~ Resuelto el 2026-11-10: SSE (doc 03, «Tiempo real»).
 2. Cuota de YouTube: `search.list` cuesta 100 unidades de 10 000 diarias; el
    autocompletado necesita caché en el servidor y espera entre teclas (el cliente espera

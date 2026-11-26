@@ -4,6 +4,9 @@ Qué recibe el equipo de backend, cómo se conecta el frontend a su API y qué f
 El detalle del contrato está en el [doc 04](04-modelo-de-datos-y-contrato.md); este documento
 es la puerta de entrada.
 
+Desde D25 (2026-11-25) el mismo equipo hace el frontend y el backend: este documento queda como
+el registro de lo que cambia en `rokolaBackend/` (archivos, migración y prueba de cada cambio).
+
 ## Qué se entrega
 
 | Pieza | Dónde | Para qué |
@@ -86,7 +89,7 @@ del bar», y `endpoints.md`):
 - Los tres reportes de reproducción responden `401 no_autenticado` sin una pantalla vinculada
   a ese bar, y la sesión se comprueba antes de la caché de `Idempotency-Key`.
 
-## Lo que el equipo de frontend hizo en el backend (D14)
+## Lo que se hizo en el backend (D14, D25)
 
 La base de Railway está apagada y sin acceso. Estos cambios se probaron con pruebas
 unitarias y levantando el backend contra un Postgres 16 en Docker cargado con

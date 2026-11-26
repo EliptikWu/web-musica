@@ -5,11 +5,11 @@ instalar ni registrarse, busca en YouTube, pide canciones y vota; la cola se ord
 la pantalla del bar las reproduce y el personal administra desde un panel. Proyecto nuclear de
 Ingeniería de Software (Universidad Alexander von Humboldt, 2026).
 
-**Este equipo hace los frontends:** la web (`frontend/web`, Next.js) y la app Android
-(`frontend/movil`, Kotlin + Compose, con su propio `CLAUDE.md`). El backend lo hace otro equipo en
-`rokolaBackend/`; por D14 este equipo también hace ahí lo que el frontend necesita, y cada cambio
-va al doc 11 y a «Pendiente del backend» del doc 04 para que lo revisen. Sin la API, la web y la
-app corren contra su **simulación**, con el contrato del doc 04. Integrar es apuntar a la API real.
+**Este equipo hace el frontend y el backend (D25):** la web (`frontend/web`, Next.js), la app
+Android (`frontend/movil`, Kotlin + Compose, con su propio `CLAUDE.md`) y la API (`rokolaBackend/`,
+Kotlin + Spring). Cada cambio del backend va al doc 11 con su migración y su prueba. Sin la API,
+la web y la app corren contra su **simulación**, con el contrato del doc 04. Integrar es apuntar
+a la API real.
 
 ## Estado actual
 

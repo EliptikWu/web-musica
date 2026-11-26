@@ -54,6 +54,7 @@ de Android (iteraciones 32 a 34 del doc 08) y las tandas T1 a T5. Todo está en 
 | D22 | 2026-11-24 | Reemplaza la parte de D20 sobre cuándo se pide la cámara: recién instalada y sin bar recordado, la app abre el escáner sola, para escanear el QR y entrar al bar sin otro paso (RF-066). Y «Cambiar de bar» en la bienvenida olvida el bar recordado y vuelve a la cámara, para irse a otro bar la misma noche (RF-069). | Usuario |
 | D23 | 2026-11-24 | La simulación de Android ya no entra sola al bar «demo»: pide el QR como la real (se abre el escáner, que acepta el QR de la web en simulación, ADR-34) y ofrece «Entrar al bar de demostración». Así el APK de prueba muestra el mismo recorrido que el de producción (RF-066) | Usuario |
 | D24 | 2026-11-25 | Resuelve «Lista de la casa fuera de horario»: la cola y la lista de la casa suenan con la noche abierta, también con las solicitudes en pausa. Sin noche (fuera de horario) o en mantenimiento no suena nada, en el backend y en la simulación (RN-08) | Usuario |
+| D25 | 2026-11-25 | Reemplaza D1 y D14: el equipo hace el frontend **y** el backend. Lo que estaba «pendiente del backend» pasa al backlog técnico como cualquier tanda; el doc 11 sigue siendo el registro de lo que cambia en `rokolaBackend/` (archivos, migración, prueba), ya sin esperar la revisión de otro equipo | Usuario |
 
 ## Decisiones abiertas
 
@@ -84,7 +85,6 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 | 2 | Probar la TV una noche con YouTube real y un televisor: que no se silencie ni se detenga al cambiar de canción o de pestaña (ADR-35) | La simulación no usa videos de verdad; solo se revisó en código y con pruebas unitarias |
 | 3 | Probar el escáner de la app en un teléfono: abrir la app recién instalada y escanear el QR de la TV de `npm run dev` (D22, D23) | El emulador no puede apuntar la cámara a un QR |
 | 4 | Confirmar la matriz del Operador (D9) y los valores de bloqueo de cuenta e inactividad | Decisiones abiertas del equipo |
-| 5 | Revisar y fusionar la rama `correcciones-del-equipo` (el PR no se pudo abrir: GitHub respondió con error; abrirlo a mano si sigue sin aparecer) | Se subió el 2026-11-25 a pedido del usuario |
 
 ### Lo aplazado
 
@@ -100,6 +100,9 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 | T6 | Ícono de la app Android con un logo de verdad (pedido del equipo, 2026-11-25). Hoy es el arco de luz dibujado del doc 05 (fila 2026-11-21) | El logo del equipo, o diseñarlo en el sistema antes (doc 05, `frontend-design`) | Pequeño | Abierta |
 | T7 | Bajar el JS del teléfono hacia 180 kB *(propuesto)*: partir `endpoints` del contrato por superficie y, si no alcanza, `zod/mini` (doc 07, análisis del 2026-11-25, #3) | — | Mediano | Abierta |
 | T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#2, #4, #5, #6) y la prueba de carga (#7, pide permiso para instalar la herramienta) | El backend desplegado (persona #1) | Mediano | Abierta |
+| T9 | Migración de Flyway para `api_idempotencia` (doc 04, punto 12): hoy solo existe en la base de Railway, creada a mano, y en el esquema reconstruido de las pruebas | — | Pequeño | Abierta |
+| T10 | Operación más rápida en el backend (doc 04, punto 27): enviar los avisos SSE fuera de la petición sin desordenar las versiones y verificar el video al quedar primero en la cola, no al saltar. Medir antes y después | T8 (medición) | Mediano | Abierta |
+| T11 | La simulación de Android (`MotorSimulado.kt`) al día con la web: eventos en el horario y la apertura forzada que termina al empezar el horario (RN-09, RF-045) | — | Pequeño | Abierta |
 
 ## Reglas de estos documentos
 
