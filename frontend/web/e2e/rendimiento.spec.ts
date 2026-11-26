@@ -6,11 +6,11 @@ import { abrir, abrirTvVinculada } from './support';
 // backend real (red, base de datos y SSE de verdad). Cada prueba escribe lo medido en el reporte.
 
 /**
- * Techo del JS comprimido de /b/[bar] en esta compilación simulada: 225 kB medidos el 2026-11-25 y
+ * Techo del JS comprimido de /b/[bar] en esta compilación simulada: 214 kB medidos el 2026-11-25 y
  * un margen pequeño. Aquí cuenta también el registro completo del contrato, que solo baja porque lo
- * pide la simulación; en producción el teléfono baja 201 kB sin los esquemas del panel (doc 07).
+ * pide la simulación; en producción el teléfono baja 191 kB, sin los esquemas del panel y con zod/mini (doc 07).
  */
-const TECHO_JS_TELEFONO_KB = 230;
+const TECHO_JS_TELEFONO_KB = 220;
 
 /** Lo medido queda como anotación de la prueba, para copiarlo al doc 07. */
 function anotar(nombre: string, valor: string) {

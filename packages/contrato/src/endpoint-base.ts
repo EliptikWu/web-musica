@@ -1,4 +1,4 @@
-import type { z } from 'zod';
+import type * as z from 'zod/mini';
 import type { CodigoError } from './comunes.ts';
 import type { Rol } from './panel.ts';
 
@@ -16,9 +16,9 @@ export type Endpoint = {
   resumen: string;
   superficie: Superficie;
   rf: readonly string[];
-  consulta?: z.ZodObject;
-  cuerpo?: z.ZodType;
-  respuesta: z.ZodType;
+  consulta?: z.ZodMiniObject;
+  cuerpo?: z.ZodMiniType;
+  respuesta: z.ZodMiniType;
   /** Código HTTP de éxito. */
   estado: 200 | 201 | 204;
   /** Lleva `Idempotency-Key`: la misma clave devuelve la misma respuesta (RNF-008). */

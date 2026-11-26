@@ -26,7 +26,7 @@ const ESTADO_DE: Record<string, number> = {
 const nombrePascal = (nombre: string) => nombre.charAt(0).toUpperCase() + nombre.slice(1);
 
 /** Todo esquema de un endpoint queda registrado con un id, para referenciarlo con $ref. */
-function idDe(esquema: z.ZodType, sugerido: string): string {
+function idDe(esquema: z.core.$ZodType, sugerido: string): string {
   const existente = z.globalRegistry.get(esquema)?.id;
   if (typeof existente === 'string') return existente;
   z.globalRegistry.add(esquema, { id: sugerido });
