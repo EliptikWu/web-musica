@@ -48,12 +48,18 @@ export function Establecimiento() {
   const guardarTema = useAccionGestion('editarEstablecimiento', [claves.panel.establecimiento, ['bar']]);
   return (
     <PaginaGestion titulo="Bar y QR" nota="Los datos del establecimiento, las reglas de los pedidos, el código QR de las mesas y las pantallas que ponen la música.">
+      {/* Dos columnas que apilan cada una sus cajas: a la izquierda lo que se configura del bar, a la
+          derecha lo que va en el local (el QR de las mesas y las TV). Sin filas compartidas no quedan huecos. */}
       <div className="gestion-rejilla gestion-rejilla--dos">
-        <Cargando consulta={bar}>{() => <FormularioBar key={claveDatos(bar.data!)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
-        <Cargando consulta={qr}>{() => <PlacaQrGestion qr={qr.data!} />}</Cargando>
+        <div className="gestion-columna">
+          <Cargando consulta={bar}>{() => <FormularioBar key={claveDatos(bar.data!)} bar={bar.data!} guardar={guardar} aviso={aviso} setAviso={setAviso} />}</Cargando>
+          {bar.data ? <ElegirTema key={bar.data.tema} bar={bar.data} guardar={guardarTema} aviso={avisoTema} setAviso={setAvisoTema} /> : null}
+        </div>
+        <div className="gestion-columna">
+          <Cargando consulta={qr}>{() => <PlacaQrGestion qr={qr.data!} />}</Cargando>
+          <Pantallas />
+        </div>
       </div>
-      {bar.data ? <ElegirTema key={bar.data.tema} bar={bar.data} guardar={guardarTema} aviso={avisoTema} setAviso={setAvisoTema} /> : null}
-      <Pantallas />
     </PaginaGestion>
   );
 }
@@ -176,7 +182,7 @@ function ElegirTema({
   const enUso = TEMAS[bar.tema]?.texto ?? TEMAS.rockola.texto;
   return (
     <form
-      className="caja mt-4 flex flex-col gap-4"
+      className="caja flex flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         if (tema === bar.tema) return setAviso({ tipo: 'luz', texto: `${enUso} ya es el diseño en uso.` });

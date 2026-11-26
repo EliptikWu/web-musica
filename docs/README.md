@@ -80,7 +80,7 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 
 | # | Qué | Por qué |
 |---|---|---|
-| 1 | Desplegar el backend con lo de esta semana: el arreglo de errores de D21, la migración V14, la música con solicitudes en pausa (D24) y el error de YouTube con la canción | «No carga superadmin» y «Todavía no ha entrado» vienen de un backend desplegado viejo; nada de esto se probó contra la base real |
+| 1 | Desplegar la web y el backend con lo de esta semana (la lista del equipo del 2026-11-25 vio en lo desplegado el menú sin grupos y el volumen en la bitácora, ya arreglados en `main`): el arreglo de errores de D21, la migración V14, la música con solicitudes en pausa (D24) y el error de YouTube con la canción | «No carga superadmin» y «Todavía no ha entrado» vienen de un backend desplegado viejo; nada de esto se probó contra la base real |
 | 2 | Probar la TV una noche con YouTube real y un televisor: que no se silencie ni se detenga al cambiar de canción o de pestaña (ADR-35) | La simulación no usa videos de verdad; solo se revisó en código y con pruebas unitarias |
 | 3 | Probar el escáner de la app en un teléfono: abrir la app recién instalada y escanear el QR de la TV de `npm run dev` (D22, D23) | El emulador no puede apuntar la cámara a un QR |
 | 4 | Confirmar la matriz del Operador (D9) y los valores de bloqueo de cuenta e inactividad | Decisiones abiertas del equipo |
@@ -97,7 +97,7 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 
 | Tanda | Qué (IDs) | Depende de | Apetito | Estado |
 |---|---|---|---|---|
-| — | No queda ninguna tanda técnica abierta: lo siguiente está en «Lo que hace una persona» | — | — | — |
+| T6 | Ícono de la app Android con un logo de verdad (pedido del equipo, 2026-11-25). Hoy es el arco de luz dibujado del doc 05 (fila 2026-11-21) | El logo del equipo, o diseñarlo en el sistema antes (doc 05, `frontend-design`) | Pequeño | Abierta |
 
 ## Reglas de estos documentos
 

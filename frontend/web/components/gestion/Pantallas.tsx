@@ -28,8 +28,8 @@ export function Pantallas() {
   // El aviso vive aquí para que sobreviva a la recarga de la lista.
   const [aviso, setAviso] = useState<Mensaje | null>(null);
   return (
-    <div className="gestion-rejilla gestion-rejilla--dos">
-      <section className="caja self-start" aria-labelledby="t-pantallas">
+    <>
+      <section className="caja" aria-labelledby="t-pantallas">
         <div className="caja__cabeza">
           <h2 id="t-pantallas" tabIndex={-1}>
             {T.titulo}
@@ -40,7 +40,7 @@ export function Pantallas() {
         <Cargando consulta={lista}>{() => <ListaPantallas pantallas={lista.data!.pantallas} setAviso={setAviso} />}</Cargando>
       </section>
       <FormularioVincular setAviso={setAviso} />
-    </div>
+    </>
   );
 }
 
@@ -130,7 +130,7 @@ function FormularioVincular({ setAviso }: { setAviso: (a: Mensaje | null) => voi
   };
   return (
     <form
-      className="caja flex flex-col gap-4 self-start"
+      className="caja flex flex-col gap-4"
       aria-labelledby="t-vincular"
       noValidate
       onSubmit={(e) => {

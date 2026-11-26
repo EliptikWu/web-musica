@@ -158,7 +158,7 @@ export const pantallas = {
   nota: 'Las TV que ponen la música y mueven la cola.',
   vacio: {
     titulo: 'Ninguna pantalla está vinculada',
-    detalle: 'Sin una, la música no avanza. Vincula la TV del bar con el formulario de al lado.',
+    detalle: 'Sin una, la música no avanza. Vincula la TV del bar en «Vincular una pantalla», aquí abajo.',
   },
   vinculada: (fecha: string, quien: string) => `Vinculada el ${fecha} por ${quien}`,
   ultimoReporte: (fecha: string) => `Puso música por última vez el ${fecha}`,

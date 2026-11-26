@@ -172,7 +172,7 @@
   /* AÑADIDO (RF-059): con vista previa. Cada opción es una columna (figura, tecla, detalle) y el
      radio cubre la columna entera: se elige tocando también la figura. La elegida se marca con la
      tecla hundida y con la figura enmarcada en crema, no solo con color (la tecla cambia de forma). */
-  .grupo-teclas--figuras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 540px; }
+  .grupo-teclas--figuras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 900px; }
   .grupo-teclas--figuras label { flex-direction: column; align-items: stretch; gap: 10px; }
   .grupo-teclas--figuras .tecla { width: 100%; padding: 0 4px; } /* cabe en columnas de 75 px (320 px, WCAG 1.4.10) */
   .grupo-teclas__figura { display: block; border-radius: var(--radio-tecla); overflow: hidden; background: var(--hueco); box-shadow: inset 0 0 0 1px var(--borde); }
@@ -229,6 +229,9 @@
   .gestion-rejilla { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 16px; }
   /* Cada caja con su alto (punto 17): estiradas a la fila, la más corta quedaba con un hueco vacío. */
   @media (min-width: 1100px) { .gestion-rejilla--dos { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; } }
+  /* Una columna de la rejilla que apila sus cajas sin alinearlas con las de la otra columna: en
+     «Bar y QR» las filas compartidas dejaban huecos bajo la caja más corta (lista del equipo, 2026-11-25). */
+  .gestion-columna { display: grid; gap: inherit; align-content: start; min-width: 0; }
 
   /* Filas de gestión: texto a la izquierda, teclas a la derecha, separadas por guiones. */
   .lista-gestion { list-style: none; margin: 0; padding: 0; }
