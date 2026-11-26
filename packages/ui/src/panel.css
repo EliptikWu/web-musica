@@ -132,6 +132,9 @@
   .alerta-panel { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; border-radius: var(--radio-aviso); background: var(--cereza); color: var(--crema); font-size: 15px; }
   .alerta-panel svg { width: 22px; height: 22px; flex: none; }
   .alerta-panel a { color: var(--crema); font-weight: 700; margin-left: auto; text-underline-offset: 3px; min-height: 44px; display: inline-flex; align-items: center; }
+  /* El aviso que se va solo (errores de YouTube) se desvanece; con movimiento reducido, base.css lo deja en 0 ms. */
+  .alerta-panel--saliendo { animation: alerta-salida var(--desvanecer) ease-out forwards; }
+  @keyframes alerta-salida { to { opacity: 0; } }
 
   /* ── Formularios (AÑADIDO): papel como el buscador, etiqueta encima ──────── */
   .campo { display: flex; flex-direction: column; gap: 6px; }

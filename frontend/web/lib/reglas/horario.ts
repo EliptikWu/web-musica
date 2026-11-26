@@ -70,6 +70,43 @@ export function proximaApertura(franjas: readonly FranjaHorario[], instante: Dat
   return redondearAlMinuto(new Date(instante.getTime() + faltan * 60000));
 }
 
+/**
+ * El horario que vale de verdad (RF-036, RF-045): las franjas **más** los eventos del calendario.
+ * Un evento suma horas y nunca quita; las ventanas que se tocan o se pisan cuentan como una sola.
+ * Igual que `HorarioEfectivoService` del backend (antes la simulación ignoraba los eventos y un
+ * evento fuera del horario semanal salía «Fuera de horario»; lista del equipo, 2026-11-25).
+ */
+export type EventoHorario = { inicio: string; fin: string };
+
+function eventosEn(eventos: readonly EventoHorario[], ms: number): EventoHorario[] {
+  return eventos.filter((e) => Date.parse(e.inicio) <= ms && ms < Date.parse(e.fin));
+}
+
+export function abiertoEfectivo(franjas: readonly FranjaHorario[], eventos: readonly EventoHorario[], instante: Date, zona: string): boolean {
+  return abiertoPorHorario(franjas, instante, zona) || eventosEn(eventos, instante.getTime()).length > 0;
+}
+
+/** Cuándo cierra la ventana abierta ahora (franjas y eventos unidos), o null si está cerrado. */
+export function cierreEfectivo(franjas: readonly FranjaHorario[], eventos: readonly EventoHorario[], instante: Date, zona: string): Date | null {
+  if (!abiertoEfectivo(franjas, eventos, instante, zona)) return null;
+  let fin = instante.getTime();
+  // Cada vuelta salta al final de lo que sigue abierto en ese momento; una semana de ventanas pegadas como mucho.
+  for (let vuelta = 0; vuelta < 50; vuelta++) {
+    const deFranja = cierreDeFranja(franjas, new Date(fin), zona)?.getTime() ?? fin;
+    const siguiente = Math.max(deFranja, ...eventosEn(eventos, fin).map((e) => Date.parse(e.fin)));
+    if (siguiente <= fin) break;
+    fin = siguiente;
+  }
+  return new Date(fin);
+}
+
+/** Cuándo abre lo próximo, franja o evento (si ahora está cerrado). */
+export function proximaAperturaEfectiva(franjas: readonly FranjaHorario[], eventos: readonly EventoHorario[], instante: Date, zona: string): Date | null {
+  const candidatas = [proximaApertura(franjas, instante, zona)?.getTime(), ...eventos.map((e) => Date.parse(e.inicio)).filter((ms) => ms > instante.getTime())];
+  const validas = candidatas.filter((ms): ms is number => ms !== undefined);
+  return validas.length > 0 ? new Date(Math.min(...validas)) : null;
+}
+
 function redondearAlMinuto(fecha: Date): Date {
   return new Date(Math.floor(fecha.getTime() / 60000) * 60000);
 }
@@ -93,6 +130,15 @@ export function validarFranjas(franjas: readonly FranjaHorario[]): ProblemaHorar
     }
   }
   return problemas;
+}
+
+/**
+ * El día (1–7) de la noche que corre: el de la franja abierta, que pertenece al día en que empieza
+ * (el sábado a la 1:00 a. m. todavía es la noche del viernes); sin franja abierta, el del calendario.
+ */
+export function diaDeLaNoche(franjas: readonly FranjaHorario[], ahoraMs: number, zona: string): number {
+  const instante = new Date(ahoraMs);
+  return franjaVigente(franjas, instante, zona)?.dia_semana ?? momentoLocal(instante, zona).dia;
 }
 
 /** Días que abren (1–7), según las franjas activas. */

@@ -295,7 +295,7 @@ La regla vive en el servidor; el frontend la **explica** y la anticipa en la int
 | RN-06 | No se aceptan bloqueadas, no disponibles, no embebibles ni de más de 10 min; el cliente ve el motivo | Texto en lugar de «Pedir» |
 | RN-07 | Una canción ya sonada no se repite en 60 min (configurable) | «Sonó hace poco» con la hora en que se podrá pedir |
 | RN-08 | Sin pendientes suena la lista de la casa; al llegar una solicitud se termina la canción en curso. Suena con la noche abierta, también con las solicitudes en pausa; sin noche (fuera de horario) o en mantenimiento no suena nada (D24) | Etiqueta de origen en TV y cliente |
-| RN-09 | El QR sigue el horario salvo pausa o activación forzada | Barra de estado del panel |
+| RN-09 | El QR sigue el horario salvo pausa o activación forzada. La activación forzada termina cuando empieza el horario (2026-11-25) | Barra de estado del panel |
 | RN-10 | El mantenimiento cierra la sesión y expira lo pendiente | Confirmación en el panel; «expirada» en «Tus pedidos» |
 | RN-11 | Toda acción del personal queda registrada | Registro de acciones y bitácora |
 

@@ -29,3 +29,15 @@ export function avanceDesdeFoto(reproduccion: ReproduccionMinima | null, servido
 export function esperaDe(item: { espera_seg: number }, avance: number): number {
   return Math.max(0, item.espera_seg - avance);
 }
+
+/**
+ * La foto con la música pausada o sonando desde `ahoraServidorMs`, para mostrarlo al pulsar sin
+ * esperar al servidor (lista del equipo, 2026-11-25). La posición queda donde iba y la foto se
+ * toma en ese instante, así el avance no cuenta el tiempo en pausa. Sin nada sonando, no cambia.
+ */
+export function conMusica<F extends { servidor_ahora: string; reproduccion: ReproduccionMinima | null }>(foto: F, estado: ReproduccionMinima['estado'], ahoraServidorMs: number): F {
+  const rep = foto.reproduccion;
+  if (!rep) return foto;
+  const posicion_seg = Math.floor(posicionActual(rep, foto.servidor_ahora, ahoraServidorMs));
+  return { ...foto, servidor_ahora: new Date(ahoraServidorMs).toISOString(), reproduccion: { ...rep, estado, posicion_seg } };
+}

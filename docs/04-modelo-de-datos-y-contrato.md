@@ -87,6 +87,9 @@ Los textos definitivos salen de `design:ux-copy` y viven en `frontend/web/lib/te
 
 `modo_qr` (`automatico` \| `forzado_activo` \| `pausado`) es lo que el Administrador elige;
 `estado` es el resultado de combinarlo con el horario (RN-09).
+La apertura forzada dura solo mientras está fuera del horario: si la noche se abrió a mano antes
+de la hora, cuando empieza el horario el servidor vuelve a `automatico` y manda el horario (avisa
+y cierra a su hora). El horario es el efectivo: franjas más eventos (RF-045).
 
 ## Permisos
 
@@ -293,3 +296,4 @@ resincroniza al reconectar.
 24. Plataforma (RF-064), 2026-11-21: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p24).
 25. QR del panel y su destino (RF-035, RF-065), 2026-11-21: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p25).
 26. Cubo en vivo y géneros (RF-067, RF-068), del equipo de backend, 2026-11-24: hecho. Detalle y lo que queda por revisar en [historial](historial/04-hecho-para-el-backend.md#p26).
+27. Rapidez de los botones de operación (lista del equipo, 2026-11-25), *(propuesto, sin medir contra el backend real)*: los oyentes SSE de `ContratoSseService` arman la foto y escriben a cada cliente dentro de la misma petición, antes del 204; y al saltar, `ReproduccionAutomaticaService` consulta YouTube (`obtenerVideoPorId`, sin caché) antes de poner la siguiente. La web ya muestra pausar y reanudar al pulsar (optimista). Decidir si el envío pasa a un hilo aparte sin desordenar las versiones, y si la verificación del video se adelanta a cuando la canción queda primera en la cola. Ver doc 07, «Análisis 2026-11-25».

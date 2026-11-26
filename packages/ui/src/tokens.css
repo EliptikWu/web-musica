@@ -87,6 +87,7 @@
   /* Movimiento (AÑADIDO, doc 05 «Movimiento») */
   --pulsar: 80ms;
   --reordenar: 300ms;
+  --desvanecer: 600ms; /* un aviso que se va solo */
 
   color-scheme: dark;
 }

@@ -13,9 +13,9 @@ import { DIAS, formatoDuracion, formatoHace, formatoHora, formatoMinutos, format
 import { MODO } from '@/lib/modo';
 import { puede } from '@/lib/permisos';
 import { duracionCola } from '@/lib/reglas/cola';
-import { posicionActual } from '@/lib/reglas/espera';
-import { diasQueAbren, minutosParaCerrar, momentoLocal } from '@/lib/reglas/horario';
-import { useAhoraServidor } from '@/lib/reloj-servidor';
+import { conMusica, posicionActual } from '@/lib/reglas/espera';
+import { diaDeLaNoche, diasQueAbren, minutosParaCerrar } from '@/lib/reglas/horario';
+import { ahoraServidor, useAhoraServidor } from '@/lib/reloj-servidor';
 import { acciones, dialogos, errores, franjaEstado, lineasRegistro, P } from '@/lib/textos/panel';
 import { ControlVolumen } from './ControlVolumen';
 import { DialogoBloquear, DialogoConfirmar, DialogoRetirar } from './Dialogos';
@@ -42,8 +42,9 @@ export function Operacion() {
   const abrir = useAccionPanel('abrirSesion');
   const cerrar = useAccionPanel('cerrarSesion');
   const saltar = useAccionPanel('saltar');
-  const pausar = useAccionPanel('pausarReproduccion');
-  const reanudar = useAccionPanel('reanudarReproduccion');
+  // Pausar y reanudar se ven al pulsar; si el servidor dice que no, vuelve lo de antes.
+  const pausar = useAccionPanel('pausarReproduccion', (n) => conMusica(n, 'pausada', ahoraServidor()));
+  const reanudar = useAccionPanel('reanudarReproduccion', (n) => conMusica(n, 'sonando', ahoraServidor()));
   const volumen = useAccionPanel('cambiarVolumen');
   const retirar = useAccionPanel('retirar');
   const bloquear = useAccionPanel('bloquear');
@@ -123,14 +124,7 @@ export function Operacion() {
           </span>
         </p>
       ) : null}
-      {n.alertas
-        .filter((a) => a.tipo === 'errores_youtube')
-        .map((a) => (
-          <p key={a.tipo} className="alerta-panel" role="status">
-            <Icono nombre="alerta" />
-            {P.erroresYoutube(a.detalle)}
-          </p>
-        ))}
+      <AvisoYoutube alerta={n.alertas.find((a) => a.tipo === 'errores_youtube')} />
 
       <div className="rejilla-panel">
         <div className="rejilla-panel__col">
@@ -301,7 +295,7 @@ export function Operacion() {
 
           <Caja titulo={P.horario}>
             <DiasSemana
-              dias={DIAS.map((d, i) => ({ ...d, abre: diasQueAbren(n.horario).has(i + 1), hoy: momentoLocal(new Date(momento), zona).dia === i + 1 }))}
+              dias={DIAS.map((d, i) => ({ ...d, abre: diasQueAbren(n.horario).has(i + 1), hoy: diaDeLaNoche(n.horario, momento, zona) === i + 1 }))}
             />
             <div className="horas">
               {resumenHorario(n.horario).map((l) => (
@@ -400,6 +394,25 @@ function BarraEstado({ noche, zona, acciones: botones }: { noche: Noche; zona: s
         <div className="estado-bar__acciones">{botones}</div>
       </div>
     </section>
+  );
+}
+
+/**
+ * El aviso de errores de YouTube (RF-019). El servidor lo manda mientras haya errores de los
+ * últimos 5 min; cuando deja de llegar, se desvanece en vez de desaparecer de golpe (lista del
+ * equipo, 2026-11-25). Con movimiento reducido se va sin transición.
+ */
+function AvisoYoutube({ alerta }: { alerta: Noche['alertas'][number] | undefined }) {
+  const texto = alerta ? P.erroresYoutube(alerta.detalle) : null;
+  const [mostrado, setMostrado] = useState<string | null>(texto);
+  if (texto !== null && texto !== mostrado) setMostrado(texto);
+  if (mostrado === null) return null;
+  const saliendo = texto === null;
+  return (
+    <p className={saliendo ? 'alerta-panel alerta-panel--saliendo' : 'alerta-panel'} role="status" aria-hidden={saliendo || undefined} onAnimationEnd={() => saliendo && setMostrado(null)}>
+      <Icono nombre="alerta" />
+      {mostrado}
+    </p>
   );
 }
 

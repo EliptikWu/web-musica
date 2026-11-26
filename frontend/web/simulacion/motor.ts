@@ -2,7 +2,7 @@ import type {
   Ahora, Busqueda, CodigoError, Destacada, EstadoServicio, ItemCola, MiSolicitud, MotivoNoPedible, Noche, RespuestaSolicitud,
   RespuestaVoto, Servicio, Yo,
 } from '@rockola/contrato';
-import { abiertoPorHorario, cierreDeFranja, franjaVigente, proximaApertura } from '../lib/reglas/horario';
+import { abiertoEfectivo, cierreDeFranja, cierreEfectivo, franjaVigente, proximaAperturaEfectiva } from '../lib/reglas/horario';
 import type { AccionSim, BloqueoSim, CancionSim, EstadoSim, ReproduccionSim, SolicitudSim, TipoAccion } from './tipos';
 
 /**
@@ -104,13 +104,16 @@ export function recientesPrimero(acciones: readonly AccionSim[]): AccionSim[] {
   return [...acciones].reverse().sort((a, b) => b.fecha - a.fecha);
 }
 
+/** El aviso de YouTube cuenta los errores de los últimos 5 min y luego se va solo (lista del equipo, 2026-11-25). */
+export const VENTANA_ERRORES_YOUTUBE_MS = 5 * 60_000;
+
 /**
  * El aviso del panel dice cuáles canciones no pudo poner YouTube (RF-019): las tres más recientes
  * y cuántas más. Igual que `ContratoNocheService.detalleErroresYoutube` del backend.
  */
 export function detalleErroresYoutube(titulos: (string | null)[]): string {
   const conNombre = titulos.filter((t): t is string => !!t);
-  const total = `(${titulos.length} en la última media hora)`;
+  const total = `(${titulos.length} en los últimos 5 minutos)`;
   if (conNombre.length === 0) return `algunas canciones ${total}`;
   const resto = titulos.length - Math.min(3, conNombre.length);
   return `${conNombre.slice(0, 3).map((t) => `«${t}»`).join(', ')}${resto > 0 ? ` y ${resto} más` : ''} ${total}`;
@@ -123,8 +126,8 @@ const objetivoCancion = (c: CancionSim): AccionSim['objetivo'] => ({ tipo: 'canc
 export function evaluarServicio(estado: EstadoSim, ahora: number): Servicio {
   const zona = estado.bar.zona_horaria;
   const instante = new Date(ahora);
-  const cierre = cierreDeFranja(estado.horario, instante, zona);
-  const proxima = proximaApertura(estado.horario, instante, zona);
+  const cierre = cierreEfectivo(estado.horario, estado.eventos, instante, zona);
+  const proxima = proximaAperturaEfectiva(estado.horario, estado.eventos, instante, zona);
   const ultima = (tipos: TipoAccion[]) => [...estado.acciones].reverse().find((a) => tipos.includes(a.tipo))?.fecha ?? null;
   let tipo: EstadoServicio;
   let desde: number | null;
@@ -134,7 +137,7 @@ export function evaluarServicio(estado: EstadoSim, ahora: number): Servicio {
   } else if (estado.modo_qr === 'pausado') {
     tipo = 'en_pausa';
     desde = ultima(['pausar_solicitudes']);
-  } else if (estado.modo_qr === 'forzado_activo' || abiertoPorHorario(estado.horario, instante, zona)) {
+  } else if (estado.modo_qr === 'forzado_activo' || abiertoEfectivo(estado.horario, estado.eventos, instante, zona)) {
     tipo = 'abierto';
     desde = estado.sesion?.apertura ?? null;
   } else {
@@ -238,7 +241,14 @@ export function avanzar(estado: EstadoSim, ahora: number): boolean {
   const instante = new Date(ahora);
 
   // Sesión según el horario (RN-09).
-  const enHorario = abiertoPorHorario(estado.horario, instante, zona);
+  const enHorario = abiertoEfectivo(estado.horario, estado.eventos, instante, zona);
+  // Abierta a mano antes de la hora: cuando empieza el horario, manda el horario (avisa antes de
+  // cerrar y cierra a su hora). Antes seguía «Abierto a mano, fuera del horario» toda la noche.
+  if (estado.sesion && enHorario && (estado.modo_qr === 'forzado_activo' || estado.pausa_forzada)) {
+    if (estado.modo_qr === 'forzado_activo') estado.modo_qr = 'automatico';
+    estado.pausa_forzada = false;
+    tocar(estado);
+  }
   const vetada = estado.sin_apertura_automatica_hasta !== null && ahora < estado.sin_apertura_automatica_hasta;
   if (!vetada) estado.sin_apertura_automatica_hasta = null;
   if (!estado.sesion && !estado.mantenimiento && !vetada && (enHorario || estado.modo_qr === 'forzado_activo')) {
@@ -718,7 +728,7 @@ export function abrirSesionManual(estado: EstadoSim, tipoEvento: string, quien: 
   estado.mantenimiento = false;
   estado.sin_apertura_automatica_hasta = null;
   abrirSesionInterna(estado, ahora, 'manual', tipoEvento, quien);
-  if (!abiertoPorHorario(estado.horario, new Date(ahora), estado.bar.zona_horaria) && estado.modo_qr === 'automatico') estado.modo_qr = 'forzado_activo';
+  if (!abiertoEfectivo(estado.horario, estado.eventos, new Date(ahora), estado.bar.zona_horaria) && estado.modo_qr === 'automatico') estado.modo_qr = 'forzado_activo';
   tocar(estado);
   return bien(null, 204);
 }
@@ -729,7 +739,7 @@ export function cerrarSesionManual(estado: EstadoSim, quien: Personal, ahora: nu
   estado.pausa_forzada = false;
   if (estado.modo_qr === 'forzado_activo') estado.modo_qr = 'automatico';
   // Cerrada a mano dentro del horario: no se reabre sola hasta que acabe esta franja.
-  const cierre = cierreDeFranja(estado.horario, new Date(ahora), estado.bar.zona_horaria);
+  const cierre = cierreEfectivo(estado.horario, estado.eventos, new Date(ahora), estado.bar.zona_horaria);
   estado.sin_apertura_automatica_hasta = cierre ? cierre.getTime() : null;
   tocar(estado);
   return bien(null, 204);
@@ -744,7 +754,7 @@ export function construirNoche(estado: EstadoSim, ahora: number): Noche {
   const alertas: Noche['alertas'] = [];
   if (!lista) alertas.push({ tipo: 'sin_lista_activa', detalle: 'Si la cola se vacía, no sonará nada.' });
   if (!estado.sesion && ahoraFoto.servicio.estado === 'abierto') alertas.push({ tipo: 'sin_sesion', detalle: null });
-  const errores = estado.acciones.filter((a) => a.tipo === 'error_youtube' && a.fecha > ahora - 30 * 60_000);
+  const errores = estado.acciones.filter((a) => a.tipo === 'error_youtube' && a.fecha > ahora - VENTANA_ERRORES_YOUTUBE_MS);
   if (errores.length > 0) alertas.push({ tipo: 'errores_youtube', detalle: detalleErroresYoutube(recientesPrimero(errores).map((a) => a.objetivo?.nombre ?? null)) });
   const m = estado.metricas;
   return {

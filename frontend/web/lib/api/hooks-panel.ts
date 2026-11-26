@@ -1,6 +1,6 @@
 'use client';
 
-import type { NombreEndpoint, Respuesta } from '@rockola/contrato';
+import type { NombreEndpoint, Noche, Respuesta } from '@rockola/contrato';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { olvidarTemaPanel } from '@/lib/tema';
 import { salida } from '../sesion-panel';
@@ -31,15 +31,28 @@ export function useNoche() {
 /**
  * Una acción del panel. Al terminar, bien o mal, se vuelve a pedir lo del panel: la verdad
  * es la del servidor. Sin reintentos automáticos: el personal ve el error y decide.
+ *
+ * `optimista` (pausar y reanudar la música) cambia la noche en pantalla al pulsar, sin esperar
+ * la ida y vuelta, y la devuelve como estaba si el servidor dice que no. La tecla sigue ocupada
+ * hasta que llega la noche nueva: así no reaparece un instante el botón de antes (lista del
+ * equipo, 2026-11-25).
  */
-export function useAccionPanel<N extends NombreEndpoint>(nombre: N) {
+export function useAccionPanel<N extends NombreEndpoint>(nombre: N, optimista?: (noche: Noche) => Noche) {
   const qc = useQueryClient();
-  return useMutation<Respuesta<N>, unknown, OpcionesPedido<N>>({
+  return useMutation<Respuesta<N>, unknown, OpcionesPedido<N>, { antes?: Noche }>({
     mutationFn: (opciones) => (pedir as (n: N, o: OpcionesPedido<N>) => Promise<Respuesta<N>>)(nombre, opciones),
-    onSettled: () => {
-      void qc.invalidateQueries({ queryKey: claves.panel.noche });
-      void qc.invalidateQueries({ queryKey: ['ahora'] });
+    onMutate: async () => {
+      if (!optimista) return {};
+      // Una recarga en curso traería la noche de antes y taparía el cambio.
+      await qc.cancelQueries({ queryKey: claves.panel.noche });
+      const antes = qc.getQueryData<Noche>(claves.panel.noche);
+      if (antes) qc.setQueryData(claves.panel.noche, optimista(antes));
+      return { antes };
     },
+    onError: (_e, _o, contexto) => {
+      if (contexto?.antes) qc.setQueryData(claves.panel.noche, contexto.antes);
+    },
+    onSettled: () => Promise.all([qc.invalidateQueries({ queryKey: claves.panel.noche }), qc.invalidateQueries({ queryKey: ['ahora'] })]),
   });
 }
 

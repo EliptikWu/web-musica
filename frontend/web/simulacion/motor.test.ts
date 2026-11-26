@@ -193,12 +193,15 @@ describe('la noche avanza sola (RF-019, RF-020, RN-08)', () => {
     expect(construirYo(estado, PERSONA).solicitudes.find((s) => s.solicitud_id === 's-rebelion')?.estado).toBe('no_disponible');
     expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'error_youtube', detalle: 'El reproductor dio el error 150' });
     // El aviso del panel dice cuál fue, no solo cuántas.
-    expect(Noche.parse(construirNoche(estado, ahora)).alertas).toContainEqual({ tipo: 'errores_youtube', detalle: '«Rebelión» (1 en la última media hora)' });
+    expect(Noche.parse(construirNoche(estado, ahora)).alertas).toContainEqual({ tipo: 'errores_youtube', detalle: '«Rebelión» (1 en los últimos 5 minutos)' });
+    // A los 5 minutos el aviso se va solo.
+    expect(construirNoche(estado, ahora + 4 * 60_000).alertas.some((a) => a.tipo === 'errores_youtube')).toBe(true);
+    expect(construirNoche(estado, ahora + 5 * 60_000 + 1).alertas.some((a) => a.tipo === 'errores_youtube')).toBe(false);
   });
 
   it('el aviso de YouTube nombra hasta tres canciones y cuenta las demás', () => {
-    expect(detalleErroresYoutube(['A', 'B', 'C', 'D', null])).toBe('«A», «B», «C» y 2 más (5 en la última media hora)');
-    expect(detalleErroresYoutube([null])).toBe('algunas canciones (1 en la última media hora)');
+    expect(detalleErroresYoutube(['A', 'B', 'C', 'D', null])).toBe('«A», «B», «C» y 2 más (5 en los últimos 5 minutos)');
+    expect(detalleErroresYoutube([null])).toBe('algunas canciones (1 en los últimos 5 minutos)');
   });
 });
 
@@ -270,6 +273,33 @@ describe('la noche abierta y cerrada a mano (barrido de la iteración 0)', () =>
     cambiarModoQr(estado, 'automatico', ADMIN, ahora + 1000);
     expect(estado.sesion).toBeNull();
     expect(construirAhora(estado, ahora + 1000).servicio.estado).toBe('fuera_de_horario');
+  });
+});
+
+describe('abierta a mano antes de la hora (lista del equipo, 2026-11-25)', () => {
+  it('cuando empieza el horario deja de ser «a mano»: avisa el cierre y cierra a su hora', () => {
+    const { estado } = escena('fuera-de-horario');
+    const ahora = ahoraSim(estado, REAL);
+    const abre = Date.parse(construirAhora(estado, ahora).servicio.proxima_apertura!);
+    abrirSesionManual(estado, 'normal', ADMIN, abre - 10 * 60_000);
+    expect(construirAhora(estado, abre - 5 * 60_000).servicio).toMatchObject({ estado: 'abierto', modo_qr: 'forzado_activo', hasta: null });
+    avanzar(estado, abre + 30_000);
+    const servicio = construirAhora(estado, abre + 30_000).servicio;
+    expect(servicio).toMatchObject({ estado: 'abierto', modo_qr: 'automatico' });
+    expect(servicio.hasta).not.toBeNull();
+    avanzar(estado, Date.parse(servicio.hasta!) + 60_000);
+    expect(estado.sesion).toBeNull();
+  });
+
+  it('un evento fuera del horario semanal abre el bar, como en el backend (RF-045)', () => {
+    const { estado } = escena('fuera-de-horario');
+    const ahora = ahoraSim(estado, REAL);
+    const inicio = new Date(ahora - 60_000).toISOString();
+    const fin = new Date(ahora + 3600_000).toISOString(); // Termina antes de la franja de las 8:00 p. m.: no se unen.
+    estado.eventos.push({ id: 'ev-fuera', nombre: 'Partido', tipo_evento: 'partido', inicio, fin, descripcion: null });
+    avanzar(estado, ahora);
+    expect(estado.sesion?.origen).toBe('horario');
+    expect(construirAhora(estado, ahora).servicio).toMatchObject({ estado: 'abierto', modo_qr: 'automatico', hasta: fin });
   });
 });
 

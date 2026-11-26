@@ -115,6 +115,7 @@ Los prototipos no tienen movimiento. Se añade lo mínimo, con intención:
 | Votar | La tecla queda hundida y cambia el texto a «Votaste» | Confirma en < 1 s (RF-012) |
 | Subir de puesto | La tarjeta se desplaza a su nuevo sitio en 300 ms | Que se vea por qué cambió el orden |
 | Avance de la canción | Continuo, sin animación de entrada | — |
+| Aviso que se va solo (errores de YouTube en el panel) | Se desvanece en 600 ms (`--desvanecer`) cuando el servidor deja de mandarlo, a los 5 min del último error | Que no desaparezca de golpe ni se quede la noche entera (lista del equipo, 2026-11-25) |
 
 Con `prefers-reduced-motion: reduce` todo cambia sin transición.
 

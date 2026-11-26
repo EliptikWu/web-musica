@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { duracionCola, ejemploDesempate, ordenarCola, puestosSubidos, renumerar } from './cola';
-import { avanceDesdeFoto, esperaDe, posicionActual } from './espera';
-import { abiertoPorHorario, cierreDeFranja, diasQueAbren, minutosParaCerrar, momentoLocal, proximaApertura, validarFranjas, type FranjaHorario } from './horario';
+import { avanceDesdeFoto, conMusica, esperaDe, posicionActual } from './espera';
+import { abiertoEfectivo, abiertoPorHorario, diaDeLaNoche, cierreDeFranja, cierreEfectivo, proximaAperturaEfectiva, diasQueAbren, minutosParaCerrar, momentoLocal, proximaApertura, validarFranjas, type FranjaHorario } from './horario';
 import { aceptaPedidos, estadoTecla } from './pedidos';
 import { formatoEspera, formatoResumenCola, minutosEnteros } from '../formato';
 
@@ -87,6 +87,15 @@ describe('espera estimada (RF-018)', () => {
     expect(posicionActual(REBELION, AHORA, ahoraMs + 999_000)).toBe(358);
   });
 
+  it('pausar al pulsar deja la canción donde iba, y reanudar no cuenta el tiempo en pausa', () => {
+    const pausada = conMusica({ servidor_ahora: AHORA, reproduccion: REBELION }, 'pausada', ahoraMs + 10_000);
+    expect(pausada.reproduccion).toMatchObject({ estado: 'pausada', posicion_seg: 171 });
+    expect(posicionActual(pausada.reproduccion!, pausada.servidor_ahora, ahoraMs + 60_000)).toBe(171);
+    const sonando = conMusica(pausada, 'sonando', ahoraMs + 60_000);
+    expect(posicionActual(sonando.reproduccion!, sonando.servidor_ahora, ahoraMs + 65_000)).toBe(176);
+    expect(conMusica({ servidor_ahora: AHORA, reproduccion: null }, 'pausada', ahoraMs).reproduccion).toBeNull();
+  });
+
   it('dice «en menos de 1 min» y no «unos 0 min»', () => {
     expect(formatoEspera(45)).toBe('en menos de 1 min');
   });
@@ -98,6 +107,23 @@ describe('horario que cruza medianoche (RF-036, RN-09)', () => {
 
   it('el viernes a la 1:30 a. m. sigue abierta la franja del jueves', () => {
     expect(abiertoPorHorario(franjas, new Date('2026-10-23T01:30:00-05:00'), zona)).toBe(true);
+  });
+
+  it('un evento suma horas: si se pega a la franja, cierra con ella; si no, abre solo (RF-045)', () => {
+    const partido = { inicio: '2026-10-22T18:00:00-05:00', fin: '2026-10-22T20:00:00-05:00' };
+    const seisYMedia = new Date('2026-10-22T18:30:00-05:00');
+    expect(abiertoPorHorario(franjas, seisYMedia, zona)).toBe(false);
+    expect(abiertoEfectivo(franjas, [partido], seisYMedia, zona)).toBe(true);
+    expect(cierreEfectivo(franjas, [partido], seisYMedia, zona)?.toISOString()).toBe(new Date('2026-10-23T02:00:00-05:00').toISOString());
+    const suelto = { inicio: '2026-10-22T14:00:00-05:00', fin: '2026-10-22T16:00:00-05:00' };
+    expect(cierreEfectivo(franjas, [suelto], new Date('2026-10-22T15:00:00-05:00'), zona)?.toISOString()).toBe(new Date(suelto.fin).toISOString());
+    expect(proximaAperturaEfectiva(franjas, [suelto], new Date('2026-10-22T12:00:00-05:00'), zona)?.toISOString()).toBe(new Date(suelto.inicio).toISOString());
+    expect(cierreEfectivo(franjas, [], new Date('2026-10-22T12:00:00-05:00'), zona)).toBeNull();
+  });
+
+  it('a la 1:30 a. m. del viernes, «hoy» en el panel sigue siendo el jueves', () => {
+    expect(diaDeLaNoche(franjas, Date.parse('2026-10-23T01:30:00-05:00'), zona)).toBe(4);
+    expect(diaDeLaNoche(franjas, Date.parse('2026-10-23T12:00:00-05:00'), zona)).toBe(5);
   });
 
   it('a las 2:00 a. m. ya está cerrado', () => {

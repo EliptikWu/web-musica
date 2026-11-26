@@ -198,6 +198,15 @@ class ContratoServicioService(
     }
     val enHorario = horarioEfectivo.estaAbierto(bar.id, bar.zona)
     val abierta = sesionAbierta(bar.id)
+    // Abierta a mano antes de la hora: cuando empieza el horario, manda el horario (avisa antes de
+    // cerrar y cierra a su hora). Antes seguía «Abierto a mano, fuera del horario» toda la noche
+    // (lista del equipo, 2026-11-25). Igual que `avanzar` de la simulación.
+    if (quitarForzado(abierta != null, enHorario, c.forzado)) {
+      jdbc.update("UPDATE public.configuracion_servicio SET forzado_abierto = FALSE, fecha_modificacion = CURRENT_TIMESTAMP WHERE id_establecimiento = ?", bar.id)
+      eventos.publishEvent(CambioServicioEvent(bar.slug))
+      panel.publicar(bar.slug, setOf("noche"))
+      return
+    }
     when (accionHorario(abierta != null, enHorario, c.forzado, vetada)) {
       AccionHorario.ABRIR -> {
         val id = insertarNoche(bar.id, "normal", if (enHorario) "horario" else "manual")
@@ -302,6 +311,9 @@ class ContratoServicioService(
       hayNoche && !enHorario && !forzado -> AccionHorario.CERRAR
       else -> AccionHorario.NADA
     }
+
+    /** Lo forzado sobra cuando la noche abierta ya está dentro del horario. */
+    internal fun quitarForzado(hayNoche: Boolean, enHorario: Boolean, forzado: Boolean): Boolean = hayNoche && enHorario && forzado
 
     internal fun leerModo(cuerpo: Map<String, Any?>?): String =
       (cuerpo?.get("modo_qr") as? String)?.takeIf { it in MODOS }

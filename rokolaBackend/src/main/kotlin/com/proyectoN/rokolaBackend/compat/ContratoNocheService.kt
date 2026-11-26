@@ -154,15 +154,15 @@ class ContratoNocheService(
 
   private fun erroresYoutube(idBar: Long): Int = jdbc.queryForObject(
     """SELECT COUNT(*) FROM public.error_integracion
-       WHERE id_establecimiento = ? AND proveedor = 'YouTube' AND fecha_hora > CURRENT_TIMESTAMP - INTERVAL '30 minutes'""",
+       WHERE id_establecimiento = ? AND proveedor = 'YouTube' AND fecha_hora > CURRENT_TIMESTAMP - INTERVAL '5 minutes'""",
     Int::class.javaObjectType, idBar,
   ) ?: 0
 
-  /** Las canciones que no pudo poner YouTube en la última media hora, la más reciente primero. */
+  /** Las canciones que no pudo poner YouTube en los últimos 5 minutos, la más reciente primero. */
   private fun titulosConError(idBar: Long): List<String> = jdbc.query(
     """SELECT c.titulo FROM public.accion_admin a
        JOIN public.cancion c ON a.objetivo_tipo = 'cancion' AND c.id_cancion = a.objetivo_id
-       WHERE a.id_establecimiento = ? AND a.tipo = 'error_youtube' AND a.fecha > CURRENT_TIMESTAMP - INTERVAL '30 minutes'
+       WHERE a.id_establecimiento = ? AND a.tipo = 'error_youtube' AND a.fecha > CURRENT_TIMESTAMP - INTERVAL '5 minutes'
        ORDER BY a.fecha DESC, a.id_accion DESC""",
     { rs, _ -> rs.getString(1) }, idBar,
   )
@@ -175,7 +175,7 @@ class ContratoNocheService(
      */
     fun detalleErroresYoutube(titulos: List<String>, total: Int): String {
       val n = maxOf(total, titulos.size)
-      val cuenta = "($n en la última media hora)"
+      val cuenta = "($n en los últimos 5 minutos)"
       if (titulos.isEmpty()) return "algunas canciones $cuenta"
       val nombrados = titulos.take(3)
       val resto = n - nombrados.size

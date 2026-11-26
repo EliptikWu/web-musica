@@ -12,6 +12,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -68,6 +69,14 @@ class ContratoSesionesTest {
     assertEquals(AccionHorario.CERRAR, accion(noche = true, horario = false))
     assertEquals(AccionHorario.NADA, accion(noche = true, horario = false, forzado = true))
     assertEquals(AccionHorario.NADA, accion(noche = false, horario = false))
+  }
+
+  @Test
+  fun `abierta a mano antes de la hora pasa al horario cuando este empieza`() {
+    assertTrue(ContratoServicioService.quitarForzado(hayNoche = true, enHorario = true, forzado = true))
+    assertFalse(ContratoServicioService.quitarForzado(hayNoche = true, enHorario = false, forzado = true))
+    assertFalse(ContratoServicioService.quitarForzado(hayNoche = false, enHorario = true, forzado = true))
+    assertFalse(ContratoServicioService.quitarForzado(hayNoche = true, enHorario = true, forzado = false))
   }
 
   @Test
