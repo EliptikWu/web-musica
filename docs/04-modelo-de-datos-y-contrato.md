@@ -244,6 +244,12 @@ el video cuyo `snippet.categoryId` no es Música, igual que un short. La categor
 video, así que una canción subida como «Entretenimiento» tampoco entra. **`TBD`:** comprobar con
 `videoCategories.list` y la llave real que el 10 es Música (la referencia de la API no lo lista).
 
+Un video que la TV no pudo poner (errores 101 y 150 del reproductor: quien lo subió no deja ponerlo fuera
+de YouTube, aunque `videos.list` lo diga incrustable) queda en `cancion` como `restringida` y no incrustable:
+la búsqueda lo muestra con `no_embebible`, pedirlo responde `no_embebible` y la lista de la casa lo descarta. Con el
+error 100 (el video ya no existe o es privado) queda `no_disponible`. La bitácora lo dice en palabras del personal
+(lista del equipo, 2026-11-25).
+
 ## Pendiente del backend (`TBD`)
 
 Desde D25 (2026-11-25) el backend también es de este equipo: lo que se abra aquí va al backlog

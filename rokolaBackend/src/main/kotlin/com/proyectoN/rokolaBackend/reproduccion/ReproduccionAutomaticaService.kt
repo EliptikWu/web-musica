@@ -177,7 +177,12 @@ class ReproduccionAutomaticaService(
         val lista = buscarLista(sesion) ?: return
         val elegida = if (lista.modo == "aleatorio") lista.elementos[Random.nextInt(lista.elementos.size)]
             else lista.elementos[RotacionCasa.posicion(lista.cursor, lista.elementos.size)]
-        val video = youtube.obtenerVideoPorId(elegida.videoId)
+        // Una de la lista que la TV ya no pudo poner (error 101 o 150) se descarta como no disponible.
+        val restringida = jdbc.query(
+            "SELECT 1 FROM public.cancion WHERE youtube_video_id = ? AND disponibilidad = 'restringida'",
+            { _, _ -> true }, elegida.videoId,
+        ).isNotEmpty()
+        val video = if (restringida) null else youtube.obtenerVideoPorId(elegida.videoId)
         if (video == null) {
             // Disponibilidad verificada por videos.list, no por una presunción del backend.
             gestion.descartarElementoNoDisponible(idSesion, elegida.id)

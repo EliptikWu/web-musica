@@ -574,13 +574,25 @@ export function retirarPedido(estado: EstadoSim, dispositivo: string, solicitudI
 
 // ── La pantalla del bar reporta (RF-007, RF-019) ─────────────────────────────
 
+/** El error del reproductor en palabras del personal. Igual que `ContratoPantallaService.textoErrorReproductor`. */
+export function textoErrorReproductor(codigo: number | null): string {
+  if (codigo === 101 || codigo === 150) return `Quien subió el video no deja ponerlo fuera de YouTube (error ${codigo}); ya no se podrá pedir`;
+  if (codigo === 100) return 'El video ya no existe o es privado (error 100)';
+  if (codigo === null) return 'El reproductor falló sin dar un código';
+  return `El reproductor dio el error ${codigo}`;
+}
+
 export function reportarPantalla(estado: EstadoSim, reproduccionId: string, tipo: 'inicio' | 'fin' | 'error', ahora: number, codigoYoutube: number | null): Resultado<null> {
   const rep = estado.reproduccion;
   if (!rep || rep.id !== reproduccionId) return bien(null, 204); // ya avanzó: el reporte llega tarde y no hace nada
   if (tipo === 'inicio') return bien(null, 204);
   const c = cancion(estado, rep.video_id);
   if (tipo === 'error') {
-    accion(estado, ahora, null, 'error_youtube', objetivoCancion(c), `El reproductor dio el error ${codigoYoutube ?? 'desconocido'}`);
+    // 101 y 150: quien subió el video no deja ponerlo fuera de YouTube; 100: ya no existe. Como el
+    // backend, la canción queda sin poder pedirse (lista del equipo, 2026-11-25).
+    if (codigoYoutube === 101 || codigoYoutube === 150) estado.catalogo[c.video_id] = { ...c, embebible: false };
+    if (codigoYoutube === 100) estado.catalogo[c.video_id] = { ...c, disponibilidad: 'no_disponible' };
+    accion(estado, ahora, null, 'error_youtube', objetivoCancion(c), textoErrorReproductor(codigoYoutube));
     terminar(estado, ahora, 'error_video');
   } else {
     terminar(estado, ahora, 'completa');

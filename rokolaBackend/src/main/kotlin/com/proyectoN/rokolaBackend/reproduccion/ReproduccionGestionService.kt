@@ -158,8 +158,9 @@ class ReproduccionGestionService(
       || cola.listarPendientes(idSesion).isNotEmpty()) return
     val idBar = requireNotNull(sesion.establecimiento.id)
     val cambiadas = jdbc.update(
-      """UPDATE public.cancion SET disponibilidad = 'no_disponible', embebible = FALSE,
-               ultima_validacion = CURRENT_TIMESTAMP
+      // «restringida» (la TV no la pudo poner) se conserva: pedir la sigue rechazando por eso.
+      """UPDATE public.cancion SET disponibilidad = CASE WHEN disponibilidad = 'restringida' THEN 'restringida' ELSE 'no_disponible' END,
+               embebible = FALSE, ultima_validacion = CURRENT_TIMESTAMP
                WHERE id_cancion = (SELECT el.id_cancion FROM public.elemento_lista el
                  JOIN public.lista_defecto l ON l.id_lista = el.id_lista
                  WHERE el.id_elemento = ? AND l.id_establecimiento = ? AND l.activa = TRUE)""",

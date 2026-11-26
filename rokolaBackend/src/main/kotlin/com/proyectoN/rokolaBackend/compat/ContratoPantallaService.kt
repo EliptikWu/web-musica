@@ -172,9 +172,20 @@ class ContratoPantallaService(
                     "SELECT id_cancion FROM public.reproduccion WHERE id_reproduccion = ?",
                     { rs, _ -> rs.getLong(1) }, idReproduccion,
                 ).firstOrNull()
+                // 101 y 150: quien subió el video no deja ponerlo fuera de YouTube, aunque videos.list lo
+                // diga incrustable. Se anota en la canción para que no se pueda volver a pedir (lista del
+                // equipo, 2026-11-25); 100: el video ya no existe o es privado.
+                val marca = disponibilidadPorError(codigo)
+                if (marca != null && idCancion != null) {
+                    jdbc.update(
+                        """UPDATE public.cancion SET disponibilidad = ?, embebible = FALSE, ultima_validacion = CURRENT_TIMESTAMP
+                           WHERE id_cancion = ?""",
+                        marca, idCancion,
+                    )
+                }
                 bitacora.anotar(
                     null, "error_youtube", objetivoTipo = idCancion?.let { "cancion" }, objetivoId = idCancion,
-                    texto = "El reproductor dio el error ${codigo ?: "desconocido"}", idBar = idEstablecimiento,
+                    texto = textoErrorReproductor(codigo), idBar = idEstablecimiento,
                 )
             }
         }
@@ -218,4 +229,21 @@ class ContratoPantallaService(
 
     private fun fallo(status: HttpStatus, codigo: String, mensaje: String): ContratoApiException =
         ContratoApiException(status, codigo, mensaje)
+
+    companion object {
+        /** Qué se anota en la canción según el error del reproductor de YouTube; null si no dice nada del video. */
+        internal fun disponibilidadPorError(codigo: Int?): String? = when (codigo) {
+            101, 150 -> "restringida"
+            100 -> "no_disponible"
+            else -> null
+        }
+
+        /** El error del reproductor en palabras del personal, para la bitácora y el aviso del panel. */
+        internal fun textoErrorReproductor(codigo: Int?): String = when (codigo) {
+            101, 150 -> "Quien subió el video no deja ponerlo fuera de YouTube (error $codigo); ya no se podrá pedir"
+            100 -> "El video ya no existe o es privado (error 100)"
+            null -> "El reproductor falló sin dar un código"
+            else -> "El reproductor dio el error $codigo"
+        }
+    }
 }

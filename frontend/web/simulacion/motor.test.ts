@@ -191,7 +191,9 @@ describe('la noche avanza sola (RF-019, RF-020, RN-08)', () => {
     const { estado, ahora } = escena();
     reportarPantalla(estado, estado.reproduccion!.id, 'error', ahora, 150);
     expect(construirYo(estado, PERSONA).solicitudes.find((s) => s.solicitud_id === 's-rebelion')?.estado).toBe('no_disponible');
-    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'error_youtube', detalle: 'El reproductor dio el error 150' });
+    expect(estado.acciones.at(-1)).toMatchObject({ tipo: 'error_youtube', detalle: 'Quien subió el video no deja ponerlo fuera de YouTube (error 150); ya no se podrá pedir' });
+    // Con el 150 ya no se puede volver a pedir (lista del equipo, 2026-11-25).
+    expect(estado.catalogo['sim-rebelion']?.embebible).toBe(false);
     // El aviso del panel dice cuál fue, no solo cuántas.
     expect(Noche.parse(construirNoche(estado, ahora)).alertas).toContainEqual({ tipo: 'errores_youtube', detalle: '«Rebelión» (1 en los últimos 5 minutos)' });
     // A los 5 minutos el aviso se va solo.

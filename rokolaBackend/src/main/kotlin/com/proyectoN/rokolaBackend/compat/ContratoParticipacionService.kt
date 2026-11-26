@@ -69,6 +69,10 @@ class ContratoParticipacionService(
     // NOTA: mientras se valida el video se mantiene el lock de sesion; se debe optimizar al escalar.
     val video = validarVideo(videoId)
     if (!video.embebible) error(HttpStatus.UNPROCESSABLE_ENTITY, "no_embebible", "El video no admite reproducción incrustada")
+    // La TV ya probó este video y YouTube no lo dejó poner (error 101 o 150): videos.list lo sigue
+    // diciendo incrustable, pero manda lo que pasó en el reproductor (lista del equipo, 2026-11-25).
+    if (restringidaPorReproductor(videoId))
+      error(HttpStatus.UNPROCESSABLE_ENTITY, "no_embebible", "YouTube no deja poner este video fuera de su página")
     if (video.duracionSeg > config.duracion || video.duracionSeg <= 0)
       error(HttpStatus.UNPROCESSABLE_ENTITY, "muy_larga", "El video supera la duración máxima del bar")
 
@@ -428,6 +432,11 @@ class ContratoParticipacionService(
       error(HttpStatus.LOCKED, "servicio_no_disponible", "Fuera del horario de operación")
     return config
   }
+  private fun restringidaPorReproductor(videoId: String): Boolean = jdbc.query(
+    "SELECT 1 FROM public.cancion WHERE youtube_video_id = ? AND disponibilidad = 'restringida'",
+    { _, _ -> true }, videoId,
+  ).isNotEmpty()
+
   private fun validarVideo(id: String): YoutubeVideoResponse = try {
     youtube.obtenerVideoPorId(id)
       ?: error(HttpStatus.UNPROCESSABLE_ENTITY, "no_disponible", "Video no disponible en YouTube")
