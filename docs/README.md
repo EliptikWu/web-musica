@@ -98,7 +98,7 @@ El backlog del proyecto (lo lee `/next-task`). Lo cerrado va a
 | Tanda | Qué (IDs) | Depende de | Apetito | Estado |
 |---|---|---|---|---|
 | T7 | El JS del teléfono está en 191 kB (ADR-36 y ADR-37); el presupuesto *(propuesto)* es 180. Decidir con el equipo si se baja más (cargar el tiempo real después de la primera pantalla) o si se ajusta la meta, que nunca se midió contra RF-001 (doc 07, análisis #3) | Decisión del equipo | Pequeño | Abierta |
-| T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#4, #5, #6) y repetir allá la prueba de carga de `scripts/carga/` (en local ya se hizo: doc 07) | El backend desplegado (persona #1) | Mediano | Abierta |
+| T8 | Medir contra el backend desplegado lo que quedó sin medir del análisis del doc 07 (#4, #5, #6) y repetir allá la prueba de carga de `scripts/carga/` (en local ya se hizo: doc 07) | El despliegue (persona #1): Rockola está en la cuenta de Railway de otra persona del equipo; hace falta que despliegue o dé acceso al proyecto (2026-11-25) | Mediano | En espera |
 
 ## Reglas de estos documentos
 
