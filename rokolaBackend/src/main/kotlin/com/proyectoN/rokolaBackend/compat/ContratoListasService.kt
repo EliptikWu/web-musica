@@ -315,7 +315,7 @@ class ContratoListasService(
     panel.publicar(p.barSlug, setOf("listas", "noche", "bitacora"))
   }
 
-  private companion object {
+  internal companion object {
     const val DESPLAZAMIENTO = 1_000_000
 
     /** Sin mayúsculas, tildes ni espacios de más: «Clásicos» y «clasicos » son el mismo nombre. */
